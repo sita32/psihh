@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Психологам – Рядом</title>
+  <meta name="description" content="Работайте с клиентами онлайн через «Рядом»: клиенты из каталога, своё расписание и цена, чат и оплата при записи. Требования и как подключиться.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Общие стили сайта + стили страницы «Психологам» -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/for-psychologists.css">
+</head>
+<body class="fp-page">
+<script>document.documentElement.classList.add('js');</script>
+
+<!-- Иконки (те же, что на главной, + несколько для этой страницы) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Иконки (линейные, stroke = currentColor) -->
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-login" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.3 3.2-5 6.5-5s5.9 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-child" viewBox="0 0 24 24"><circle cx="8" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.5-3.4 2.6-5.3 5.5-5.3s5 1.9 5.5 5.3M14 20c.3-2.5 1.4-4 3-4s2.7 1.5 3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12.5" rx="2.5" fill="currentColor"/><circle cx="12" cy="12.25" r="2.6" fill="#fff"/><circle cx="6" cy="12.25" r="1" fill="#fff"/><circle cx="18" cy="12.25" r="1" fill="#fff"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- Лица-настроения: круг закрашивается currentColor, черты лица – тёмные -->
+    <symbol id="face-calm" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 44q8-8 16 0M57 44q8-8 16 0"/><path d="M38 64q12 10 24 0"/></g></symbol>
+    <symbol id="face-worried" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 34l12-5M72 34l-12-5"/><path d="M34 70q4-5 8 0t8 0 8 0 8 0"/></g><circle cx="36" cy="46" r="4.5" fill="#262A33"/><circle cx="64" cy="46" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-sad" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 40q8 6 16 0M56 40q8 6 16 0"/><path d="M38 72q12-10 24 0"/></g></symbol>
+    <symbol id="face-tired" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 45h16M57 45h16M42 68h16"/></g></symbol>
+    <symbol id="face-neutral" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M40 68q10-3 20 2"/></g><circle cx="36" cy="45" r="4.5" fill="#262A33"/><circle cx="64" cy="45" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-happy" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 46q8-9 16 0M57 46q8-9 16 0"/></g><path d="M35 60h30q-3 14-15 14t-15-14z" fill="#262A33"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.5 1.5 0 0 1 0 2.1l-6.1 6.1a1.5 1.5 0 0 1-2.1 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="8.3" cy="8.3" r="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2.2 2.2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a href="index.html" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <!-- Ссылки на отдельные страницы сайта (якоря главной сюда не добавляем) -->
+      <a href="catalog.html">Психологи</a>
+      <a href="tariffs.html">Тарифы</a>
+      <a href="for-psychologists.html" class="is-current" aria-current="page">Психологам</a>
+      <a href="about.html">О&nbsp;нас</a>
+    </nav>
+
+    <div class="header__actions">
+      <a href="quiz.html" class="btn btn--soft btn--sm">Подобрать психолога</a>
+      <a href="login.html" class="btn btn--icon" aria-label="Войти в личный кабинет" title="Войти">
+        <svg><use href="#i-login"/></svg>
+      </a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- =========================== 1. ПЕРВЫЙ ЭКРАН =========================== -->
+  <section class="fp-hero">
+    <div class="container fp-hero__grid">
+      <div class="fp-hero__text">
+        <span class="eyebrow">Психологам</span>
+        <h1>Работайте с&nbsp;клиентами – <em>остальное</em> возьмём на&nbsp;себя</h1>
+        <p class="fp-hero__lead">Клиенты, запись, напоминания, оплата и&nbsp;переписка – в&nbsp;одном кабинете. Вы&nbsp;занимаетесь терапией, а&nbsp;не&nbsp;поиском клиентов и&nbsp;таблицами.</p>
+        <div class="fp-hero__actions">
+          <a href="login.html#register-psychologist" class="btn btn--primary btn--lg">Подать заявку</a>
+          <a href="#join" class="btn btn--ghost btn--lg">Как подключиться</a>
+        </div>
+        <p class="fp-hero__note"><svg><use href="#i-shield"/></svg>Проверка документов – до&nbsp;3&nbsp;дней</p>
+      </div>
+
+      <!-- Картинка: рабочее место психолога -->
+      <div class="fp-hero__art">
+        <img src="assets/img/for-psy/workspace.webp" alt="Рабочее место психолога: ноутбук, блокнот, чай и растение" width="1400" height="624">
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 2. ЧТО ДАЁТ «РЯДОМ» =========================== -->
+  <section class="fp-sec">
+    <div class="container">
+      <span class="eyebrow">Что вы получаете</span>
+      <h2 class="h2">Всё для работы онлайн – в&nbsp;одном месте</h2>
+      <!-- Панели: наведение (или нажатие на телефоне) раскрывает описание -->
+      <div class="acc" data-acc>
+        <button type="button" class="acc__p is-open" style="--s:#DCF1EC;--b:#9FD3C7" aria-expanded="true">
+          <span class="acc__ic"><svg><use href="#i-users"/></svg></span>
+          <span class="acc__tv" aria-hidden="true">Клиенты приходят сами</span>
+          <span class="acc__body"><b>Клиенты приходят сами</b><span>Вас находят через каталог и&nbsp;подбор по&nbsp;запросу. Не&nbsp;нужно вести соцсети и&nbsp;искать клиентов.</span></span>
+        </button>
+        <button type="button" class="acc__p" style="--s:#FCF0C4;--b:#F8DE8A" aria-expanded="false">
+          <span class="acc__ic"><svg><use href="#i-tag"/></svg></span>
+          <span class="acc__tv" aria-hidden="true">Цену ставите вы</span>
+          <span class="acc__body"><b>Цену ставите вы</b><span>Стоимость сессии указываете в&nbsp;профиле и&nbsp;меняете в&nbsp;любой момент.</span></span>
+        </button>
+        <button type="button" class="acc__p" style="--s:#ECE6FC;--b:#CFC4F5" aria-expanded="false">
+          <span class="acc__ic"><svg><use href="#i-calendar"/></svg></span>
+          <span class="acc__tv" aria-hidden="true">Своё расписание</span>
+          <span class="acc__body"><b>Своё расписание</b><span>Отмечаете свободные окна – клиенты записываются только на&nbsp;них.</span></span>
+        </button>
+        <button type="button" class="acc__p" style="--s:#FCE0D7;--b:#F7BCA9" aria-expanded="false">
+          <span class="acc__ic"><svg><use href="#i-chat"/></svg></span>
+          <span class="acc__tv" aria-hidden="true">Чат с&nbsp;клиентами</span>
+          <span class="acc__body"><b>Чат с&nbsp;клиентами</b><span>Переписка, файлы и&nbsp;история встреч – внутри сервиса, без личного номера.</span></span>
+        </button>
+        <button type="button" class="acc__p" style="--s:#DCF1EC;--b:#9FD3C7" aria-expanded="false">
+          <span class="acc__ic"><svg><use href="#i-wallet"/></svg></span>
+          <span class="acc__tv" aria-hidden="true">Оплата при записи</span>
+          <span class="acc__body"><b>Оплата при записи</b><span>Клиент оплачивает сессию заранее, поэтому поздние отмены не&nbsp;бьют по&nbsp;доходу.</span></span>
+        </button>
+        <button type="button" class="acc__p" style="--s:#FCF0C4;--b:#F8DE8A" aria-expanded="false">
+          <span class="acc__ic"><svg><use href="#i-star"/></svg></span>
+          <span class="acc__tv" aria-hidden="true">Честные отзывы</span>
+          <span class="acc__body"><b>Честные отзывы</b><span>Оценку можно оставить только после проведённой сессии. Каждый отзыв проверяет модератор.</span></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 3. КАБИНЕТ: ВКЛАДКИ =========================== -->
+  <section class="fp-sec fp-sec--soft" id="cabinet">
+    <div class="container fp-cab">
+      <div class="fp-cab__text">
+        <span class="eyebrow">Личный кабинет</span>
+        <h2 class="h2">Так выглядит ваш рабочий кабинет</h2>
+        <div class="tabs" role="tablist" aria-label="Разделы кабинета" data-tabs>
+          <button type="button" role="tab" class="tab is-active" aria-selected="true" data-tab="schedule"><svg><use href="#i-calendar"/></svg><span><b>Расписание</b><small>Добавляйте, меняйте и&nbsp;удаляйте свободные окна</small></span></button>
+          <button type="button" role="tab" class="tab" aria-selected="false" data-tab="sessions"><svg><use href="#i-users"/></svg><span><b>Записи</b><small>Переносите или отменяйте сессии с&nbsp;указанием причины</small></span></button>
+          <button type="button" role="tab" class="tab" aria-selected="false" data-tab="chat"><svg><use href="#i-chat"/></svg><span><b>Чат</b><small>Отвечайте клиентам и&nbsp;отправляйте материалы</small></span></button>
+          <button type="button" role="tab" class="tab" aria-selected="false" data-tab="profile"><svg><use href="#i-file"/></svg><span><b>Профиль</b><small>Загружайте документы и&nbsp;следите за&nbsp;проверкой</small></span></button>
+        </div>
+      </div>
+
+      <!-- Макет окна кабинета (не настоящие данные) -->
+      <div class="mock" aria-hidden="true">
+        <div class="mock__bar"><i></i><i></i><i></i><span>ryadom.by/cabinet</span></div>
+        <div class="mock__body">
+          <div class="mock__pane is-active" data-pane="schedule">
+            <div class="mk-head"><b>19–23 октября</b><span class="mk-btn"><svg><use href="#i-plus"/></svg>Добавить окно</span></div>
+            <div class="mk-cal"><span class="mk-cal__h">Пн<b>19</b></span><span class="mk-cal__h">Вт<b>20</b></span><span class="mk-cal__h">Ср<b>21</b></span><span class="mk-cal__h">Чт<b>22</b></span><span class="mk-cal__h">Пт<b>23</b></span><span class="mk-cal__t">10:00</span><span class="mk-slot mk-slot--free">свободно</span><span class="mk-slot mk-slot--busy">Анна К.</span><span class="mk-slot mk-slot--none"></span><span class="mk-slot mk-slot--free">свободно</span><span class="mk-slot mk-slot--busy">Олег</span><span class="mk-cal__t">12:30</span><span class="mk-slot mk-slot--busy">Ирина</span><span class="mk-slot mk-slot--none"></span><span class="mk-slot mk-slot--free">свободно</span><span class="mk-slot mk-slot--busy">Анна К.</span><span class="mk-slot mk-slot--none"></span><span class="mk-cal__t">15:00</span><span class="mk-slot mk-slot--none"></span><span class="mk-slot mk-slot--free">свободно</span><span class="mk-slot mk-slot--busy">Павел</span><span class="mk-slot mk-slot--none"></span><span class="mk-slot mk-slot--free">свободно</span><span class="mk-cal__t">18:00</span><span class="mk-slot mk-slot--busy">Мария</span><span class="mk-slot mk-slot--busy">Ольга</span><span class="mk-slot mk-slot--free">свободно</span><span class="mk-slot mk-slot--free">свободно</span><span class="mk-slot mk-slot--none"></span></div>
+            <div class="mk-legend"><span><i class="mk-dot mk-dot--free"></i>свободно</span><span><i class="mk-dot mk-dot--busy"></i>запись клиента</span></div>
+          </div>
+
+          <div class="mock__pane" data-pane="sessions">
+            <div class="mk-head"><b>Ближайшие сессии</b><span class="mk-chip">5 на&nbsp;этой неделе</span></div>
+            <div class="mk-row"><img src="assets/img/avatars/a03.webp" alt=""><span><b>Анна К.</b>вт, 20 октября · 10:00</span><span class="mk-st mk-st--ok">Оплачена</span></div>
+            <div class="mk-row"><img src="assets/img/avatars/a10.webp" alt=""><span><b>Павел</b>ср, 21 октября · 15:00</span><span class="mk-st mk-st--move">Перенос</span></div>
+            <div class="mk-row mk-row--reason"><span>Причина: «Командировка, можно на&nbsp;пятницу?»</span><span class="mk-btn mk-btn--sm">Предложить время</span></div>
+            <div class="mk-row"><img src="assets/img/avatars/a07.webp" alt=""><span><b>Ольга</b>вт, 20 октября · 18:00</span><span class="mk-st mk-st--ok">Оплачена</span></div>
+            <div class="mk-row mk-row--muted"><img src="assets/img/avatars/a11.webp" alt=""><span><b>Мария</b>пн, 19 октября · 18:00</span><span class="mk-st mk-st--off">Отменена</span></div>
+          </div>
+
+          <div class="mock__pane" data-pane="chat">
+            <div class="mk-head"><b>Анна К.</b><span class="mk-chip mk-chip--online">в&nbsp;сети</span></div>
+            <div class="mk-chat">
+              <p class="mk-msg">Здравствуйте! Можно перед встречей прислать дневник наблюдений?</p>
+              <p class="mk-msg mk-msg--me">Конечно, прикрепляю шаблон. Заполните пару дней – обсудим во&nbsp;вторник.</p>
+              <p class="mk-msg mk-msg--me mk-msg--file"><svg><use href="#i-file"/></svg>Дневник мыслей.pdf</p>
+              <p class="mk-msg">Спасибо, до&nbsp;встречи 🙂</p>
+            </div>
+            <div class="mk-input"><span>Сообщение…</span><i><svg><use href="#i-send"/></svg></i></div>
+          </div>
+
+          <div class="mock__pane" data-pane="profile">
+            <div class="mk-head"><b>Профиль заполнен на&nbsp;90%</b><span class="mk-chip mk-chip--ok"><svg><use href="#i-check"/></svg>Документы проверены</span></div>
+            <div class="mk-progress"><i></i></div>
+            <div class="mk-doc"><svg><use href="#i-file"/></svg><span><b>Диплом БГУ, психология</b>PDF · 1,2 МБ</span><span class="mk-st mk-st--ok">Проверен</span></div>
+            <div class="mk-doc"><svg><use href="#i-file"/></svg><span><b>Сертификат КПТ, 2 года</b>PDF · 840 КБ</span><span class="mk-st mk-st--ok">Проверен</span></div>
+            <div class="mk-doc"><svg><use href="#i-file"/></svg><span><b>Супервизия, 2026</b>JPG · 610 КБ</span><span class="mk-st mk-st--wait">На&nbsp;проверке</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 6. КАК ПОДКЛЮЧИТЬСЯ =========================== -->
+  <section class="fp-sec fp-sec--blue" id="join">
+    <div class="container">
+      <div class="fp-join__head">
+        <div>
+          <span class="eyebrow">Подключение</span>
+          <h2 class="h2">Четыре шага до&nbsp;первого клиента</h2>
+        </div>
+        <a href="about.html#selection" class="fp-link">Подробнее об&nbsp;отборе <svg><use href="#i-arrow"/></svg></a>
+      </div>
+      <ol class="join" data-join>
+          <li class="jn rv" style="--d:0ms">
+            <span class="jn__num">1</span>
+            <span class="jn__time"><svg><use href="#i-clock"/></svg>10 минут</span>
+            <h3>Регистрация и&nbsp;анкета</h3>
+            <p>Заполните профиль: образование, методы, опыт и&nbsp;стоимость сессии.</p>
+          </li>
+          <li class="jn rv" style="--d:90ms">
+            <span class="jn__num">2</span>
+            <span class="jn__time"><svg><use href="#i-clock"/></svg>до&nbsp;3 дней</span>
+            <h3>Проверка документов</h3>
+            <p>Модератор сверяет дипломы и&nbsp;сертификаты, которые вы загрузили.</p>
+          </li>
+          <li class="jn rv" style="--d:180ms">
+            <span class="jn__num">3</span>
+            <span class="jn__time"><svg><use href="#i-clock"/></svg>30 минут</span>
+            <h3>Собеседование</h3>
+            <p>Видеовстреча с&nbsp;психологом-экспертом: поговорим о&nbsp;вашем подходе.</p>
+          </li>
+          <li class="jn rv" style="--d:270ms">
+            <span class="jn__num">4</span>
+            <span class="jn__time"><svg><use href="#i-clock"/></svg>сразу</span>
+            <h3>Профиль в&nbsp;каталоге</h3>
+            <p>Отмечаете свободное время – и&nbsp;клиенты могут записываться.</p>
+          </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- =========================== 7. ВОПРОСЫ (оформление как на главной) =========================== -->
+  <section class="section" id="faq">
+    <div class="container">
+      <h2 class="h2 faq__title">Вопросы психологов</h2>
+      <div class="faq__list">
+      <details class="faq__item" open>
+        <summary>Можно ли совмещать с&nbsp;частной практикой?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Да. «Рядом» – дополнительный источник клиентов. Вы сами решаете, сколько окон открыть в&nbsp;расписании, и&nbsp;можете в&nbsp;любой момент закрыть запись.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Кто устанавливает стоимость сессии?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Вы. Цена указывается в&nbsp;профиле и&nbsp;видна клиентам в&nbsp;каталоге. Изменить её можно в&nbsp;любой момент – для уже созданных записей сохранится прежняя стоимость.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Что если клиент не&nbsp;пришёл или отменил запись?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Клиент может бесплатно отменить или перенести сессию не&nbsp;позднее чем за&nbsp;24&nbsp;часа. При более поздней отмене или неявке оплата сохраняется за&nbsp;вами.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Сколько времени занимает проверка?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Обычно до&nbsp;3&nbsp;дней на&nbsp;проверку документов и&nbsp;ещё 30&nbsp;минут на&nbsp;собеседование. Статус заявки виден в&nbsp;личном кабинете.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Сколько клиентов нужно брать?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Минимума нет. Можно начать с&nbsp;2–3 окон в&nbsp;неделю и&nbsp;добавлять время, когда будете готовы.</p>
+      </details>
+      </div>
+      <p class="faq__more">Не&nbsp;нашли ответ? Напишите нам – <a href="mailto:support@ryadom.by">support@ryadom.by</a></p>
+    </div>
+  </section>
+
+  <!-- =========================== 8. ФИНАЛЬНЫЙ ПРИЗЫВ =========================== -->
+  <section class="fp-final">
+    <div class="container fp-final__grid">
+      <div class="fp-final__art rv"><img src="assets/img/for-psy/door.webp" alt="Открытая дверь, растение и коврик" width="1000" height="740" loading="lazy"></div>
+      <div class="fp-final__text rv" style="--d:120ms">
+        <h2 class="h2">Двери открыты</h2>
+        <p>Подайте заявку – модератор проверит документы и&nbsp;напишет вам в&nbsp;течение 3&nbsp;дней. Если остались вопросы, напишите в&nbsp;поддержку.</p>
+        <div class="fp-final__actions">
+          <a href="login.html#register-psychologist" class="btn btn--primary btn--lg">Подать заявку</a>
+          <a href="mailto:support@ryadom.by" class="fp-link">support@ryadom.by</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="index.html" class="logo logo--light">
+          <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="logo__text">рядом</span>
+        </a>
+        <p>Сервис для поиска психологов и&nbsp;записи на&nbsp;онлайн-сессии.</p>
+      </div>
+      <nav class="footer__col" aria-label="Клиентам">
+        <b>Клиентам</b>
+        <a href="quiz.html">Подобрать психолога</a>
+        <a href="catalog.html">Каталог специалистов</a>
+        <a href="tariffs.html">Тарифы и&nbsp;оплата</a>
+        <a href="index.html#faq">Частые вопросы</a>
+        <a href="about.html">О&nbsp;сервисе</a>
+      </nav>
+      <nav class="footer__col" aria-label="Психологам">
+        <b>Психологам</b>
+        <a href="login.html#register-psychologist">Подать заявку</a>
+        <a href="for-psychologists.html">Условия работы</a>
+        <a href="index.html#check">Требования к&nbsp;специалистам</a>
+      </nav>
+      <nav class="footer__col" aria-label="Аккаунт">
+        <b>Аккаунт</b>
+        <a href="login.html">Войти</a>
+        <a href="login.html#register">Регистрация</a>
+        <a href="mailto:support@ryadom.by">Поддержка</a>
+      </nav>
+    </div>
+
+    <!-- Важно для сервиса психологической помощи: не заменяет экстренную помощь -->
+    <div class="footer__sos">
+      <b>Сервис не&nbsp;оказывает экстренную помощь.</b>
+      Если вам или кому-то рядом угрожает опасность – звоните <a href="tel:103">103</a> или <a href="tel:112">112</a>.
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 «Рядом». Курсовой проект, БГТУ</span>
+      <a href="privacy.html">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/for-psychologists.js"></script>
+</body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Рядом – подбор психолога онлайн</title>
+  <meta name="description" content="Веб-приложение для поиска специалистов в сфере ментального здоровья: подбор психолога, запись на сессию, чат со специалистом.">
+
+  <!-- Шрифт Montserrat (как у YouTalk): заголовки 700–800, текст 500 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- =====================================================================
+     SVG-спрайт: иконки и «лица-настроения». Подключаются через <use href="#id">
+     ===================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Иконки (линейные, stroke = currentColor) -->
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-login" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.3 3.2-5 6.5-5s5.9 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-child" viewBox="0 0 24 24"><circle cx="8" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.5-3.4 2.6-5.3 5.5-5.3s5 1.9 5.5 5.3M14 20c.3-2.5 1.4-4 3-4s2.7 1.5 3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12.5" rx="2.5" fill="currentColor"/><circle cx="12" cy="12.25" r="2.6" fill="#fff"/><circle cx="6" cy="12.25" r="1" fill="#fff"/><circle cx="18" cy="12.25" r="1" fill="#fff"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- Лица-настроения: круг закрашивается currentColor, черты лица – тёмные -->
+    <symbol id="face-calm" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 44q8-8 16 0M57 44q8-8 16 0"/><path d="M38 64q12 10 24 0"/></g></symbol>
+    <symbol id="face-worried" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 34l12-5M72 34l-12-5"/><path d="M34 70q4-5 8 0t8 0 8 0 8 0"/></g><circle cx="36" cy="46" r="4.5" fill="#262A33"/><circle cx="64" cy="46" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-sad" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 40q8 6 16 0M56 40q8 6 16 0"/><path d="M38 72q12-10 24 0"/></g></symbol>
+    <symbol id="face-tired" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 45h16M57 45h16M42 68h16"/></g></symbol>
+    <symbol id="face-neutral" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M40 68q10-3 20 2"/></g><circle cx="36" cy="45" r="4.5" fill="#262A33"/><circle cx="64" cy="45" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-happy" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 46q8-9 16 0M57 46q8-9 16 0"/></g><path d="M35 60h30q-3 14-15 14t-15-14z" fill="#262A33"/></symbol>
+  </defs>
+</svg>
+
+
+<!-- =========================== ШАПКА ================================== -->
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a href="#top" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <!-- Ссылки на отдельные страницы сайта (якоря главной сюда не добавляем) -->
+      <a href="catalog.html">Психологи</a>
+      <a href="tariffs.html">Тарифы</a>
+      <a href="for-psychologists.html">Психологам</a>
+      <a href="about.html">О&nbsp;нас</a>
+    </nav>
+
+    <div class="header__actions">
+      <a href="quiz.html" class="btn btn--soft btn--sm">Подобрать психолога</a>
+      <a href="login.html" class="btn btn--icon" aria-label="Войти в личный кабинет" title="Войти">
+        <svg><use href="#i-login"/></svg>
+      </a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+
+<main>
+
+<!-- =========================== ПЕРВЫЙ ЭКРАН =========================== -->
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__text">
+      <ul class="chips" aria-label="Особенности сервиса">
+        <li class="chip">Онлайн</li>
+        <li class="chip">Проверенные специалисты</li>
+        <li class="chip">Чат с психологом</li>
+      </ul>
+
+      <h1 class="hero__title">Психолог, с&nbsp;которым будет <span class="mark">спокойно</span></h1>
+      <p class="hero__lead">Ответьте на&nbsp;несколько вопросов – подберём специалистов под ваш запрос. Записывайтесь в&nbsp;удобное время и&nbsp;общайтесь с&nbsp;психологом в&nbsp;чате прямо на&nbsp;платформе.</p>
+
+      <div class="hero__cta">
+        <a href="quiz.html" class="btn btn--primary btn--lg">Подобрать психолога</a>
+        <a href="catalog.html" class="btn btn--ghost btn--lg">Смотреть каталог</a>
+      </div>
+
+      <p class="hero__price"><b>от 45 BYN</b> за сессию · 50 минут</p>
+
+      <!-- Строка доверия: количество специалистов и средняя оценка -->
+      <div class="trust">
+        <div class="trust__faces" aria-hidden="true">
+          <svg style="color:var(--yellow)"><use href="#face-calm"/></svg>
+          <svg style="color:var(--coral)"><use href="#face-happy"/></svg>
+          <svg style="color:var(--blue)"><use href="#face-calm"/></svg>
+          <svg style="color:var(--violet)"><use href="#face-happy"/></svg>
+        </div>
+        <p class="trust__text"><b>300+ психологов</b><br>с проверенными дипломами</p>
+        <span class="trust__sep" aria-hidden="true"></span>
+        <p class="trust__rating"><b><svg><use href="#i-star"/></svg>4,9</b>средняя оценка</p>
+      </div>
+    </div>
+
+    <div class="hero__art">
+      <img src="assets/img/hero.jpg" alt="Видеосессия: психолог общается с клиентами онлайн" width="1400" height="894">
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================== С ЧЕМ ПОМОГАЕМ ========================= -->
+<section class="section section--soft" id="requests">
+  <div class="container">
+    <div class="section__head">
+      <h2 class="h2">С&nbsp;чем можно прийти к&nbsp;психологу</h2>
+      <p class="section__sub">Запросом может быть любая тема, которая важна для вас. Выберите близкую – покажем специалистов, которые с&nbsp;ней работают.</p>
+    </div>
+
+    <div class="req-grid">
+      <a href="catalog.html?topic=anxiety" class="req">
+        <span class="tag tag--yellow">Тревожность</span>
+        <p class="req__quote">«Постоянно накручиваю себя и&nbsp;не&nbsp;могу расслабиться»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:var(--yellow)"><use href="#face-worried"/></svg>
+      </a>
+      <a href="catalog.html?topic=relations" class="req">
+        <span class="tag tag--coral">Отношения</span>
+        <p class="req__quote">«Мы постоянно ссоримся и&nbsp;не&nbsp;слышим друг друга»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:var(--coral)"><use href="#face-sad"/></svg>
+      </a>
+      <a href="catalog.html?topic=stress" class="req">
+        <span class="tag tag--blue">Стресс</span>
+        <p class="req__quote">«Всего навалилось, не&nbsp;знаю, за&nbsp;что хвататься»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:var(--blue)"><use href="#face-worried"/></svg>
+      </a>
+      <a href="catalog.html?topic=apathy" class="req">
+        <span class="tag tag--grey">Апатия</span>
+        <p class="req__quote">«Ничего не&nbsp;радует и&nbsp;ничего не&nbsp;хочется»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:#C9CED8"><use href="#face-neutral"/></svg>
+      </a>
+      <a href="catalog.html?topic=burnout" class="req">
+        <span class="tag tag--yellow">Выгорание</span>
+        <p class="req__quote">«Работаю через силу, коллеги раздражают»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:var(--yellow)"><use href="#face-tired"/></svg>
+      </a>
+      <a href="catalog.html?topic=selfesteem" class="req">
+        <span class="tag tag--violet">Самооценка</span>
+        <p class="req__quote">«Сравниваю себя с&nbsp;другими и&nbsp;всегда проигрываю»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:var(--violet)"><use href="#face-sad"/></svg>
+      </a>
+      <a href="catalog.html?topic=motivation" class="req">
+        <span class="tag tag--blue">Прокрастинация</span>
+        <p class="req__quote">«Откладываю важное до&nbsp;последнего»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:var(--blue)"><use href="#face-tired"/></svg>
+      </a>
+      <a href="catalog.html?topic=loss" class="req">
+        <span class="tag tag--coral">Утрата</span>
+        <p class="req__quote">«Не&nbsp;могу пережить расставание или потерю»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:var(--coral)"><use href="#face-sad"/></svg>
+      </a>
+      <a href="catalog.html" class="req">
+        <span class="tag tag--grey">Другое</span>
+        <p class="req__quote">«Мне плохо, но&nbsp;я&nbsp;не&nbsp;понимаю, что со&nbsp;мной»</p>
+        <span class="req__link">Найти психолога <svg><use href="#i-arrow"/></svg></span>
+        <svg class="req__face" style="color:#C9CED8"><use href="#face-neutral"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================== КАК ЭТО РАБОТАЕТ ======================= -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="section__head">
+      <h2 class="h2">Как начать терапию</h2>
+      <p class="section__sub">Четыре шага от&nbsp;анкеты до&nbsp;первой сессии. Всё – в&nbsp;одном личном кабинете.</p>
+    </div>
+
+    <!-- Раскрывающиеся панели: активная широкая, остальные сжаты до цифры.
+         Шаги переключаются сами (полоска-таймер), по наведению, клику или с клавиатуры – см. main.js -->
+    <ol class="steps" data-steps>
+      <!-- Шаг 1 -->
+      <li class="step step--yellow is-active" tabindex="0" aria-expanded="true">
+        <span class="step__num">01</span>
+        <span class="step__label" aria-hidden="true">Заполните анкету</span>
+        <div class="step__body">
+          <div class="step__text">
+            <h3 class="h3">Заполните анкету</h3>
+            <p>Расскажите, как вы себя чувствуете и&nbsp;с&nbsp;чем нужна помощь. Укажите, важны ли пол, возраст и&nbsp;подход специалиста.</p>
+          </div>
+          <div class="mock mock--mood" aria-hidden="true">
+          <span class="mock__title">Как вы себя чувствуете?</span>
+          <div class="mood-row">
+            <span><svg style="color:var(--yellow)"><use href="#face-happy"/></svg>Хорошо</span>
+            <span><svg style="color:var(--yellow-soft)"><use href="#face-neutral"/></svg>Нормально</span>
+            <span class="is-active"><svg style="color:var(--blue-soft)"><use href="#face-sad"/></svg>Сложно</span>
+            <span><svg style="color:var(--coral-soft)"><use href="#face-worried"/></svg>Тяжело</span>
+          </div>
+        </div>
+        </div>
+        <span class="step__timer" aria-hidden="true"><i></i></span>
+      </li>
+      <!-- Шаг 2 -->
+      <li class="step step--blue" tabindex="0" aria-expanded="false">
+        <span class="step__num">02</span>
+        <span class="step__label" aria-hidden="true">Выберите специалиста</span>
+        <div class="step__body">
+          <div class="step__text">
+            <h3 class="h3">Выберите специалиста</h3>
+            <p>Изучите подобранные анкеты: образование, методы работы, стоимость и&nbsp;отзывы. Или найдите психолога сами в&nbsp;каталоге с&nbsp;фильтрами.</p>
+          </div>
+          <div class="mock mock--profiles" aria-hidden="true">
+          <div class="mini-profile">
+            <span class="ava ava--sm"><img src="assets/img/psychologists/p01-sq.webp" alt=""></span>
+            <div><b>Марина В.</b><small>КПТ · опыт 9 лет</small></div>
+            <span class="badge-ok"><svg><use href="#i-shield"/></svg></span>
+          </div>
+          <div class="mini-profile mini-profile--back">
+            <span class="ava ava--sm"><img src="assets/img/psychologists/p06-sq.webp" alt=""></span>
+            <div><b>Дмитрий С.</b><small>Гештальт · опыт 7 лет</small></div>
+          </div>
+        </div>
+        </div>
+        <span class="step__timer" aria-hidden="true"><i></i></span>
+      </li>
+      <!-- Шаг 3 -->
+      <li class="step step--coral" tabindex="0" aria-expanded="false">
+        <span class="step__num">03</span>
+        <span class="step__label" aria-hidden="true">Запишитесь на&nbsp;сессию</span>
+        <div class="step__body">
+          <div class="step__text">
+            <h3 class="h3">Запишитесь на&nbsp;сессию</h3>
+            <p>Выберите свободное время в&nbsp;расписании психолога. Отменить или перенести запись бесплатно можно за&nbsp;24&nbsp;часа.</p>
+          </div>
+          <div class="mock mock--slots" aria-hidden="true">
+          <span class="mock__title">Четверг, 15 октября</span>
+          <div class="slots">
+            <span>10:00</span><span class="is-off">11:00</span><span>12:30</span>
+            <span class="is-active">15:00</span><span>17:00</span><span class="is-off">18:30</span>
+          </div>
+        </div>
+        </div>
+        <span class="step__timer" aria-hidden="true"><i></i></span>
+      </li>
+      <!-- Шаг 4 -->
+      <li class="step step--teal" tabindex="0" aria-expanded="false">
+        <span class="step__num">04</span>
+        <span class="step__label" aria-hidden="true">Общайтесь в&nbsp;чате</span>
+        <div class="step__body">
+          <div class="step__text">
+            <h3 class="h3">Общайтесь в&nbsp;чате и&nbsp;на&nbsp;сессиях</h3>
+            <p>Задать вопрос психологу или договориться о&nbsp;встрече можно во&nbsp;встроенном чате. История сессий хранится в&nbsp;личном кабинете.</p>
+          </div>
+          <div class="mock mock--chat" aria-hidden="true">
+          <span class="bubble bubble--in">Здравствуйте! Жду вас в&nbsp;четверг в&nbsp;15:00 🙂</span>
+          <span class="bubble bubble--out">Спасибо, буду!</span>
+        </div>
+        </div>
+        <span class="step__timer" aria-hidden="true"><i></i></span>
+      </li>
+    </ol>
+
+    <div class="center">
+      <a href="quiz.html" class="btn btn--primary btn--lg">Заполнить анкету</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================== КАТАЛОГ (превью) ======================= -->
+<section class="section section--soft" id="catalog">
+  <div class="container">
+    <div class="section__head">
+      <h2 class="h2">Подобрать психолога в&nbsp;сервисе «Рядом»</h2>
+      <p class="section__sub">В&nbsp;профиле – образование, методы работы, стоимость, свободное время и&nbsp;отзывы клиентов.</p>
+    </div>
+
+    <div class="psy-grid">
+      <!-- Карточка психолога -->
+      <article class="psy">
+        <header class="psy__head">
+          <span class="ava ava--lg"><img src="assets/img/psychologists/p01-sq.webp" alt="Марина Волкова" loading="lazy"></span>
+          <div>
+            <span class="psy__role">Клинический психолог · КПТ</span>
+            <h3 class="psy__name">Марина</h3>
+            <span class="psy__meta">34 года&nbsp;&nbsp;•&nbsp;&nbsp;Опыт 9 лет</span>
+            <span class="verified"><svg><use href="#i-shield"/></svg>Документы проверены</span>
+          </div>
+        </header>
+
+        <dl class="psy__info">
+          <div><dt>Ближайшая дата</dt><dd class="is-soon"><svg><use href="#i-calendar"/></svg>завтра<svg class="psy__bolt" aria-label="Скоро"><use href="#i-bolt"/></svg></dd></div>
+          <div><dt>Стоимость</dt><dd><svg><use href="#i-wallet"/></svg>от 65 BYN</dd></div>
+          <div><dt>Рейтинг</dt><dd><svg class="star"><use href="#i-star"/></svg>4,9 <small>· 38 отзывов</small></dd></div>
+        </dl>
+
+        <div class="psy__req">
+          <span class="psy__label">Работает с запросами</span>
+          <ul class="checks"><li><svg><use href="#i-check"/></svg>Тревожность</li><li><svg><use href="#i-check"/></svg>Выгорание</li></ul>
+        </div>
+
+        <a href="psychologist.html?id=1" class="btn btn--light-grey btn--block">Подробнее</a>
+      </article>
+      <!-- Карточка психолога -->
+      <article class="psy">
+        <header class="psy__head">
+          <span class="ava ava--lg"><img src="assets/img/psychologists/p06-sq.webp" alt="Дмитрий Соколов" loading="lazy"></span>
+          <div>
+            <span class="psy__role">Психолог · Гештальт</span>
+            <h3 class="psy__name">Дмитрий</h3>
+            <span class="psy__meta">41 год&nbsp;&nbsp;•&nbsp;&nbsp;Опыт 12 лет</span>
+            <span class="verified"><svg><use href="#i-shield"/></svg>Документы проверены</span>
+          </div>
+        </header>
+
+        <dl class="psy__info">
+          <div><dt>Ближайшая дата</dt><dd class=""><svg><use href="#i-calendar"/></svg>16 октября</dd></div>
+          <div><dt>Стоимость</dt><dd><svg><use href="#i-wallet"/></svg>от 80 BYN</dd></div>
+          <div><dt>Рейтинг</dt><dd><svg class="star"><use href="#i-star"/></svg>4,8 <small>· 52 отзыва</small></dd></div>
+        </dl>
+
+        <div class="psy__req">
+          <span class="psy__label">Работает с запросами</span>
+          <ul class="checks"><li><svg><use href="#i-check"/></svg>Отношения</li><li><svg><use href="#i-check"/></svg>Утрата</li></ul>
+        </div>
+
+        <a href="psychologist.html?id=2" class="btn btn--light-grey btn--block">Подробнее</a>
+      </article>
+      <!-- Карточка психолога -->
+      <article class="psy">
+        <header class="psy__head">
+          <span class="ava ava--lg"><img src="assets/img/psychologists/p07-sq.webp" alt="Алина Ковалёва" loading="lazy"></span>
+          <div>
+            <span class="psy__role">Психолог · ACT, КПТ</span>
+            <h3 class="psy__name">Алина</h3>
+            <span class="psy__meta">29 лет&nbsp;&nbsp;•&nbsp;&nbsp;Опыт 5 лет</span>
+            <span class="verified"><svg><use href="#i-shield"/></svg>Документы проверены</span>
+          </div>
+        </header>
+
+        <dl class="psy__info">
+          <div><dt>Ближайшая дата</dt><dd class="is-soon"><svg><use href="#i-calendar"/></svg>сегодня<svg class="psy__bolt" aria-label="Скоро"><use href="#i-bolt"/></svg></dd></div>
+          <div><dt>Стоимость</dt><dd><svg><use href="#i-wallet"/></svg>от 50 BYN</dd></div>
+          <div><dt>Рейтинг</dt><dd><svg class="star"><use href="#i-star"/></svg>5,0 <small>· 17 отзывов</small></dd></div>
+        </dl>
+
+        <div class="psy__req">
+          <span class="psy__label">Работает с запросами</span>
+          <ul class="checks"><li><svg><use href="#i-check"/></svg>Прокрастинация</li><li><svg><use href="#i-check"/></svg>Стресс</li></ul>
+        </div>
+
+        <a href="psychologist.html?id=3" class="btn btn--light-grey btn--block">Подробнее</a>
+      </article>
+    </div>
+
+    <div class="center">
+      <a href="catalog.html" class="btn btn--outline btn--lg btn--wide">Посмотреть всех психологов <svg><use href="#i-chevron"/></svg></a>
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================== ПРОВЕРКА СПЕЦИАЛИСТОВ ================== -->
+<section class="section" id="check">
+  <div class="container">
+    <div class="check">
+      <div class="check__head">
+        <h2 class="h2">Как мы проверяем психологов</h2>
+        <p class="section__sub">Каждую анкету вручную проверяет модератор – <mark class="hl">проходят только 7% заявок</mark>. Прошедшие проверку получают в&nbsp;профиле отметку «Документы проверены».</p>
+      </div>
+
+      <!-- Схема: проверки слева и справа, иллюстрация в центре -->
+      <div class="check__scheme">
+        <ul class="check__list check__list--left">
+          <li>
+            <b>Профильное образование</b>
+          </li>
+          <li>
+            <b>Обучение методу от&nbsp;2&nbsp;лет</b>
+          </li>
+          <li>
+            <b>Научные методы терапии</b>
+          </li>
+        </ul>
+
+        <div class="check__art">
+          <img src="assets/img/check.webp" alt="Модератор с лупой проверяет диплом психолога" width="1200" height="876" loading="lazy">
+        </div>
+
+        <ul class="check__list">
+          <li>
+            <b>Регулярная супервизия</b>
+          </li>
+          <li>
+            <b>Опыт личной терапии</b>
+          </li>
+          <li>
+            <b>Конфиденциальность</b>
+          </li>
+        </ul>
+      </div>
+
+      <p class="check__note"><svg><use href="#i-shield"/></svg>Отзывы тоже проходят модерацию: оставить отзыв можно только после проведённой сессии</p>
+      <a href="about.html#selection" class="check__more">Как проходит отбор – 5&nbsp;этапов <svg><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================== ФОРМАТЫ И ЦЕНЫ ========================= -->
+<section class="section" id="formats">
+  <div class="container">
+    <div class="section__head">
+      <h2 class="h2">Форматы работы</h2>
+      <p class="section__sub">Сессия длится 50&nbsp;минут и&nbsp;проходит по&nbsp;видеосвязи. Стоимость зависит от&nbsp;опыта специалиста.</p>
+    </div>
+
+    <div class="formats">
+      <div class="format format--blue">
+        <h3 class="h3">Индивидуальная</h3>
+        <p>Вы и&nbsp;психолог. Работа с&nbsp;личным запросом в&nbsp;безопасном пространстве.</p>
+        <div class="format__price">от 45 BYN <small>за сессию</small></div>
+        <img class="format__art" src="assets/img/formats/individual.webp" alt="Девушка спокойно отдыхает в кресле" width="800" height="760" loading="lazy">
+      </div>
+      <div class="format format--coral">
+        <h3 class="h3">Парная</h3>
+        <p>Для партнёров, которые хотят разобраться в&nbsp;отношениях и&nbsp;научиться договариваться.</p>
+        <div class="format__price">от 80 BYN <small>за сессию</small></div>
+        <img class="format__art" src="assets/img/formats/couple.webp" alt="Пара стоит рядом" width="800" height="760" loading="lazy">
+      </div>
+      <div class="format format--yellow">
+        <h3 class="h3">С&nbsp;ребёнком</h3>
+        <p>Психолог работает с&nbsp;ребёнком или подростком вместе с&nbsp;родителем.</p>
+        <div class="format__price">от 75 BYN <small>за сессию</small></div>
+        <img class="format__art" src="assets/img/formats/child.webp" alt="Мама с дочкой и игрушечным зайцем" width="800" height="760" loading="lazy">
+      </div>
+    </div>
+    <a href="tariffs.html" class="check__more">Подробнее о&nbsp;стоимости и&nbsp;оплате <svg><use href="#i-arrow"/></svg></a>
+  </div>
+</section>
+
+
+<!-- =========================== ОТЗЫВЫ ================================= -->
+<section class="section section--soft" id="reviews">
+  <div class="container">
+    <div class="section__head section__head--row">
+      <div>
+        <h2 class="h2">Отзывы клиентов</h2>
+        <p class="section__sub"><span class="rating-inline"><svg><use href="#i-star"/></svg>4,9</span> средняя оценка · отзыв можно оставить только после сессии</p>
+      </div>
+      <!-- Стрелки слайдера -->
+      <div class="slider__nav">
+        <button class="slider__btn slider__btn--prev" type="button" aria-label="Предыдущие отзывы"><svg><use href="#i-arrow"/></svg></button>
+        <button class="slider__btn" type="button" aria-label="Следующие отзывы"><svg><use href="#i-arrow"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Слайдер: прокрутка с привязкой (scroll-snap), стрелки и точки управляются из main.js -->
+    <div class="slider" data-slider>
+      <div class="slider__track">
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--yellow)"><use href="#face-calm"/></svg>
+            <div><b>Полина</b><small>6 сессий</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Удивилась, как легко было начать</h3>
+          <p>Это была моя первая терапия, и&nbsp;я&nbsp;очень переживала. Анкета заняла пару минут, а&nbsp;психолог с&nbsp;первой встречи расположила к&nbsp;себе. Чувствую, что мне действительно помогают.</p>
+          <span class="tag tag--sm tag--yellow review__tag">Тревожность</span>
+        </article>
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--blue)"><use href="#face-calm"/></svg>
+            <div><b>Ольга</b><small>10 сессий</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Нашли специалиста для пары</h3>
+          <p>Долго не&nbsp;могли решиться на&nbsp;парную терапию. Здесь сразу видно, кто из&nbsp;психологов работает с&nbsp;парами и&nbsp;сколько это стоит. Продолжаем ходить вместе.</p>
+          <span class="tag tag--sm tag--coral review__tag">Отношения</span>
+        </article>
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--coral)"><use href="#face-happy"/></svg>
+            <div><b>Виктор</b><small>4 сессии</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Удобно, что всё в&nbsp;одном месте</h3>
+          <p>Запись, перенос, чат с&nbsp;психологом – всё в&nbsp;личном кабинете. Один раз перенёс сессию за&nbsp;день, без проблем.</p>
+          <span class="tag tag--sm tag--yellow review__tag">Выгорание</span>
+        </article>
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--violet)"><use href="#face-happy"/></svg>
+            <div><b>Ксения</b><small>3 сессии</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Буквально с&nbsp;пары фраз поняла суть</h3>
+          <p>Очень располагающий специалист. Нащупала больные места и&nbsp;сказала верные слова.</p>
+          <span class="tag tag--sm tag--violet review__tag">Самооценка</span>
+        </article>
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--yellow)"><use href="#face-calm"/></svg>
+            <div><b>Тамара</b><small>8 сессий</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Понравилось, что видно образование</h3>
+          <p>Для меня было важно понимать, кто передо мной. В&nbsp;профиле указаны дипломы и&nbsp;курсы, а&nbsp;отметка о&nbsp;проверке добавляет доверия.</p>
+          <span class="tag tag--sm tag--blue review__tag">Стресс</span>
+        </article>
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--coral)"><use href="#face-calm"/></svg>
+            <div><b>Зоя</b><small>2 сессии</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Стало спокойнее уже после первой встречи</h3>
+          <p>К&nbsp;концу сессии я&nbsp;была более спокойной и&nbsp;расслабленной. Записалась на&nbsp;следующую.</p>
+          <span class="tag tag--sm tag--yellow review__tag">Тревожность</span>
+        </article>
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--blue)"><use href="#face-happy"/></svg>
+            <div><b>Андрей</b><small>5 сессий</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Наконец перестал всё откладывать</h3>
+          <p>Разобрались, почему я&nbsp;тяну до&nbsp;последнего. Получил понятные упражнения, и&nbsp;они правда работают.</p>
+          <span class="tag tag--sm tag--blue review__tag">Прокрастинация</span>
+        </article>
+        <article class="review">
+          <header class="review__head">
+            <svg class="review__ava" style="color:var(--violet)"><use href="#face-calm"/></svg>
+            <div><b>Мария</b><small>7 сессий</small></div>
+            <span class="stars" aria-label="5 из 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          </header>
+          <h3 class="review__title">Помогли пережить тяжёлый период</h3>
+          <p>После расставания не&nbsp;могла прийти в&nbsp;себя. Психолог бережно выслушала и&nbsp;помогла найти опору.</p>
+          <span class="tag tag--sm tag--coral review__tag">Утрата</span>
+        </article>
+      </div>
+      <div class="slider__dots" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================== FAQ =================================== -->
+<section class="section" id="faq">
+  <div class="container">
+    <h2 class="h2 faq__title">Частые вопросы</h2>
+
+    <div class="faq__list">
+      <details class="faq__item" open>
+        <summary>Как понять, что мне нужен психолог?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Если что-то беспокоит вас дольше пары недель: тревога, усталость, сложности в&nbsp;отношениях, ничего не&nbsp;радует или просто «что-то не&nbsp;так» – это уже повод прийти. Не&nbsp;обязательно ждать, пока станет совсем тяжело. Если у&nbsp;вас мысли о&nbsp;том, чтобы причинить себе вред, – звоните 103 или&nbsp;112.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Как работает подбор психолога?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Вы отвечаете на&nbsp;несколько вопросов: с&nbsp;чем нужна помощь, какой формат и&nbsp;бюджет, важны ли пол и&nbsp;возраст специалиста. Алгоритм покажет психологов, которые работают с&nbsp;вашим запросом. Если сложно сформулировать проблему, выберите «Другое» – помочь с&nbsp;этим и&nbsp;есть задача психолога на&nbsp;первой встрече.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Сколько стоит сессия и&nbsp;как её&nbsp;оплатить?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Сессия длится 50&nbsp;минут. Стоимость устанавливает психолог – от&nbsp;45&nbsp;BYN, она указана в&nbsp;профиле. Оплатить можно банковской картой при записи на&nbsp;сессию.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Как отменить или перенести сессию?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>В&nbsp;личном кабинете откройте запись и&nbsp;нажмите «Перенести» или «Отменить», указав причину. Бесплатно – не&nbsp;позднее чем за&nbsp;24&nbsp;часа до&nbsp;начала.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Как вы проверяете психологов?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Специалист загружает дипломы и&nbsp;сертификаты, модератор вручную проверяет документы, образование и&nbsp;опыт. Только после этого в&nbsp;профиле появляется отметка «Документы проверены».</p>
+      </details>
+      <details class="faq__item">
+        <summary>Что если психолог мне не&nbsp;подойдёт?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Так бывает, и&nbsp;это нормально: важно, чтобы с&nbsp;психологом было комфортно. Выберите другого специалиста в&nbsp;каталоге или пройдите подбор заново – история сессий сохранится в&nbsp;личном кабинете.</p>
+      </details>
+      <details class="faq__item">
+        <summary>В&nbsp;чём разница между психологом, психотерапевтом и&nbsp;психиатром?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Психолог помогает разобраться в&nbsp;чувствах, отношениях и&nbsp;поведении с&nbsp;помощью бесед и&nbsp;упражнений, но&nbsp;не&nbsp;ставит диагнозы. Психотерапевт и&nbsp;психиатр – врачи: они могут диагностировать расстройства и&nbsp;назначать лекарства. На&nbsp;нашей платформе работают психологи.</p>
+      </details>
+      <details class="faq__item">
+        <summary>Это конфиденциально?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary>
+        <p>Да. Переписка в&nbsp;чате и&nbsp;данные о&nbsp;сессиях доступны только вам и&nbsp;вашему психологу. Психологи соблюдают этический кодекс и&nbsp;не&nbsp;передают информацию третьим лицам.</p>
+      </details>
+    </div>
+
+    <p class="faq__more">Не&nbsp;нашли ответ? Напишите нам – <a href="mailto:support@ryadom.by">support@ryadom.by</a></p>
+  </div>
+</section>
+
+</main>
+
+
+<!-- =========================== ПОДВАЛ ================================= -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="#top" class="logo logo--light">
+          <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="logo__text">рядом</span>
+        </a>
+        <p>Сервис для поиска психологов и&nbsp;записи на&nbsp;онлайн-сессии.</p>
+      </div>
+      <nav class="footer__col" aria-label="Клиентам">
+        <b>Клиентам</b>
+        <a href="quiz.html">Подобрать психолога</a>
+        <a href="catalog.html">Каталог специалистов</a>
+        <a href="tariffs.html">Тарифы и&nbsp;оплата</a>
+        <a href="index.html#faq">Частые вопросы</a>
+        <a href="about.html">О&nbsp;сервисе</a>
+      </nav>
+      <nav class="footer__col" aria-label="Психологам">
+        <b>Психологам</b>
+        <a href="login.html#register-psychologist">Подать заявку</a>
+        <a href="for-psychologists.html">Условия работы</a>
+        <a href="index.html#check">Требования к&nbsp;специалистам</a>
+      </nav>
+      <nav class="footer__col" aria-label="Аккаунт">
+        <b>Аккаунт</b>
+        <a href="login.html">Войти</a>
+        <a href="login.html#register">Регистрация</a>
+        <a href="mailto:support@ryadom.by">Поддержка</a>
+      </nav>
+    </div>
+
+    <!-- Важно для сервиса психологической помощи: не заменяет экстренную помощь -->
+    <div class="footer__sos">
+      <b>Сервис не&nbsp;оказывает экстренную помощь.</b>
+      Если вам или кому-то рядом угрожает опасность – звоните <a href="tel:103">103</a> или <a href="tel:112">112</a>.
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 «Рядом». Курсовой проект, БГТУ</span>
+      <a href="privacy.html">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

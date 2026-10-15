@@ -1,0 +1,420 @@
+/* =====================================================================
+   «Рядом» – страница «О нас»
+   1. Общее: появление при прокрутке
+   2. Первый экран
+   4. Почему «Рядом» (фон меняет цвет, руки сходятся)
+   5. Отбор психологов (дорожка)
+   6. Принципы
+   7. Баннер в каталог
+   8. Напишите нам
+   9. Адаптив и «меньше движения»
+   ===================================================================== */
+
+/* ---------- 1. Общее ------------------------------------------------ */
+.about-page main { overflow-x: clip; }
+
+/* Элементы плавно появляются, когда доходят до экрана (класс .is-in ставит about.js) */
+.js .rv {
+  opacity: 0; translate: 0 28px;
+  transition: opacity .7s ease, translate .8s cubic-bezier(.2, .8, .2, 1);
+  transition-delay: var(--d, 0ms);
+}
+.js .rv.is-in { opacity: 1; translate: 0 0; }
+
+/* Лёгкое «зерно», как у бумаги – накладывается поверх цветного фона */
+.grain::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: .22; mix-blend-mode: multiply;
+}
+
+@keyframes floatY { from { translate: 0 0; } to { translate: 0 -12px; } }
+@keyframes wobble { from { rotate: -4deg; } to { rotate: 5deg; } }
+
+/* ---------- 2. Первый экран ---------------------------------------- */
+.ab-hero { position: relative; padding: 56px 0 88px; background: #EEF4FB; }
+.ab-hero__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 48px; align-items: center; }
+.ab-hero .eyebrow { color: var(--teal-dark); opacity: 1; }
+.ab-hero h1 {
+  font-size: clamp(36px, 4.8vw, 62px); font-weight: 800; line-height: 1.06; letter-spacing: -.03em;
+}
+/* «рядом» подчёркнуто от руки – линия прорисовывается при загрузке */
+.scribble { position: relative; display: inline-block; color: var(--teal-dark); }
+.scribble svg {
+  position: absolute; left: -3%; bottom: -.16em; width: 106%; height: .34em; overflow: visible;
+}
+.scribble path {
+  fill: none; stroke: var(--yellow); stroke-width: 7; stroke-linecap: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  animation: draw 1s .35s cubic-bezier(.6, .1, .3, 1) forwards;
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+.ab-hero__lead { max-width: 520px; margin-top: 22px; font-size: 18px; line-height: 1.6; color: var(--ink-2); }
+.ab-hero__art { position: relative; }
+.ab-hero__img { position: relative; z-index: 1; display: block; width: 100%; height: auto; }
+/* Пятно за картинкой медленно меняет форму */
+.blob {
+  position: absolute; inset: 4% 6% 0 8%; z-index: 0;
+  background: linear-gradient(140deg, #CFEDE6 0%, #DCF1EC 45%, #FCF0C4 100%);
+  border-radius: 58% 42% 46% 54% / 52% 44% 56% 48%;
+  animation: morph 14s ease-in-out infinite alternate;
+}
+@keyframes morph {
+  33% { border-radius: 42% 58% 60% 40% / 44% 58% 42% 56%; }
+  66% { border-radius: 54% 46% 38% 62% / 60% 40% 60% 40%; }
+  100% { border-radius: 46% 54% 52% 48% / 40% 60% 46% 54%; }
+}
+/* Наклейки: плавают (translate/rotate), а за мышкой двигаются через transform */
+.sticker {
+  position: absolute; z-index: 2; height: auto; pointer-events: none;
+  transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+  animation: floatY 4.5s ease-in-out infinite alternate, wobble 6s ease-in-out infinite alternate;
+}
+.sticker--flower { width: 92px; left: -2%; top: -4%; }
+.sticker--moon { width: 70px; right: 2%; bottom: 4%; animation-delay: -2s, -1s; }
+.sticker--star { width: 62px; left: 44%; top: -10%; animation-delay: -1s, -3s; }
+
+/* ---------- 4. Почему «Рядом» -------------------------------------- */
+/* Общий фон двух разделов: цвет задаёт about.js (--flow), переход плавный */
+.flow { background-color: var(--flow, #FFF6DD); transition: background-color 1s ease; }
+
+.ab-why { padding: 72px 0 0; }
+.ab-why .eyebrow { color: #B8891A; opacity: 1; }
+.ab-why__lead {
+  max-width: 1000px;
+  font-size: clamp(24px, 3.1vw, 40px); font-weight: 700; line-height: 1.3; letter-spacing: -.02em;
+}
+/* Маркер: жёлтая полоса «закрашивается» слева направо */
+.ab-why__lead mark {
+  color: inherit;
+  background: linear-gradient(transparent 58%, var(--yellow) 58%, var(--yellow) 92%, transparent 92%) no-repeat 0 0 / 0% 100%;
+  transition: background-size .9s cubic-bezier(.6, .1, .3, 1);
+}
+.ab-why__lead.is-in mark { background-size: 100% 100%; }
+.ab-why__lead.is-in mark:nth-of-type(1) { transition-delay: .35s; }
+.ab-why__lead.is-in mark:nth-of-type(2) { transition-delay: .8s; }
+.ab-why__lead.is-in mark:nth-of-type(3) { transition-delay: 1.2s; }
+/* Три барьера: слово зачёркивается от руки, ниже – решение */
+.barriers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; max-width: 1080px; margin: 44px 0 0; padding: 0; list-style: none; }
+.barrier { padding-top: 18px; border-top: 2px solid var(--ink); }
+.barrier__word { font-size: 26px; font-weight: 800; line-height: 1.3; letter-spacing: -.02em; }
+/* Зачёркивание от руки: линия – фоновая картинка строки, поэтому при переносе
+   на две строки каждая строка зачёркивается отдельно (box-decoration-break) */
+.barrier__word span {
+  padding: 0 4px; margin: 0 -4px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8 C 50 3, 120 10, 198 4' fill='none' stroke='%23F0886B' stroke-width='5.5' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") no-repeat 0 58% / 0% .42em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  transition: background-size .7s cubic-bezier(.6, .1, .3, 1), color .5s ease;
+  transition-delay: calc(var(--d, 0ms) + 450ms);
+}
+/* Слово «гаснет», линия поверх него остаётся яркой */
+.barrier.is-in .barrier__word span { background-size: 100% .42em; color: rgba(38, 42, 51, .42); }
+.barrier p { margin-top: 12px; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.hands__caption { margin-top: 36px; padding: 0 24px;  text-align: center; font-size: clamp(18px, 2vw, 24px); font-weight: 700; letter-spacing: -.01em; }
+
+/* Руки: три слоя одного размера, левая и правая сдвигаются к центру (--p от 0 до 1) */
+.hands { --p: 0; position: relative; width: min(720px, 86%); aspect-ratio: 1300 / 694; margin: 40px auto 0; }
+.hands img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hands__l { transform: translateX(calc((1 - var(--p)) * -28%)) rotate(calc((1 - var(--p)) * -6deg)); }
+.hands__r { transform: translateX(calc((1 - var(--p)) * 28%)) rotate(calc((1 - var(--p)) * 6deg)); }
+.hands__heart { opacity: 0; transform: scale(.2); transform-origin: 50.7% 38%; transition: opacity .3s, transform .5s cubic-bezier(.3, 1.8, .5, 1); }
+.hands.is-met .hands__heart { opacity: 1; transform: scale(1); animation: beat 1.6s .6s ease-in-out infinite; }
+@keyframes beat { 0%, 100% { scale: 1; } 15% { scale: 1.12; } 30% { scale: 1; } 45% { scale: 1.08; } }
+
+/* ---------- 4б. Как устроен сервис: три роли --------------------- */
+.ab-how { padding: 96px 0 64px; }
+.ab-how .eyebrow { color: var(--navy); opacity: 1; }
+.roles {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-areas: "ml mod mr" "client cp psy";
+  gap: 0 20px; margin-top: 44px; color: var(--ink);
+}
+.role {
+  padding: 22px 22px 24px; border-radius: 24px; background: #fff;
+  box-shadow: 0 12px 30px rgba(46, 76, 134, .08);
+}
+.role--mod { grid-area: mod; }
+.role--client { grid-area: client; }
+.role--psy { grid-area: psy; }
+.role__ava { width: 60px; height: 60px; border-radius: 24%; }
+.role h3 { margin: 14px 0 10px; font-size: 20px; font-weight: 800; }
+.role ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.role li { position: relative; padding-left: 16px; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
+.role li::before { content: ""; position: absolute; left: 0; top: .55em; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--teal)); }
+.role--mod { --c: var(--violet); }
+.role--client { --c: var(--yellow); }
+.role--psy { --c: var(--teal); }
+
+/* Стрелки-связи рисуются, когда схема появляется на экране */
+.link { position: relative; display: flex; flex-direction: column; justify-content: flex-end; }
+.link--ml { grid-area: ml; align-items: flex-end; padding: 18px 0 10px; }
+.link--mr { grid-area: mr; align-items: flex-start; padding: 18px 0 10px; }
+.link--cp { grid-area: cp; justify-content: center; gap: 18px; padding: 0 4px; }
+.link svg { display: block; overflow: visible; }
+.link--ml svg, .link--mr svg { width: min(210px, 90%); height: auto; }
+.link path {
+  fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  transition: stroke-dashoffset .8s cubic-bezier(.6, .1, .3, 1);
+}
+.roles.is-in .link path { stroke-dashoffset: 0; }
+.roles.is-in .link--mr path { transition-delay: .25s; }
+.roles.is-in .link--cp path { transition-delay: .5s; }
+.roles.is-in .link__row--back path { transition-delay: .75s; }
+.roles.is-drawn .link path { marker-end: url(#arrowhead); }
+.link span {
+  display: inline-block; padding: 5px 11px; border-radius: 999px;
+  background: rgba(255, 255, 255, .85); font-size: 13px; font-weight: 700; white-space: nowrap;
+  opacity: 0; transform: translateY(6px); transition: opacity .4s, transform .4s; transition-delay: 1s;
+}
+.roles.is-in .link span { opacity: 1; transform: none; }
+.link--ml span { position: absolute; left: 6%; top: 40%; }
+.link--mr span { position: absolute; right: 6%; top: 40%; }
+.link__row { display: grid; justify-items: center; gap: 4px; }
+.link__row svg { width: 100%; height: auto; }
+.link__row--back span { background: var(--ink); color: #fff; }
+
+/* ---------- 5. Отбор психологов ------------------------------------ */
+.ab-route { padding: 40px 0 120px; }
+.ab-route .eyebrow { color: var(--teal-dark); opacity: 1; }
+.ab-route__head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 40px; align-items: end; }
+.ab-route__head .section__sub { max-width: 560px; }
+
+/* Из 100 заявок проходят 7: точки гаснут, семь остаются */
+.funnel { padding: 18px 20px; border-radius: 22px; background: #fff; box-shadow: 0 10px 30px rgba(46, 76, 134, .08); }
+.funnel__dots { display: grid; grid-template-columns: repeat(20, 9px); gap: 4px; }
+.funnel__dots i {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--teal);
+  transition: background-color .4s ease, transform .5s cubic-bezier(.3, 1.8, .5, 1);
+  transition-delay: calc(var(--k) * 9ms + 200ms);
+}
+.funnel.is-in i:not(.is-pass) { background: #D3E3DF; }
+.funnel.is-in i.is-pass { background: var(--coral); transform: scale(1.45); transition-delay: 1.4s; }
+.funnel p { margin-top: 10px; font-size: 14px; color: var(--ink-2); }
+.funnel b { color: var(--ink); }
+.funnel .funnel__pass { color: var(--coral); }
+
+/* Дорожка: SVG-линия строится через кружки этапов (about.js) */
+.route { position: relative; margin-top: 64px; }
+.route__line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.route__bg { fill: none; stroke: rgba(38, 42, 51, .22); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1 11; }
+.route__path { fill: none; stroke: var(--teal); stroke-width: 5; stroke-linecap: round; }
+.route__rider {
+  position: absolute; left: 0; top: 0; z-index: 3; width: 58px; height: auto; pointer-events: none;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 6px 10px rgba(38, 42, 51, .15));
+}
+.route__steps { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; margin: 0; padding: 0; list-style: none; }
+.route__step { position: relative; padding-top: 168px; }
+/* Кружки – волной в полосе над текстом, чтобы линия не пересекала подписи */
+.route__dot {
+  position: absolute; left: 0; top: 0;
+  display: grid; place-items: center; width: 58px; height: 58px;
+  border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2.5px var(--ink);
+  font-size: 20px; font-weight: 800;
+  transition: background-color .35s, color .35s, box-shadow .35s, transform .35s cubic-bezier(.3, 1.6, .6, 1);
+}
+.route__step:nth-child(even) .route__dot { top: 86px; }
+.route__dot.is-reached { background: var(--ink); color: #fff; transform: scale(1.06); }
+.route__step h3 { margin-bottom: 8px; font-size: 18px; font-weight: 800; line-height: 1.3; }
+.route__step p { font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+
+/* Печать «Допущен» – «ставится», когда цветок доезжает до конца */
+.stamp {
+  position: absolute; right: -6px; top: -62px; z-index: 3;
+  display: grid; place-items: center; align-content: center; gap: 2px;
+  width: 112px; height: 112px; border-radius: 50%;
+  border: 3px solid var(--coral); outline: 2px dashed var(--coral); outline-offset: -11px;
+  color: var(--coral); background: rgba(255, 255, 255, .6);
+  font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  opacity: 0; transform: scale(1.9) rotate(-34deg);
+  transition: opacity .2s, transform .45s cubic-bezier(.3, 1.6, .5, 1);
+}
+.stamp svg { width: 26px; height: 26px; }
+.stamp.is-on { opacity: 1; transform: scale(1) rotate(-12deg); }
+
+/* ---------- 6. Принципы -------------------------------------------- */
+.ab-principles { padding: 104px 0 96px; background: #fff; }
+.ab-principles .eyebrow { color: var(--teal-dark); opacity: 1; }
+.pr-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin-top: 40px; }
+.pr { position: relative; padding-top: 62px; }
+/* Наклейка выглядывает из-за верхнего края карточки */
+.pr__peek {
+  position: absolute; left: 22px; top: 0; z-index: 0; width: 104px; height: auto;
+  translate: 0 70px;
+  transition: translate .7s cubic-bezier(.3, 1.5, .5, 1), rotate .4s ease;
+  transition-delay: calc(var(--d, 0ms) + 250ms);
+}
+.pr.is-in .pr__peek, .js .pr:not(.rv) .pr__peek { translate: 0 0; }
+.pr:hover .pr__peek { translate: 0 -16px; rotate: -8deg; transition-delay: 0s; }
+.pr__card {
+  position: relative; z-index: 1; height: 100%;
+  padding: 26px 24px 28px; border-radius: 24px;
+  transition: transform .3s ease;
+}
+.pr:hover .pr__card { transform: translateY(-3px); }
+.pr--violet .pr__card { background: var(--violet-soft); }
+.pr--coral .pr__card { background: var(--coral-soft); }
+.pr--yellow .pr__card { background: var(--yellow-soft); }
+.pr--teal .pr__card { background: var(--teal-soft); }
+.pr--blob .pr__peek, .pr--coral .pr__peek { width: 84px; }
+/* Номер – сплошной, в цвет карточки (обводка у Montserrat показывает стыки контуров) */
+.pr__num { display: block; font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--num); }
+.pr--violet { --num: #C6B8F4; }
+.pr--coral { --num: #F4B5A2; }
+.pr--yellow { --num: #EFCB62; }
+.pr--teal { --num: #9DD3C7; }
+.pr h3 { margin: 18px 0 10px; font-size: 19px; font-weight: 800; line-height: 1.3; }
+.pr p { font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+/* ---------- 7. Баннер в каталог ------------------------------------ */
+.ab-cta { padding: 0 0 104px; background: #fff; }
+.cta-card {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center;
+  padding: 56px 56px 56px 60px; border-radius: 32px; overflow: hidden;
+  background: radial-gradient(120% 140% at 100% 0%, #FCF0C4 0%, rgba(252, 240, 196, 0) 45%), #D5EFE8;
+}
+.cta-card::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .22; mix-blend-mode: multiply;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.cta-card__text { position: relative; z-index: 1; }
+.cta-card h2 { font-size: clamp(28px, 3.3vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -.02em; }
+.cta-card h2 span { color: var(--teal-dark); }
+.cta-card .eyebrow { color: var(--teal-dark); opacity: 1; }
+.cta-card p { max-width: 440px; margin: 16px 0 28px; font-size: 17px; color: var(--ink-2); }
+.cta-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+.cta-card__link { font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.cta-card__link:hover { color: var(--teal-dark); }
+.cta-card__with {
+  position: absolute; left: 4%; top: 8px; z-index: 2;
+  font-size: 15px; font-weight: 800; color: var(--teal-dark); rotate: -6deg;
+}
+/* Стрелка от руки к кнопке */
+.cta-card__arrow { position: absolute; left: 380px; bottom: -4px; width: 90px; height: auto; overflow: visible; }
+.cta-card__arrow path { fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.cta-card.is-in .cta-card__arrow path { transition: stroke-dashoffset .9s .5s cubic-bezier(.6, .1, .3, 1); stroke-dashoffset: 0; }
+.cta-card.is-in .cta-card__arrow path + path { transition-delay: 1.3s; transition-duration: .3s; }
+
+.cta-card__photos { position: relative; z-index: 1; height: 330px; }
+.ph { position: absolute; width: 168px; margin: 0; animation: floatY 5s ease-in-out infinite alternate; }
+.ph img { display: block; width: 100%; aspect-ratio: 1; border-radius: 26px; object-fit: cover; box-shadow: 0 0 0 5px #fff, 0 16px 34px rgba(38, 42, 51, .16); }
+.ph figcaption {
+  position: absolute; left: 14px; bottom: -12px;
+  padding: 5px 11px; border-radius: 999px; background: var(--ink); color: #fff;
+  font-size: 12px; font-weight: 700;
+}
+.ph--1 { left: 2%; top: 18%; rotate: -7deg; }
+.ph--2 { left: 36%; top: 42%; width: 140px; rotate: 5deg; animation-delay: -1.6s; }
+.ph--2 figcaption { background: var(--violet); }
+.ph--3 { right: 0; top: 0; rotate: -3deg; animation-delay: -3.2s; }
+.ph--3 figcaption { background: var(--coral); }
+.ph__sparkle { position: absolute; width: 34px; height: auto; animation: wobble 3s ease-in-out infinite alternate; }
+.ph__sparkle--1 { left: 30%; top: 4%; }
+.ph__sparkle--2 { right: 30%; bottom: 0; width: 28px; animation-delay: -1.5s; }
+
+/* ---------- 8. Напишите нам ---------------------------------------- */
+.ab-contact {
+  padding: 96px 0;
+  background: radial-gradient(circle, rgba(160, 139, 234, .32) 1.6px, transparent 1.8px) 0 0 / 22px 22px, var(--violet-soft);
+}
+.ab-contact .eyebrow { color: #6E58C9; opacity: 1; }
+.ab-contact__grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; align-items: center; }
+.ab-contact__text p { max-width: 460px; margin-top: 18px; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+.ab-contact__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin-top: 30px; }
+.ab-contact__mail { font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--violet); }
+.ab-contact__mail:hover { color: #6E58C9; }
+.ab-contact__art { position: relative; }
+.ab-contact__art img { display: block; width: 100%; height: auto; }
+/* «Печатает…» – как в чате */
+.typing {
+  position: absolute; right: 3%; top: 0; display: flex; gap: 5px;
+  padding: 12px 15px; border-radius: 18px 18px 18px 4px; background: #fff;
+  box-shadow: 0 0 0 2.5px var(--ink);
+}
+.typing i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); animation: dot 1.2s ease-in-out infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; }
+.typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes dot { 0%, 60%, 100% { transform: none; opacity: .5; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+/* ---------- 9. Адаптив --------------------------------------------- */
+@media (max-width: 1100px) {
+  .pr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 28px; }
+  .route__steps { gap: 16px; }
+  .route__step h3 { font-size: 16px; }
+  .cta-card__arrow { display: none; }
+  .barriers { gap: 24px; }
+  .barrier__word { font-size: 22px; }
+}
+
+@media (max-width: 900px) {
+  .ab-hero__grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .ab-hero__art { width: min(620px, 100%); margin: 0 auto; }
+  .ab-route__head { grid-template-columns: minmax(0, 1fr); }
+  .barriers { grid-template-columns: minmax(0, 1fr); max-width: 560px; }
+  /* Схема ролей – столбиком: модератор → психолог ↔ клиент */
+  .roles { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mod" "mr" "psy" "cp" "client"; max-width: 480px; }
+  .link--ml { display: none; }
+  .link--mr, .link--cp { align-items: center; padding: 12px 0; }
+  .link svg { display: none; }
+  .link--mr span, .link--ml span { position: static; }
+  .link--cp { gap: 8px; }
+  .link span::before { content: "↓ "; }
+  /* Клиент внизу: запись идёт вверх к психологу, сессии – вниз к клиенту */
+  .link__row span::before { content: "↑ "; }
+  .link__row--back span::before { content: "↓ "; }
+  .funnel { justify-self: start; }
+  .cta-card { grid-template-columns: minmax(0, 1fr); padding: 40px 32px; }
+  .cta-card__arrow { display: none; }
+  .ab-contact__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Дорожка – вертикально: кружки слева, текст справа */
+@media (max-width: 760px) {
+  .route { margin-top: 44px; }
+  .route__steps { grid-template-columns: minmax(0, 1fr); gap: 34px; }
+  .route__step { padding: 0 0 0 80px; min-height: 58px; }
+  .route__step:nth-child(even) { padding-left: 96px; }
+  .route__step:nth-child(even) .route__dot { top: 0; left: 16px; }
+  .route__rider { width: 46px; }
+  .stamp { top: auto; bottom: -116px; right: 0; width: 96px; height: 96px; font-size: 11px; }
+  .ab-route { padding-bottom: 156px; }
+}
+
+@media (max-width: 640px) {
+  .ab-hero { padding: 32px 0 56px; }
+  .ab-hero__lead { font-size: 16px; }
+  .funnel__dots { grid-template-columns: repeat(20, 7px); gap: 3px; }
+  .funnel__dots i { width: 7px; height: 7px; }
+  .sticker--flower { width: 64px; }
+  .sticker--moon { width: 50px; }
+  .sticker--star { width: 44px; }
+  .ab-why { padding-top: 56px; }
+  .hands { width: 100%; margin-top: 28px; }
+  .ab-route { padding-top: 32px; }
+  .ab-how { padding-top: 72px; }
+  .hands__caption { margin-top: 20px; }
+  .ab-principles { padding: 72px 0; }
+  .pr-grid { grid-template-columns: minmax(0, 1fr); }
+  .ab-cta { padding-bottom: 72px; }
+  .cta-card { padding: 32px 22px 28px; border-radius: 26px; }
+  .cta-card__actions .btn { width: 100%; }
+  .cta-card__photos { height: 250px; }
+  .ph { width: 124px; }
+  .ph--2 { width: 104px; }
+  .ab-contact { padding: 72px 0; }
+  .ab-contact__actions .btn { flex: 1 1 100%; }
+}
+
+/* Если в системе просят меньше анимаций – всё сразу в конечном состоянии */
+@media (prefers-reduced-motion: reduce) {
+  .js .rv { opacity: 1; translate: none; transition: none; }
+  .scribble path { animation: none; stroke-dashoffset: 0; }
+  .blob, .sticker, .ph, .ph__sparkle, .typing i, .hands.is-met .hands__heart { animation: none; }
+  .ab-why__lead mark { background-size: 100% 100%; transition: none; }
+  .pr__peek { translate: 0 0; transition: none; }
+  .funnel__dots i, .route__dot, .stamp, .hands__heart, .flow, .link path, .link span { transition: none; }
+  .link path { stroke-dashoffset: 0; }
+  .barrier__word span { background-size: 100% .42em; color: rgba(38, 42, 51, .42); transition: none; }
+  .link span { opacity: 1; transform: none; }
+  .cta-card__arrow path { stroke-dashoffset: 0; }
+}

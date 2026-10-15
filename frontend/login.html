@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Вход – Рядом</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Общие стили сайта (переменные, кнопки, логотип) + стили страницы входа -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+
+<!-- Иконки страницы входа -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M4 4l16 16M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-3 3.8M6.6 7.3C4 9 2.5 12 2.5 12S6 18.5 12 18.5c1.6 0 3-.4 4.2-1M10 10.2a3 3 0 0 0 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap2" viewBox="0 0 24 24"><path d="M12 3.5l7 3v5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9v-5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12.5l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- =========================== ФОН ===========================
+     Мягкие цветные пятна + рисованные предметы, которые плавно появляются
+     и медленно «плавают». Движение мыши слегка сдвигает их (параллакс). -->
+<div class="auth-bg" aria-hidden="true">
+    <span class="blob blob--1"></span>
+    <span class="blob blob--2"></span>
+    <span class="blob blob--3"></span>
+    <span class="float float--cloud"><img src="assets/img/auth/cloud.webp" alt=""></span>
+    <span class="float float--tea"><img src="assets/img/auth/tea.webp" alt=""></span>
+    <span class="float float--plant"><img src="assets/img/auth/plant.webp" alt=""></span>
+    <span class="float float--chat"><img src="assets/img/auth/chat.webp" alt=""></span>
+    <span class="float float--heart"><img src="assets/img/auth/heart.webp" alt=""></span>
+    <span class="float float--laptop"><img src="assets/img/auth/laptop.webp" alt=""></span>
+    <span class="float float--plane"><img src="assets/img/auth/plane.webp" alt=""></span>
+    <span class="float float--notebook"><img src="assets/img/auth/notebook.webp" alt=""></span>
+</div>
+
+<!-- Верхняя строка: логотип и возврат на главную -->
+<header class="auth__top">
+  <a href="index.html" class="logo" aria-label="Рядом – на главную">
+    <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+    <span class="logo__text">рядом</span>
+  </a>
+  <a href="index.html" class="auth__back"><svg><use href="#i-back"/></svg>На главную</a>
+</header>
+
+<!-- =========================== КАРТОЧКА С ФОРМОЙ =========================== -->
+<main class="auth">
+  <div class="auth__card" data-active="login">
+    <!-- Персонажи, выглядывающие из-за края карточки.
+         Два кадра сменяют друг друга – получается покадровая анимация. -->
+    <!-- Персонажи, выглядывающие из-за края карточки.
+         peek__idle – поза в покое, peek__write – кадры «пишет» (их может быть 1 или больше).
+         Пока пользователь вводит текст, auth.js по очереди показывает кадры peek__write. -->
+    <div class="peek" aria-hidden="true">
+      <span class="peek__char peek__char--login" data-form="form-login">
+        <img class="peek__idle is-shown" src="assets/img/auth/girl-w1.webp" alt="" width="460" height="538">
+        <img class="peek__write" src="assets/img/auth/girl-w2.webp" alt="" width="460" height="538">
+        <img class="peek__write" src="assets/img/auth/girl-w3.webp" alt="" width="460" height="538">
+      </span>
+      <span class="peek__char peek__char--register" data-form="form-register">
+        <img class="peek__idle is-shown" src="assets/img/auth/guy-1.webp" alt="" width="460" height="371">
+        <img class="peek__write" src="assets/img/auth/guy-2.webp" alt="" width="460" height="371">
+      </span>
+    </div>
+
+    <!-- Вкладки «Вход / Регистрация» – крупные слова, активное выделено маркером -->
+    <div class="tabs" role="tablist" aria-label="Вход или регистрация">
+      <button class="tabs__btn is-active" type="button" role="tab" aria-selected="true" aria-controls="form-login" data-tab="login">Вход</button>
+      <span class="tabs__sep" aria-hidden="true">/</span>
+      <button class="tabs__btn" type="button" role="tab" aria-selected="false" aria-controls="form-register" data-tab="register">Регистрация</button>
+    </div>
+
+    <!-- ---------- Форма входа ---------- -->
+    <form class="auth__form is-active" id="form-login" role="tabpanel" novalidate>
+      <h1 class="sr-only">Вход в&nbsp;личный кабинет</h1>
+
+      <label class="field">
+        <span class="field__label">Почта</span>
+        <span class="field__box">
+          <input type="email" name="email" placeholder="name@mail.com" autocomplete="email" required>
+        </span>
+        <span class="field__error">Введите почту в&nbsp;формате name@mail.com</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Пароль</span>
+        <span class="field__box">
+          <input type="password" name="password" placeholder="Ваш пароль" autocomplete="current-password" required>
+          <button class="field__eye" type="button" aria-label="Показать пароль"><svg><use href="#i-eye"/></svg></button>
+        </span>
+        <span class="field__error">Введите пароль</span>
+      </label>
+
+      <button type="submit" class="auth__btn">Войти</button>
+
+      <div class="auth__row">
+        <label class="checkbox">
+          <input type="checkbox" name="remember" checked>
+          <span class="checkbox__box"><svg><use href="#i-check"/></svg></span>
+          Запомнить меня
+        </label>
+        <a href="forgot.html" class="auth__link">Забыли пароль?</a>
+      </div>
+    </form>
+
+    <!-- ---------- Форма регистрации ---------- -->
+    <form class="auth__form" id="form-register" role="tabpanel" novalidate>
+      <h1 class="sr-only">Регистрация</h1>
+
+      <!-- Роль: клиент или психолог (модератора назначает администратор) -->
+      <!-- Роль: два «быстрых ответа», как в мессенджере (модератора назначает администратор) -->
+      <fieldset class="roles">
+        <legend class="sr-only">Роль</legend>
+        <label class="role">
+          <input type="radio" name="role" value="client" checked>
+          <span class="role__reply">Ищу психолога</span>
+        </label>
+        <label class="role">
+          <input type="radio" name="role" value="psychologist">
+          <span class="role__reply">Я&nbsp;психолог</span>
+        </label>
+      </fieldset>
+
+      <label class="field">
+        <span class="field__label">Имя</span>
+        <span class="field__box">
+          <input type="text" name="name" placeholder="Как к вам обращаться" autocomplete="given-name" required>
+        </span>
+        <span class="field__error">Введите имя</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Почта</span>
+        <span class="field__box">
+          <input type="email" name="email" placeholder="name@mail.com" autocomplete="email" required>
+        </span>
+        <span class="field__error">Введите почту в&nbsp;формате name@mail.com</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Пароль</span>
+        <span class="field__box">
+          <input type="password" name="password" placeholder="Минимум 8 символов" autocomplete="new-password" minlength="8" required>
+          <button class="field__eye" type="button" aria-label="Показать пароль"><svg><use href="#i-eye"/></svg></button>
+        </span>
+        <span class="field__error">Пароль должен быть не&nbsp;короче 8&nbsp;символов</span>
+      </label>
+
+      <!-- Подсказка для психологов -->
+      <p class="auth__note" data-for-role="psychologist" hidden>
+        После регистрации загрузите дипломы в&nbsp;профиле – модератор проверит их и&nbsp;откроет доступ к&nbsp;записям.
+      </p>
+
+      <button type="submit" class="auth__btn">Создать аккаунт</button>
+    </form>
+  </div>
+</main>
+
+
+<script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+/* =====================================================================
+   «Рядом» – страница входа и регистрации
+   Подключается после style.css: использует его переменные и логотип.
+   Карточка по центру, вокруг – анимированный фон с рисованными предметами.
+   ===================================================================== */
+
+/* ---------- Каркас ------------------------------------------------- */
+.auth-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #EEF4FB 0%, #E7EFF9 45%, #E3F2EE 100%) fixed;
+  overflow-x: hidden;
+}
+
+.auth__top {
+  position: relative; z-index: 3;
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1360px; margin: 0 auto;
+  padding: 28px 40px 0;
+}
+.auth__back {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .7);
+  font-size: 14px; font-weight: 600; color: var(--ink-2);
+  backdrop-filter: blur(6px);
+  transition: color .2s, background-color .2s;
+}
+.auth__back svg { width: 18px; height: 18px; }
+.auth__back:hover { color: var(--teal-dark); background: #fff; }
+
+.auth {
+  position: relative; z-index: 2;
+  display: grid; place-items: center;
+  grid-template-columns: minmax(0, 1fr);   /* колонка не шире экрана */
+  min-height: calc(100vh - 110px);
+  padding: 32px 16px;
+}
+
+/* Сама панель – простая белая карточка */
+.auth__card {
+  width: 100%; max-width: 440px;
+  padding: 40px 40px 34px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(38, 42, 51, .02), 0 24px 50px rgba(30, 70, 64, .12);
+  animation: cardIn .7s cubic-bezier(.2, .8, .2, 1) .15s both;   /* появление при открытии */
+}
+@keyframes cardIn { from { opacity: 0; transform: translateY(24px) scale(.98); } to { opacity: 1; transform: none; } }
+
+
+/* Скрытый заголовок для экранных читалок */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+
+/* ---------- Анимированный фон --------------------------------------- */
+.auth-bg {
+  --px: 0; --py: 0;               /* смещение мыши от центра (-1…1), задаётся в auth.js */
+  position: fixed; inset: 0; z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Размытые цветные пятна, которые медленно дрейфуют */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .55;
+  animation: drift 22s ease-in-out infinite alternate;
+}
+.blob--1 { width: 520px; height: 520px; left: -120px; top: -140px; background: #BFE6DE; }
+.blob--2 { width: 460px; height: 460px; right: -120px; bottom: -160px; background: #FBE3A6; animation-duration: 26s; animation-delay: -6s; }
+.blob--3 { width: 380px; height: 380px; right: 18%; top: -120px; background: #D9CFFA; animation-duration: 30s; animation-delay: -12s; }
+@keyframes drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(60px, 40px) scale(1.12); }
+  100% { transform: translate(-40px, 70px) scale(.95); }
+}
+
+/* Предметы. Три независимых движения складываются:
+   - translate – параллакс от мыши (обёртка .float);
+   - scale + opacity – появление при открытии (обёртка .float);
+   - transform – бесконечное «покачивание» (картинка внутри). */
+.float {
+  --depth: 18px;                  /* насколько сильно реагирует на мышь */
+  --size: 160px;
+  --delay: 0s;
+  position: absolute;
+  width: var(--size);
+  translate: calc(var(--px) * var(--depth)) calc(var(--py) * var(--depth));
+  transition: translate .6s cubic-bezier(.2, .8, .2, 1);
+  animation: popIn .9s cubic-bezier(.34, 1.56, .64, 1) var(--delay) both;
+}
+.float img {
+  width: 100%;
+  animation: bob var(--dur, 7s) ease-in-out var(--delay) infinite alternate;
+}
+@keyframes popIn { from { opacity: 0; scale: .4; } to { opacity: 1; scale: 1; } }
+@keyframes bob {
+  from { transform: translateY(-10px) rotate(calc(var(--rot, 4deg) * -1)); }
+  to   { transform: translateY(12px)  rotate(var(--rot, 4deg)); }
+}
+
+/* Расстановка по краям экрана (центр свободен для карточки) */
+.float--cloud    { --size: clamp(120px, 13vw, 210px); left: 7%;  top: 13%;    --depth: 26px; --delay: .2s;  --dur: 8s; }
+.float--tea      { --size: clamp(90px, 9vw, 145px);   left: 4%;  top: 47%;    --depth: 14px; --delay: .35s; --dur: 6.5s; --rot: 5deg; }
+.float--plant    { --size: clamp(110px, 11vw, 175px); left: 13%; bottom: 4%;  --depth: 20px; --delay: .5s;  --dur: 7.5s; --rot: 3deg; }
+.float--notebook { --size: clamp(100px, 10vw, 160px); left: 21%; top: 31%;    --depth: 34px; --delay: .65s; --dur: 9s;  --rot: 6deg; }
+.float--chat     { --size: clamp(120px, 13vw, 200px); right: 8%; top: 12%;   --depth: 24px; --delay: .25s; --dur: 7s; }
+.float--plane    { --size: clamp(90px, 9vw, 145px);   right: 22%; top: 34%;  --depth: 36px; --delay: .6s;  --dur: 6s;  --rot: 8deg; }
+.float--heart    { --size: clamp(80px, 8vw, 125px);   right: 5%; top: 50%;   --depth: 16px; --delay: .4s;  --dur: 5.5s; --rot: 7deg; }
+.float--laptop   { --size: clamp(120px, 13vw, 205px); right: 11%; bottom: 5%; --depth: 22px; --delay: .55s; --dur: 8.5s; --rot: 2deg; }
+
+/* Для тех, у кого в системе отключена анимация */
+@media (prefers-reduced-motion: reduce) {
+  .blob, .float, .float img, .auth__card { animation: none; }
+  .float { transition: none; translate: none; }
+}
+
+
+/* ---------- Персонажи над карточкой -------------------------------- */
+.auth__card { position: relative; margin-top: 190px; }   /* место над карточкой под персонажа */
+
+/* Окно, в котором «живут» персонажи. Нижняя граница заходит на карточку на --ov:
+   руки лежат на карточке, а при смене персонаж «ныряет» за край.
+   --ratio – высота/ширина картинки, --below – доля картинки ниже линии края на рисунке. */
+.peek {
+  --w: 230px; --ov: 50px;
+  position: absolute; right: 26px; bottom: calc(100% - var(--ov));
+  width: var(--w); height: 290px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.peek__char {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  margin-bottom: calc(var(--ov) - var(--w) * var(--ratio) * var(--below));   /* линия края = верх карточки */
+  transform: translateY(calc(100% + var(--ov)));     /* спрятан за краем целиком */
+  transition: transform .45s cubic-bezier(.5, 0, .75, 0);
+}
+.peek__char img { display: block; width: 100%; height: auto; }
+.peek__char--login    { --ratio: 1.1696; --below: .1654; }   /* девушка 460×538, край на 449px */
+.peek__char--register { --ratio: .8065;  --below: .0647; }   /* парень 460×371, край на 347px */
+
+/* Активный персонаж выезжает из-за края с лёгкой «пружинкой» */
+.auth__card[data-active="login"]    .peek__char--login,
+.auth__card[data-active="register"] .peek__char--register {
+  transform: translateY(0);
+  transition: transform .6s cubic-bezier(.34, 1.56, .64, 1) .35s;
+}
+
+/* Кадры лежат друг на друге, виден только один – с классом is-shown.
+   Первый кадр остаётся в потоке и задаёт размер, остальные накладываются сверху. */
+.peek__char img { visibility: hidden; }
+.peek__char img + img { position: absolute; left: 0; top: 0; }
+.peek__char img.is-shown { visibility: visible; }
+
+/* В покое персонаж еле заметно «дышит» */
+.peek__idle { animation: breathe 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes breathe { 50% { transform: scale(1.012) translateY(-1px); } }
+
+/* Пока вводится текст: если кадр «пишет» один – он подрагивает, будто водят ручкой */
+.peek__char.is-typing .peek__write.is-shown { animation: scribble .26s steps(2, end) infinite; transform-origin: 70% 90%; }
+@keyframes scribble { 0% { transform: rotate(-1.2deg) translateX(-1px); } 100% { transform: rotate(1.2deg) translateX(1px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .peek__char img { animation: none !important; }
+  .peek__char { transition: none; }
+}
+
+
+/* ---------- Вкладки: «Вход / Регистрация» как заголовок ----------- */
+.tabs {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 30px;
+}
+.tabs__btn {
+  padding: 0 2px;
+  border: 0; background: none;
+  font: inherit; font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2;
+  color: #C2CAD5;
+  cursor: pointer;
+  transition: color .2s;
+}
+.tabs__btn:hover { color: var(--ink-3); }
+/* Активная вкладка – жёлтый маркер, как слово «спокойно» на главной */
+.tabs__btn.is-active {
+  color: var(--ink);
+  background: linear-gradient(transparent 60%, var(--yellow) 60%, var(--yellow) 90%, transparent 90%) no-repeat;
+  animation: marker .45s ease both;
+}
+@keyframes marker { from { background-size: 0 100%; } to { background-size: 100% 100%; } }
+.tabs__sep { font-size: 26px; color: #D5DAE2; }
+
+/* Формы: видна только активная */
+.auth__form { display: none; }
+.auth__form.is-active { display: block; animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+
+/* ---------- Поля: подпись сверху и линия снизу --------------------- */
+.field { display: block; margin-bottom: 22px; }
+.field__label {
+  display: block;
+  font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-3);
+  transition: color .2s;
+}
+.field__box {
+  display: flex; align-items: center;
+  border-bottom: 2px solid #DCE1E8;
+  transition: border-color .2s;
+}
+.field__box:hover { border-color: #C2CAD5; }
+.field:focus-within .field__box { border-color: var(--teal); }
+.field:focus-within .field__label { color: var(--teal-dark); }
+
+.field input {
+  flex: 1; min-width: 0; height: 44px;
+  padding: 0;
+  border: 0; outline: 0; background: none;
+  font: inherit; font-size: 17px; color: var(--ink);
+}
+.field input::placeholder { color: #B3B9C4; }
+
+.field__eye {
+  display: grid; place-items: center;
+  width: 36px; height: 36px;
+  border: 0; border-radius: 8px; background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.field__eye:hover { color: var(--ink); }
+.field__eye svg { width: 20px; height: 20px; }
+
+.field__error { display: none; margin-top: 6px; font-size: 13px; font-weight: 600; color: #D9534F; }
+.field.is-error .field__box { border-color: #E5736F; }
+.field.is-error .field__label { color: #D9534F; }
+.field.is-error .field__error { display: block; }
+
+
+/* ---------- Кнопка и строка под ней -------------------------------- */
+.auth__btn {
+  width: 100%; height: 54px; margin-top: 8px;
+  border: 0; border-radius: 999px;
+  background: var(--ink); color: #fff;
+  font: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer;
+  transition: background-color .2s, transform .15s;
+}
+.auth__btn:hover { background: var(--teal-dark); }
+.auth__btn:active { transform: scale(.98); }
+
+.auth__row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 18px;
+}
+.auth__link { font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.auth__link:hover { text-decoration: underline; }
+
+
+/* ---------- Чекбокс ------------------------------------------------- */
+.checkbox {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 14px; color: var(--ink-2); line-height: 1.45;
+  cursor: pointer;
+}
+.checkbox input { position: absolute; opacity: 0; pointer-events: none; }
+.checkbox__box {
+  display: grid; place-items: center;
+  width: 20px; height: 20px; flex-shrink: 0;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1.5px #C2CAD5;
+  color: transparent;
+  transition: background-color .2s, box-shadow .2s, color .2s;
+}
+.checkbox__box svg { width: 14px; height: 14px; }
+.checkbox input:checked + .checkbox__box { background: var(--teal); box-shadow: none; color: #fff; }
+.checkbox input:focus-visible + .checkbox__box { outline: 3px solid var(--blue); outline-offset: 2px; }
+.checkbox a { font-weight: 600; color: var(--teal-dark); }
+.checkbox.is-error .checkbox__box { box-shadow: inset 0 0 0 2px #E5736F; }
+
+
+/* ---------- Выбор роли – «быстрые ответы» как в чате ----- */
+.roles {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin: 0 0 26px; padding: 0; border: 0;
+}
+.role { cursor: pointer; }
+.role input { position: absolute; opacity: 0; pointer-events: none; }
+.role__reply {
+  display: block;
+  padding: 11px 18px;
+  border-radius: 20px 20px 20px 6px;           /* «хвостик» слева – как входящее сообщение */
+  background: var(--soft);
+  font-size: 15px; font-weight: 600; color: var(--ink);
+  transition: background-color .2s, color .2s, border-radius .25s, transform .15s;
+}
+.role:hover .role__reply { background: #DCE6F4; }
+.role:active .role__reply { transform: scale(.97); }
+/* Выбранный ответ – как своё сообщение: бирюзовый, «хвостик» справа */
+.role input:checked + .role__reply {
+  background: var(--teal); color: #fff;
+  border-radius: 20px 20px 6px 20px;
+  animation: sent .3s ease;
+}
+@keyframes sent { 40% { transform: translateY(-3px) scale(1.03); } }
+.role input:focus-visible + .role__reply { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+.auth__note {
+  margin: -6px 0 18px; padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--soft);
+  font-size: 13px; line-height: 1.5; color: var(--ink-2);
+}
+.auth__note[hidden] { display: none; }
+
+
+/* ---------- Адаптив ------------------------------------------------- */
+@media (max-width: 1100px) {
+  .float--notebook, .float--plane { display: none; }   /* на узком экране – предметы только у краёв */
+}
+
+@media (max-width: 760px) {
+  .auth__top { padding: 18px 16px 0; }
+  .auth { min-height: auto; padding: 24px 12px 32px; }
+  .auth__card { padding: 30px 22px 26px; border-radius: 22px; margin-top: 150px; }
+  .peek { --w: 176px; --ov: 40px; height: 230px; right: 14px; }
+  .tabs__btn { font-size: 24px; }
+  .float--tea, .float--plant, .float--laptop, .float--chat { display: none; }
+  .float--cloud { --size: 96px; left: -10px; top: 64px; }
+  .float--heart { display: none; }   /* на телефоне справа сверху – персонаж */
+}

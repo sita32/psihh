@@ -1,0 +1,258 @@
+/* =====================================================================
+   «Рядом» – страница психолога (psychologist.html)
+   Подключается после style.css и cabinet.css (диалоги, поля, кнопки).
+   Структура:
+     1. Каркас: две колонки, ссылка «назад»
+     2. Шапка профиля
+     3. Секции: о себе, методы, этапы, образование
+     4. Отзывы
+     5. Блок записи (правая колонка)
+     6. Диалог подтверждения записи
+     7. Адаптив
+   ===================================================================== */
+
+.psy-page { background: #F2F6FB; }
+
+
+/* ---------- 1. Каркас ---------------------------------------------- */
+.pp { padding-top: 20px; padding-bottom: 96px; }
+.pp__back {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 18px;
+  font-size: 15px; font-weight: 700; color: var(--ink-2);
+  transition: color .2s;
+}
+.pp__back svg { width: 18px; height: 18px; transition: transform .2s; }
+.pp__back:hover { color: var(--teal-dark); }
+.pp__back:hover svg { transform: translateX(-3px); }
+
+.pp__grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+.pp__main { display: grid; gap: 16px; min-width: 0; }
+
+
+/* ---------- 2. Шапка профиля -------------------------------------- */
+.pp-hero {
+  display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: center;
+  padding: 20px; border-radius: 24px; background: #fff;
+}
+.pp-hero__photo { position: relative; aspect-ratio: 1; border-radius: 18px; overflow: hidden; background: var(--soft); }
+.pp-hero__photo img { width: 100%; height: 100%; object-fit: cover; }
+.pp-hero__online {
+  position: absolute; left: 12px; top: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  font-size: 12px; font-weight: 700;
+}
+.pp-hero__online::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #3CC48F; }
+.pp-hero__role { font-size: 15px; color: var(--ink-2); }
+.pp-hero__name { margin: 2px 0 6px; font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
+.pp-hero .verified { margin-top: 0; font-size: 13px; }
+
+/* Четыре главные цифры */
+.pp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; margin: 22px 0 0; }
+.pp-facts > div { padding: 12px 14px; border-radius: 14px; background: #F5F8FB; }
+.pp-facts dt { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.pp-facts dd { display: flex; align-items: center; gap: 5px; margin: 2px 0 0; font-size: 17px; font-weight: 800; white-space: nowrap; }
+.pp-facts .star { width: 17px; height: 17px; color: var(--yellow); }
+
+
+/* ---------- 3. Секции -------------------------------------------- */
+.pp-sec { padding: 28px; border-radius: 24px; background: #fff; }
+.pp-sec h2 { margin-bottom: 16px; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+.pp-sec__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.pp-sec__note { font-size: 13px; color: var(--ink-3); }
+.pp-about { font-size: 17px; line-height: 1.6; color: var(--ink-2); max-width: 720px; }
+
+.pp-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pp-method { padding: 18px; border-radius: 16px; background: var(--blue-soft); }
+.pp-method b { display: block; font-size: 16px; color: var(--navy); }
+.pp-method p { margin-top: 4px; font-size: 14px; color: var(--ink-2); }
+
+/* Нумерованные этапы */
+.pp-steps { display: grid; gap: 10px; counter-reset: st; }
+.pp-steps li {
+  position: relative; counter-increment: st;
+  padding: 4px 0 4px 48px; font-size: 16px; color: var(--ink-2);
+}
+.pp-steps li::before {
+  content: counter(st);
+  position: absolute; left: 0; top: 0;
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px;
+  background: var(--yellow-soft); font-weight: 800; color: var(--ink);
+}
+
+.pp-edu { display: grid; gap: 10px; }
+.pp-edu li { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; box-shadow: inset 0 0 0 1.5px var(--line); }
+.pp-edu__ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--teal-soft); color: var(--teal-dark); flex-shrink: 0; }
+.pp-edu__ic svg { width: 22px; height: 22px; }
+.pp-edu__body { flex: 1; min-width: 0; }
+.pp-edu__body b { display: block; font-size: 15px; }
+.pp-edu__body small { font-size: 13px; color: var(--ink-3); }
+.pp-edu__year { font-size: 14px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+
+
+/* ---------- 4. Отзывы -------------------------------------------- */
+.pp-rev-sum { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 28px; align-items: center; margin-bottom: 20px; padding: 20px; border-radius: 18px; background: #F5F8FB; }
+.pp-rev-sum__big { display: grid; justify-items: start; gap: 4px; }
+.pp-rev-sum__big b { font-size: 48px; font-weight: 800; line-height: 1; letter-spacing: -.03em; }
+.pp-rev-sum__big small { font-size: 13px; color: var(--ink-3); }
+.pp-rev-sum__bars { display: grid; gap: 6px; }
+.pp-rev-sum__bars li { display: grid; grid-template-columns: 14px minmax(0, 1fr) 28px; gap: 10px; align-items: center; font-size: 13px; font-weight: 700; }
+.pp-rev-sum__bars i { height: 8px; border-radius: 4px; background: #E3E8EF; overflow: hidden; }
+.pp-rev-sum__bars i b { display: block; height: 100%; border-radius: inherit; background: var(--yellow); }
+.pp-rev-sum__bars small { color: var(--ink-3); text-align: right; }
+
+.pp-reviews { display: grid; gap: 12px; }
+.pp-review { padding: 18px 20px; border-radius: 16px; box-shadow: inset 0 0 0 1.5px var(--line); }
+.pp-review header { display: flex; align-items: center; gap: 12px; }
+.pp-review header > span:not(.ava-sq):not(.stars-row) { flex: 1; min-width: 0; }
+.pp-review header b { display: block; font-size: 15px; }
+.pp-review header small { font-size: 12px; color: var(--ink-3); }
+.pp-review p { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
+.pp-empty { color: var(--ink-3); }
+
+
+/* ---------- 5. Блок записи --------------------------------------- */
+.book {
+  position: sticky; top: calc(var(--header-h) + 16px);
+  display: grid; gap: 14px;
+  padding: 24px; border-radius: 24px; background: #fff;
+  box-shadow: 0 16px 40px rgba(46, 76, 134, .08);
+}
+.book__title { font-size: 20px; font-weight: 800; }
+
+/* Формат – карточки-радиокнопки */
+.book__formats { display: grid; gap: 8px; }
+.bformat { cursor: pointer; }
+.bformat input { position: absolute; opacity: 0; pointer-events: none; }
+.bformat span {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; column-gap: 10px; align-items: center;
+  padding: 12px 14px; border-radius: 14px;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: box-shadow .2s, background-color .2s;
+}
+.bformat svg { grid-row: span 2; width: 22px; height: 22px; color: var(--ink-3); }
+.bformat b { font-size: 15px; }
+.bformat small { grid-column: 2; font-size: 12px; color: var(--ink-3); }
+.bformat em { grid-row: 1 / span 2; grid-column: 3; font-style: normal; font-size: 16px; font-weight: 800; }
+.bformat:hover span { box-shadow: inset 0 0 0 1.5px #B9C3D1; }
+.bformat input:checked + span { background: var(--teal-soft); box-shadow: inset 0 0 0 2px var(--teal); }
+.bformat input:checked + span svg { color: var(--teal-dark); }
+.bformat input:focus-visible + span { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* Лента дней */
+.book__days-head { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.book__days-head b { font-size: 15px; text-transform: capitalize; }
+.book__arrow {
+  display: inline-grid; place-items: center; width: 32px; height: 32px;
+  border: 0; border-radius: 10px; background: #F3F6FA; color: var(--ink); cursor: pointer;
+}
+.book__arrow svg { width: 16px; height: 16px; }
+.book__arrow--prev svg { transform: scaleX(-1); }
+.book__arrow:disabled { opacity: .35; cursor: default; }
+.book__arrow + .book__arrow { margin-left: 4px; }
+
+.book__days {
+  display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 5 * 6px) / 6); gap: 6px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none;
+}
+.book__days::-webkit-scrollbar { display: none; }
+.bday {
+  display: grid; justify-items: center; gap: 1px;
+  padding: 8px 0 7px; border: 0; border-radius: 12px;
+  background: #F3F6FA; font: inherit; color: var(--ink); cursor: pointer;
+  scroll-snap-align: start;
+  transition: background-color .2s, color .2s;
+}
+.bday small { font-size: 11px; font-weight: 600; color: var(--ink-3); }
+.bday b { font-size: 17px; }
+.bday i { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); }
+.bday:hover { background: #E8EEF6; }
+.bday.is-active { background: var(--ink); color: #fff; }
+.bday.is-active small { color: rgba(255, 255, 255, .7); }
+.bday.is-active i { background: var(--yellow); }
+.bday.is-empty { cursor: default; color: #B5BCC8; background: #F8FAFC; }
+.bday.is-empty i { visibility: hidden; }
+
+/* Время */
+.book__times { display: grid; gap: 10px; min-height: 60px; }
+.book__hint { display: flex; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; background: #F5F8FB; font-size: 14px; color: var(--ink-3); }
+.book__hint svg { width: 18px; height: 18px; flex-shrink: 0; }
+.book__part-label { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.book__part-label svg { width: 15px; height: 15px; }
+.book__slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.bslot {
+  height: 40px; border: 0; border-radius: 10px;
+  background: #fff; box-shadow: inset 0 0 0 1.5px var(--line);
+  font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer;
+  transition: box-shadow .2s, background-color .2s, color .2s;
+}
+.bslot:hover { box-shadow: inset 0 0 0 1.5px var(--teal); color: var(--teal-dark); }
+.bslot.is-active { background: var(--teal); color: #fff; box-shadow: none; }
+
+.book__total {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border-radius: 14px; background: var(--yellow-soft);
+  font-size: 14px; font-weight: 600;
+}
+.book__total span::first-letter { text-transform: uppercase; }
+.book__total b { font-size: 18px; white-space: nowrap; }
+.book .btn--primary:disabled { background: #C9D2DE; cursor: default; transform: none; }
+.book__chat { margin-top: -4px; }
+
+.book__notes { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+.book__notes li { display: flex; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.book__notes svg { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; color: var(--teal-dark); }
+
+
+/* ---------- 6. Диалог записи ------------------------------------- */
+.book-sum { display: grid; gap: 14px; margin-bottom: 18px; padding: 16px; border-radius: 16px; background: #F5F8FB; }
+.book-sum__who { display: flex; align-items: center; gap: 12px; }
+.book-sum__who img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; }
+.book-sum__who b { display: block; }
+.book-sum__who small { font-size: 13px; color: var(--ink-3); }
+.book-sum dl { display: grid; gap: 6px; margin: 0; }
+.book-sum dl > div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.book-sum dt { color: var(--ink-3); }
+.book-sum dd { margin: 0; font-weight: 700; text-align: right; }
+.book-sum dd::first-letter { text-transform: uppercase; }
+.book-sum__pay { display: flex; gap: 8px; margin-top: 14px; font-size: 13px; color: var(--ink-3); }
+.book-sum__pay svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+.book-done { padding: 36px 28px 28px; text-align: center; }
+.book-done__ic { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 20px; background: var(--teal-soft); color: var(--teal-dark); }
+.book-done__ic svg { width: 32px; height: 32px; }
+.book-done h3 { margin-top: 16px; font-size: 24px; font-weight: 800; }
+.book-done p { margin: 8px auto 22px; max-width: 380px; color: var(--ink-2); }
+.book-done__btns { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+/* Психолог не найден */
+.pp-404 { display: grid; justify-items: center; gap: 12px; padding: 80px 24px 120px; text-align: center; }
+.pp-404 img { width: 200px; }
+.pp-404 h1 { font-size: 30px; font-weight: 800; }
+.pp-404 p { color: var(--ink-2); }
+.pp-404[hidden], .pp[hidden] { display: none; }
+
+
+/* ---------- 7. Адаптив ------------------------------------------- */
+@media (max-width: 1100px) {
+  .pp__grid { grid-template-columns: minmax(0, 1fr) 340px; }
+  .pp-hero { grid-template-columns: 200px minmax(0, 1fr); gap: 22px; }
+}
+@media (max-width: 960px) {
+  .pp__grid { grid-template-columns: minmax(0, 1fr); }
+  .book { position: static; }
+}
+@media (max-width: 640px) {
+  .pp { padding-top: 12px; padding-bottom: 64px; }
+  .pp-hero { grid-template-columns: minmax(0, 1fr); padding: 14px; }
+  .pp-hero__photo { aspect-ratio: 4 / 3; }
+  .pp-hero__info { padding: 0 6px 6px; }
+  .pp-sec { padding: 20px; border-radius: 20px; }
+  .pp-methods { grid-template-columns: minmax(0, 1fr); }
+  .pp-rev-sum { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .book { padding: 18px; border-radius: 20px; }
+  .book__days { grid-auto-columns: calc((100% - 4 * 6px) / 5); }
+  .pp-edu__year { display: none; }
+}

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Профиль специалиста – Рядом</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Общие стили сайта + стили личного кабинета -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/cabinet.css">
+</head>
+<body class="cab-page" data-role="psychologist">
+
+<!-- Иконки кабинета -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.3 3.2-5 6.5-5s5.9 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4S6 15 6 10zM10 19.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 16l4-4-4-4M19 12H9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.4-2h4.6l1.4 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5v5.5M12 16.5v.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- =========================== ШАПКА КАБИНЕТА =========================== -->
+<header class="cab-top">
+  <div class="cab-top__inner">
+    <a href="index.html" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+    <div class="cab-top__right">
+      <button class="icon-btn" type="button" aria-label="Уведомления"><svg><use href="#i-bell"/></svg><span class="dot"></span></button>
+      <a href="#" class="me" aria-label="Мой профиль">
+        <span class="ava-sq" data-photo-mini style="--s:40px;--c:var(--coral)">М</span>
+        <span class="me__text"><span class="me__name" data-bind="me-name">Марина Волкова</span><span class="me__role">Психолог</span></span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="cab">
+    <!-- Боковое меню кабинета -->
+    <nav class="cab-nav" aria-label="Разделы кабинета">
+      <a href="cabinet-psychologist.html" class="is-active" aria-current="page"><svg><use href="#i-user"/></svg>Профиль</a>
+      <a href="psy-schedule.html"><svg><use href="#i-calendar"/></svg>Расписание</a>
+      <a href="psy-sessions.html"><svg><use href="#i-clock"/></svg>Записи<span class="badge">3</span></a>
+      <a href="psy-chat.html"><svg><use href="#i-chat"/></svg>Чат<span class="badge">1</span></a>
+      <a href="psy-reviews.html"><svg><use href="#i-star"/></svg>Отзывы</a>
+      <hr>
+      <a href="index.html" class="logout"><svg><use href="#i-logout"/></svg>Выйти</a>
+    </nav>
+
+  <!-- =========================== ПРОФИЛЬ ПСИХОЛОГА =========================== -->
+  <main class="cab-main">
+    <div class="cab-head">
+      <div>
+        <h1>Профиль специалиста</h1>
+        <p>Так клиенты увидят вас в&nbsp;каталоге</p>
+      </div>
+    </div>
+
+    <div class="cab-grid">
+      <form class="cab-stack" id="profile-form" novalidate>
+
+        <!-- Статус проверки модератором -->
+        <div class="status">
+          <svg><use href="#i-shield"/></svg>
+          <div><b>Профиль на&nbsp;проверке</b><p>Модератор проверит документы об&nbsp;образовании – обычно до&nbsp;3&nbsp;рабочих дней. После этого профиль появится в&nbsp;каталоге.</p></div>
+        </div>
+
+        <!-- Фото – обязательно -->
+        <section class="panel" id="photo-panel">
+          <div class="panel__head"><h2>Фотография</h2><span class="req-badge">обязательно</span></div>
+          <div class="photo-box">
+            <label class="upload" data-upload>
+              <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" aria-label="Загрузить фото">
+              <svg><use href="#i-camera"/></svg>
+              <b>Загрузить фото</b>
+              <small>или перетащите сюда</small>
+            </label>
+            <div class="photo-box__info">
+              <b>Клиенты выбирают психолога, которому доверяют</b>
+              <ul class="photo-rules">
+                <li><svg><use href="#i-check"/></svg>Лицо хорошо видно, смотрите в&nbsp;камеру</li>
+                <li><svg><use href="#i-check"/></svg>Спокойный светлый фон</li>
+                <li><svg><use href="#i-check"/></svg>JPG или PNG, до&nbsp;5&nbsp;МБ</li>
+              </ul>
+              <div class="photo-box__btns" data-photo-actions hidden>
+                <label class="btn btn--line" style="position:relative">Заменить<input type="file" accept="image/jpeg,image/png,image/webp" data-photo-replace style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
+                <button type="button" class="btn btn--danger" data-photo-remove><svg><use href="#i-trash"/></svg>Удалить</button>
+              </div>
+              <span class="f__error" data-photo-error style="display:none">Загрузите фото – без него профиль не&nbsp;появится в&nbsp;каталоге</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Основная информация -->
+        <section class="panel">
+          <div class="panel__head"><h2>Основная информация</h2></div>
+          <div class="fields">
+            <label class="f"><span class="f__label">Имя <span class="f__req">*</span></span><input class="f__input" name="first" value="Марина" required data-pv="first"><span class="f__error">Введите имя</span></label>
+            <label class="f"><span class="f__label">Фамилия <span class="f__req">*</span></span><input class="f__input" name="last" value="Волкова" required data-pv="last"><span class="f__error">Введите фамилию</span></label>
+            <div class="f span-2">
+              <span class="f__label">Пол</span>
+              <div class="pills">
+                <label class="pill"><input type="radio" name="gender" value="f" checked><span>Женщина</span></label>
+                <label class="pill"><input type="radio" name="gender" value="m"><span>Мужчина</span></label>
+              </div>
+            </div>
+            <label class="f"><span class="f__label">Дата рождения <span class="f__req">*</span></span><input class="f__input" type="date" name="birth" value="1992-03-14" required data-pv="birth"><span class="f__error">Укажите дату рождения</span></label>
+            <label class="f"><span class="f__label">Опыт работы <span class="f__req">*</span></span><span class="f__suffix"><input class="f__input" type="number" min="0" max="60" name="exp" value="9" required data-pv="exp"><span>лет</span></span><span class="f__error">Укажите опыт</span></label>
+            <label class="f"><span class="f__label">Стоимость сессии <span class="f__req">*</span></span><span class="f__suffix"><input class="f__input" type="number" min="10" step="5" name="price" value="65" required data-pv="price"><span>BYN</span></span><span class="f__note">Сессия длится 50&nbsp;минут</span><span class="f__error">Укажите стоимость</span></label>
+            <label class="f"><span class="f__label">Должность</span><input class="f__input" name="role" value="Клинический психолог" data-pv="role"></label>
+          </div>
+        </section>
+
+        <!-- О себе -->
+        <section class="panel">
+          <div class="panel__head"><h2>О&nbsp;себе</h2></div>
+          <label class="f">
+            <span class="f__label">Расскажите о&nbsp;своём подходе <small class="f__count" data-count-for="about">0 / 800</small></span>
+            <textarea class="f__area" name="about" maxlength="800" rows="6" placeholder="Как вы работаете, чего ждать на&nbsp;первой встрече, что для вас важно в&nbsp;терапии">Помогаю справиться с&nbsp;тревогой и&nbsp;выгоранием. Работаю в&nbsp;когнитивно-поведенческом подходе: вместе разбираемся, какие мысли и&nbsp;привычки мешают, и&nbsp;пробуем новые способы реагировать.</textarea>
+          </label>
+        </section>
+
+        <!-- Методы, запросы, форматы -->
+        <section class="panel">
+          <div class="panel__head"><h2>Как вы работаете</h2></div>
+          <div class="chips-group"><b>Методы <span class="f__req">*</span></b><div class="chips" data-pv-chips="methods"><label class="chip-opt"><input type="checkbox" name="methods" value="КПТ" checked><span>КПТ</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Гештальт"><span>Гештальт</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Схема-терапия" checked><span>Схема-терапия</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="ACT"><span>ACT</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Психоанализ"><span>Психоанализ</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="EMDR"><span>EMDR</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Системная семейная"><span>Системная семейная</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Эмоционально-фокусированная"><span>Эмоционально-фокусированная</span></label></div></div>
+          <div class="chips-group"><b>С&nbsp;какими запросами работаете <span class="f__req">*</span></b><div class="chips" data-pv-chips="topics"><label class="chip-opt"><input type="checkbox" name="topics" value="Тревожность" checked><span>Тревожность</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Стресс"><span>Стресс</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Выгорание" checked><span>Выгорание</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Отношения"><span>Отношения</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Самооценка" checked><span>Самооценка</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Апатия"><span>Апатия</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Прокрастинация"><span>Прокрастинация</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Утрата"><span>Утрата</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Кризис"><span>Кризис</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Панические атаки"><span>Панические атаки</span></label></div></div>
+          <div class="chips-group"><b>Форматы</b><div class="chips"><label class="chip-opt"><input type="checkbox" name="formats" value="Индивидуальная" checked><span>Индивидуальная</span></label><label class="chip-opt"><input type="checkbox" name="formats" value="Парная"><span>Парная</span></label><label class="chip-opt"><input type="checkbox" name="formats" value="С ребёнком"><span>С ребёнком</span></label></div></div>
+        </section>
+
+        <!-- Образование и документы -->
+        <section class="panel">
+          <div class="panel__head"><h2>Образование и&nbsp;документы</h2><span class="req-badge">для проверки</span></div>
+          <p class="panel__hint">Укажите высшее психологическое образование и&nbsp;курсы повышения квалификации. Документы видит только модератор.</p>
+
+          <div class="edu" data-edu>
+            <div class="edu__item">
+              <label class="f"><span class="f__label">Учебное заведение</span><input class="f__input" value="БГУ, факультет философии и&nbsp;социальных наук"></label>
+              <label class="f"><span class="f__label">Специальность</span><input class="f__input" value="Психология"></label>
+              <label class="f"><span class="f__label">Год</span><input class="f__input" type="number" value="2015"></label>
+              <button type="button" class="icon-btn edu__del" data-edu-del aria-label="Удалить"><svg><use href="#i-trash"/></svg></button>
+            </div>
+            <div class="edu__item">
+              <label class="f"><span class="f__label">Учебное заведение</span><input class="f__input" value="Институт КПТ"></label>
+              <label class="f"><span class="f__label">Специальность</span><input class="f__input" value="Когнитивно-поведенческая терапия"></label>
+              <label class="f"><span class="f__label">Год</span><input class="f__input" type="number" value="2018"></label>
+              <button type="button" class="icon-btn edu__del" data-edu-del aria-label="Удалить"><svg><use href="#i-trash"/></svg></button>
+            </div>
+          </div>
+          <button type="button" class="btn btn--text edu__add" data-edu-add><svg><use href="#i-plus"/></svg>Добавить обучение</button>
+
+          <label class="drop" data-drop>
+            <input type="file" multiple accept=".pdf,image/jpeg,image/png" aria-label="Загрузить документы">
+            <span class="drop__ic"><svg><use href="#i-upload"/></svg></span>
+            <span><b>Загрузите дипломы и&nbsp;сертификаты</b><small>PDF, JPG или PNG до&nbsp;10&nbsp;МБ – можно несколько файлов сразу</small></span>
+          </label>
+          <div class="docs" data-docs>
+            <div class="doc">
+              <span class="doc__ic">PDF</span>
+              <span class="doc__name"><b>Диплом_БГУ_психология.pdf</b><small>2,4 МБ</small></span>
+              <span class="doc-status doc-status--ok">Подтверждён</span>
+              <button type="button" class="icon-btn" data-doc-del aria-label="Удалить файл"><svg><use href="#i-trash"/></svg></button>
+            </div>
+            <div class="doc">
+              <span class="doc__ic">JPG</span>
+              <span class="doc__name"><b>Сертификат_КПТ_2018.jpg</b><small>1,1 МБ</small></span>
+              <span class="doc-status doc-status--wait">На&nbsp;проверке</span>
+              <button type="button" class="icon-btn" data-doc-del aria-label="Удалить файл"><svg><use href="#i-trash"/></svg></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Удаление профиля -->
+        <section class="panel danger">
+          <div><b>Удалить профиль специалиста</b><p>Профиль исчезнет из&nbsp;каталога, будущие записи будут отменены с&nbsp;уведомлением клиентов</p></div>
+          <button type="button" class="btn btn--danger" data-open="delete-modal"><svg><use href="#i-trash"/></svg>Удалить</button>
+        </section>
+
+        <!-- Панель сохранения -->
+        <div class="savebar">
+          <span class="savebar__text">Есть несохранённые изменения</span>
+          <button type="submit" class="btn btn--primary">Сохранить</button>
+        </div>
+      </form>
+
+      <!-- =========================== ПРАВАЯ КОЛОНКА =========================== -->
+      <aside class="cab-aside">
+        <!-- Заполненность профиля -->
+        <div class="progress-card">
+          <div class="progress-card__top"><b>Профиль заполнен</b><span data-progress-num>0%</span></div>
+          <div class="bar"><i data-progress-bar></i></div>
+          <ul class="todo" data-todo>
+            <li data-todo-item="photo"><i></i>Фотография</li>
+            <li data-todo-item="main"><i></i>Основная информация</li>
+            <li data-todo-item="about"><i></i>Рассказ о&nbsp;себе</li>
+            <li data-todo-item="methods"><i></i>Методы и&nbsp;запросы</li>
+            <li data-todo-item="docs"><i></i>Документы об&nbsp;образовании</li>
+          </ul>
+        </div>
+
+        <!-- Живой предпросмотр карточки в каталоге -->
+        <span class="preview-cap">Так вас видят клиенты</span>
+        <article class="pv">
+          <header class="pv__head">
+            <span class="ava-sq" data-pv-photo style="--c:var(--coral)">М</span>
+            <div>
+              <span class="pv__role" data-pv-out="role">Клинический психолог</span>
+              <span class="pv__name" data-pv-out="name">Марина</span>
+              <span class="pv__meta" data-pv-out="meta">34 года · опыт 9 лет</span>
+            </div>
+          </header>
+          <div class="pv__rows">
+            <div><span>Стоимость</span><b data-pv-out="price">от 65 BYN</b></div>
+            <div><span>Метод</span><b data-pv-out="method">КПТ</b></div>
+          </div>
+          <div class="tags" data-pv-out="topics"></div>
+        </article>
+      </aside>
+    </div>
+  </main>
+</div>
+
+
+<!-- =========================== ДИАЛОГ: УДАЛЕНИЕ =========================== -->
+<dialog class="modal modal--small" id="delete-modal" aria-labelledby="delete-title">
+  <form method="dialog">
+    <div class="modal__head"><h3 id="delete-title">Удалить профиль?</h3></div>
+    <div class="modal__body"><p>Профиль исчезнет из&nbsp;каталога, все будущие записи будут отменены, клиенты получат уведомление. Это действие нельзя отменить.</p></div>
+    <div class="modal__foot">
+      <button class="btn btn--line" value="cancel">Отмена</button>
+      <button class="btn btn--danger" value="delete">Удалить профиль</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Всплывающее уведомление -->
+<div class="toast" role="status" aria-live="polite"><svg><use href="#i-check"/></svg><span>Изменения сохранены</span></div>
+
+<script src="js/cabinet.js"></script>
+</body>
+</html>

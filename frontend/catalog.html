@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Психологи – Рядом</title>
+  <meta name="description" content="Каталог проверенных психологов: поиск по запросу, методу и стоимости, свободное время для записи.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Общие стили сайта + стили каталога -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/catalog.css">
+</head>
+<body class="cat-page">
+
+<!-- Иконки (те же, что на главной, + поиск и фильтры) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Иконки (линейные, stroke = currentColor) -->
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-login" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-price-up" viewBox="0 0 24 24"><path d="M4 18h3M4 13h7M4 8h11M18 20V6M15 9l3-3 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-price-down" viewBox="0 0 24 24"><path d="M4 6h11M4 11h7M4 16h3M18 4v14M15 15l3 3 3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 13.5L7 21l5-2.5 5 2.5-1.5-7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M5 18a7 7 0 0 1 14 0M3 18h18M12 4v4M8.5 7.5L7 6M15.5 7.5L17 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v2M12 19.5v2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M2.5 12h2M19.5 12h2M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.3 3.2-5 6.5-5s5.9 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-child" viewBox="0 0 24 24"><circle cx="8" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.5-3.4 2.6-5.3 5.5-5.3s5 1.9 5.5 5.3M14 20c.3-2.5 1.4-4 3-4s2.7 1.5 3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12.5" rx="2.5" fill="currentColor"/><circle cx="12" cy="12.25" r="2.6" fill="#fff"/><circle cx="6" cy="12.25" r="1" fill="#fff"/><circle cx="18" cy="12.25" r="1" fill="#fff"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- Лица-настроения: круг закрашивается currentColor, черты лица – тёмные -->
+    <symbol id="face-calm" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 44q8-8 16 0M57 44q8-8 16 0"/><path d="M38 64q12 10 24 0"/></g></symbol>
+    <symbol id="face-worried" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 34l12-5M72 34l-12-5"/><path d="M34 70q4-5 8 0t8 0 8 0 8 0"/></g><circle cx="36" cy="46" r="4.5" fill="#262A33"/><circle cx="64" cy="46" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-sad" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 40q8 6 16 0M56 40q8 6 16 0"/><path d="M38 72q12-10 24 0"/></g></symbol>
+    <symbol id="face-tired" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 45h16M57 45h16M42 68h16"/></g></symbol>
+    <symbol id="face-neutral" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M40 68q10-3 20 2"/></g><circle cx="36" cy="45" r="4.5" fill="#262A33"/><circle cx="64" cy="45" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-happy" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 46q8-9 16 0M57 46q8-9 16 0"/></g><path d="M35 60h30q-3 14-15 14t-15-14z" fill="#262A33"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a href="index.html" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <!-- Ссылки на отдельные страницы сайта (якоря главной сюда не добавляем) -->
+      <a href="catalog.html" class="is-current" aria-current="page">Психологи</a>
+      <a href="tariffs.html">Тарифы</a>
+      <a href="for-psychologists.html">Психологам</a>
+      <a href="about.html">О&nbsp;нас</a>
+    </nav>
+
+    <div class="header__actions">
+      <a href="quiz.html" class="btn btn--soft btn--sm">Подобрать психолога</a>
+      <a href="login.html" class="btn btn--icon" aria-label="Войти в личный кабинет" title="Войти">
+        <svg><use href="#i-login"/></svg>
+      </a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- =========================== ЗАГОЛОВОК И ПОИСК (одна строка) =========================== -->
+  <section class="cat-hero">
+    <div class="container cat-hero__row">
+      <h1>Психологи</h1>
+      <label class="cat-search">
+        <svg><use href="#i-search"/></svg>
+        <input type="search" placeholder="Имя, запрос или метод" aria-label="Поиск психолога" data-search>
+        <button type="button" class="cat-search__clear" aria-label="Очистить поиск" data-search-clear hidden><svg><use href="#i-x"/></svg></button>
+      </label>
+    </div>
+  </section>
+
+  <!-- =========================== РЕЗУЛЬТАТЫ =========================== -->
+  <div class="container cat">
+    <div class="results__bar">
+      <div class="results__left">
+        <!-- Кнопка открывает окно с фильтрами -->
+        <button type="button" class="btn btn--dark filters-btn" data-filters-open aria-haspopup="dialog" aria-controls="filters-modal">
+          <svg><use href="#i-filter"/></svg>Фильтры<span class="count" data-filters-count hidden></span>
+        </button>
+        <p class="results__count" data-results-count>Психологи</p>
+      </div>
+      <!-- Сортировка: своё меню; скрытый select хранит значение для catalog.js -->
+      <div class="sort" data-sort-wrap>
+        <span class="sort__label" id="sort-label">Сортировка:</span>
+        <select data-sort hidden tabindex="-1" aria-hidden="true">
+          <option value="rating">по&nbsp;рейтингу</option>
+          <option value="soon">есть время скоро</option>
+          <option value="cheap">сначала дешевле</option>
+          <option value="expensive">сначала дороже</option>
+          <option value="exp">по&nbsp;опыту</option>
+        </select>
+        <button type="button" class="sort__btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="sort-menu" aria-labelledby="sort-label sort-value" data-sort-btn>
+          <svg class="sort__btn-ic"><use href="#i-sort"/></svg>
+          <span id="sort-value" data-sort-value>по&nbsp;рейтингу</span>
+          <svg class="sort__chev"><use href="#i-chevron"/></svg>
+        </button>
+        <ul class="sort__menu" id="sort-menu" role="listbox" tabindex="-1" aria-labelledby="sort-label" data-sort-menu>
+          <li role="option" id="sort-rating" data-value="rating" aria-selected="true">
+            <span class="sort__ic"><svg><use href="#i-star"/></svg></span>
+            <span class="sort__text"><b>По рейтингу</b><small>лучшие отзывы выше</small></span>
+            <svg class="sort__check"><use href="#i-check"/></svg>
+          </li>
+          <li role="option" id="sort-soon" data-value="soon" aria-selected="false">
+            <span class="sort__ic"><svg><use href="#i-clock"/></svg></span>
+            <span class="sort__text"><b>Есть время скоро</b><small>ближайшее свободное окно</small></span>
+            <svg class="sort__check"><use href="#i-check"/></svg>
+          </li>
+          <li role="option" id="sort-cheap" data-value="cheap" aria-selected="false">
+            <span class="sort__ic"><svg><use href="#i-price-down"/></svg></span>
+            <span class="sort__text"><b>Сначала дешевле</b><small>от&nbsp;40 BYN за&nbsp;сессию</small></span>
+            <svg class="sort__check"><use href="#i-check"/></svg>
+          </li>
+          <li role="option" id="sort-expensive" data-value="expensive" aria-selected="false">
+            <span class="sort__ic"><svg><use href="#i-price-up"/></svg></span>
+            <span class="sort__text"><b>Сначала дороже</b><small>от&nbsp;самых дорогих</small></span>
+            <svg class="sort__check"><use href="#i-check"/></svg>
+          </li>
+          <li role="option" id="sort-exp" data-value="exp" aria-selected="false">
+            <span class="sort__ic"><svg><use href="#i-award"/></svg></span>
+            <span class="sort__text"><b>По опыту</b><small>больше лет практики</small></span>
+            <svg class="sort__check"><use href="#i-check"/></svg>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="active-filters" data-active></div>
+
+    <!-- Карточки рисует catalog.js -->
+    <section class="list" data-list aria-live="polite"></section>
+    <div class="more" data-more hidden><button type="button" class="btn btn--line btn--lg">Показать ещё</button></div>
+  </div>
+</main>
+
+<!-- =========================== ОКНО ФИЛЬТРОВ =========================== -->
+<dialog class="fmodal" id="filters-modal" aria-labelledby="filters-title">
+  <form class="fmodal__form" data-filters>
+    <header class="fmodal__head">
+      <h2 id="filters-title">Фильтры</h2>
+      <button type="button" class="fmodal__close" aria-label="Закрыть" data-filters-close><svg><use href="#i-x"/></svg></button>
+    </header>
+
+    <div class="fmodal__body">
+      <!-- Главный фильтр – на всю ширину -->
+      <section class="fsec fsec--wide">
+        <h3>С&nbsp;чем нужна помощь</h3>
+        <div class="fchips"><label class="fchip"><input type="checkbox" name="topic" value="Тревожность"><span>Тревожность</span></label><label class="fchip"><input type="checkbox" name="topic" value="Стресс"><span>Стресс</span></label><label class="fchip"><input type="checkbox" name="topic" value="Выгорание"><span>Выгорание</span></label><label class="fchip"><input type="checkbox" name="topic" value="Отношения"><span>Отношения</span></label><label class="fchip"><input type="checkbox" name="topic" value="Самооценка"><span>Самооценка</span></label><label class="fchip"><input type="checkbox" name="topic" value="Апатия"><span>Апатия</span></label><label class="fchip"><input type="checkbox" name="topic" value="Прокрастинация"><span>Прокрастинация</span></label><label class="fchip"><input type="checkbox" name="topic" value="Утрата"><span>Утрата</span></label><label class="fchip"><input type="checkbox" name="topic" value="Кризис"><span>Кризис</span></label><label class="fchip"><input type="checkbox" name="topic" value="Панические атаки"><span>Панические атаки</span></label></div>
+      </section>
+
+      <!-- Когда удобно: лента ближайших 14 дней (рисует catalog.js) и время суток -->
+      <section class="fsec fsec--wide fwhen">
+        <div class="fsec__head">
+          <h3><svg><use href="#i-calendar"/></svg>Когда удобно</h3>
+          <span class="fsec__note" data-month></span>
+          <span class="fdays__nav">
+            <button type="button" class="fdays__arrow fdays__arrow--prev" aria-label="Раньше" data-days-prev disabled><svg><use href="#i-chevron"/></svg></button>
+            <button type="button" class="fdays__arrow" aria-label="Позже" data-days-next><svg><use href="#i-chevron"/></svg></button>
+          </span>
+        </div>
+        <div class="fdays" data-days></div>
+        <!-- Точное свободное время выбранного дня (рисует catalog.js) -->
+        <div class="ftimes" data-times></div>
+      </section>
+
+      <!-- Стоимость: ползунок, значение – справа от заголовка -->
+      <section class="fsec fsec--wide">
+        <div class="fsec__head">
+          <h3>Стоимость сессии</h3>
+          <span class="fprice__val">до&nbsp;<b data-price-out>120</b>&nbsp;BYN <small>/ 50 мин</small></span>
+        </div>
+        <div class="fprice" data-fprice>
+          <input class="range" type="range" name="price" min="40" max="120" step="5" value="120" aria-label="Максимальная стоимость">
+          <div class="range-scale"><span>40</span><span>80</span><span>120 BYN</span></div>
+        </div>
+      </section>
+
+      <section class="fsec">
+        <h3>Пол специалиста</h3>
+        <div class="fseg">
+          <label><input type="radio" name="gender" value="any" checked><span>Не&nbsp;важно</span></label>
+          <label><input type="radio" name="gender" value="f"><span>Женщина</span></label>
+          <label><input type="radio" name="gender" value="m"><span>Мужчина</span></label>
+        </div>
+      </section>
+
+      <section class="fsec">
+        <h3>Опыт работы</h3>
+        <div class="fseg">
+          <label><input type="radio" name="exp" value="0" checked><span>Любой</span></label>
+          <label><input type="radio" name="exp" value="3"><span>от&nbsp;3&nbsp;лет</span></label>
+          <label><input type="radio" name="exp" value="5"><span>от&nbsp;5</span></label>
+          <label><input type="radio" name="exp" value="10"><span>от&nbsp;10</span></label>
+        </div>
+      </section>
+
+      <section class="fsec fsec--wide">
+        <h3>Метод работы</h3>
+        <div class="fchips fchips--blue"><label class="fchip"><input type="checkbox" name="method" value="КПТ"><span>КПТ<small data-count="method:КПТ"></small></span></label><label class="fchip"><input type="checkbox" name="method" value="Гештальт"><span>Гештальт<small data-count="method:Гештальт"></small></span></label><label class="fchip"><input type="checkbox" name="method" value="Схема-терапия"><span>Схема-терапия<small data-count="method:Схема-терапия"></small></span></label><label class="fchip"><input type="checkbox" name="method" value="ACT"><span>ACT<small data-count="method:ACT"></small></span></label><label class="fchip"><input type="checkbox" name="method" value="Психоанализ"><span>Психоанализ<small data-count="method:Психоанализ"></small></span></label><label class="fchip"><input type="checkbox" name="method" value="EMDR"><span>EMDR<small data-count="method:EMDR"></small></span></label><label class="fchip"><input type="checkbox" name="method" value="Системная семейная"><span>Системная семейная<small data-count="method:Системная семейная"></small></span></label></div>
+      </section>
+
+      <section class="fsec fsec--wide">
+        <h3>Формат</h3>
+        <div class="fcards"><label class="fcard"><input type="checkbox" name="format" value="Индивидуальная"><span><svg><use href="#i-user"/></svg><b>Индивидуальная</b><small data-count="format:Индивидуальная"></small></span></label><label class="fcard"><input type="checkbox" name="format" value="Парная"><span><svg><use href="#i-users"/></svg><b>Парная</b><small data-count="format:Парная"></small></span></label><label class="fcard"><input type="checkbox" name="format" value="С ребёнком"><span><svg><use href="#i-child"/></svg><b>С ребёнком</b><small data-count="format:С ребёнком"></small></span></label></div>
+      </section>
+    </div>
+
+    <footer class="fmodal__foot">
+      <button type="reset" class="btn btn--text-dark">Сбросить всё</button>
+      <button type="button" class="btn btn--primary btn--lg" data-filters-close data-show-btn>Показать</button>
+    </footer>
+  </form>
+</dialog>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="index.html" class="logo logo--light">
+          <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="logo__text">рядом</span>
+        </a>
+        <p>Сервис для поиска психологов и&nbsp;записи на&nbsp;онлайн-сессии.</p>
+      </div>
+      <nav class="footer__col" aria-label="Клиентам">
+        <b>Клиентам</b>
+        <a href="quiz.html">Подобрать психолога</a>
+        <a href="catalog.html">Каталог специалистов</a>
+        <a href="tariffs.html">Тарифы и&nbsp;оплата</a>
+        <a href="index.html#faq">Частые вопросы</a>
+        <a href="about.html">О&nbsp;сервисе</a>
+      </nav>
+      <nav class="footer__col" aria-label="Психологам">
+        <b>Психологам</b>
+        <a href="login.html#register-psychologist">Подать заявку</a>
+        <a href="for-psychologists.html">Условия работы</a>
+        <a href="index.html#check">Требования к&nbsp;специалистам</a>
+      </nav>
+      <nav class="footer__col" aria-label="Аккаунт">
+        <b>Аккаунт</b>
+        <a href="login.html">Войти</a>
+        <a href="login.html#register">Регистрация</a>
+        <a href="mailto:support@ryadom.by">Поддержка</a>
+      </nav>
+    </div>
+
+    <!-- Важно для сервиса психологической помощи: не заменяет экстренную помощь -->
+    <div class="footer__sos">
+      <b>Сервис не&nbsp;оказывает экстренную помощь.</b>
+      Если вам или кому-то рядом угрожает опасность – звоните <a href="tel:103">103</a> или <a href="tel:112">112</a>.
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 «Рядом». Курсовой проект, БГТУ</span>
+      <a href="privacy.html">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/data.js"></script>
+<script src="js/catalog.js"></script>
+</body>
+</html>

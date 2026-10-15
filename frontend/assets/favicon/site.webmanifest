@@ -1,0 +1,11 @@
+{
+  "name": "Рядом – поиск психолога",
+  "short_name": "Рядом",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#4AA597",
+  "background_color": "#FFFFFF",
+  "display": "standalone"
+}

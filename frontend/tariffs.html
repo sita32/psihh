@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Тарифы – Рядом</title>
+  <meta name="description" content="Сколько стоит сессия с психологом в «Рядом»: от 45 до 110 BYN за 50 минут. Оплата при записи, без пакетов и подписок, бесплатная отмена за 24 часа.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Общие стили сайта + стили страницы «Тарифы» -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/tariffs.css">
+</head>
+<body class="tf-page">
+<script>document.documentElement.classList.add('js');</script>
+
+<!-- Иконки (те же, что на главной, + несколько для этой страницы) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Иконки (линейные, stroke = currentColor) -->
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-login" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.3 3.2-5 6.5-5s5.9 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-child" viewBox="0 0 24 24"><circle cx="8" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.5-3.4 2.6-5.3 5.5-5.3s5 1.9 5.5 5.3M14 20c.3-2.5 1.4-4 3-4s2.7 1.5 3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12.5" rx="2.5" fill="currentColor"/><circle cx="12" cy="12.25" r="2.6" fill="#fff"/><circle cx="6" cy="12.25" r="1" fill="#fff"/><circle cx="18" cy="12.25" r="1" fill="#fff"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- Лица-настроения: круг закрашивается currentColor, черты лица – тёмные -->
+    <symbol id="face-calm" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 44q8-8 16 0M57 44q8-8 16 0"/><path d="M38 64q12 10 24 0"/></g></symbol>
+    <symbol id="face-worried" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 34l12-5M72 34l-12-5"/><path d="M34 70q4-5 8 0t8 0 8 0 8 0"/></g><circle cx="36" cy="46" r="4.5" fill="#262A33"/><circle cx="64" cy="46" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-sad" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 40q8 6 16 0M56 40q8 6 16 0"/><path d="M38 72q12-10 24 0"/></g></symbol>
+    <symbol id="face-tired" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 45h16M57 45h16M42 68h16"/></g></symbol>
+    <symbol id="face-neutral" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M40 68q10-3 20 2"/></g><circle cx="36" cy="45" r="4.5" fill="#262A33"/><circle cx="64" cy="45" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-happy" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 46q8-9 16 0M57 46q8-9 16 0"/></g><path d="M35 60h30q-3 14-15 14t-15-14z" fill="#262A33"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2.2 2.2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a href="index.html" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <!-- Ссылки на отдельные страницы сайта (якоря главной сюда не добавляем) -->
+      <a href="catalog.html">Психологи</a>
+      <a href="tariffs.html" class="is-current" aria-current="page">Тарифы</a>
+      <a href="for-psychologists.html">Психологам</a>
+      <a href="about.html">О&nbsp;нас</a>
+    </nav>
+
+    <div class="header__actions">
+      <a href="quiz.html" class="btn btn--soft btn--sm">Подобрать психолога</a>
+      <a href="login.html" class="btn btn--icon" aria-label="Войти в личный кабинет" title="Войти">
+        <svg><use href="#i-login"/></svg>
+      </a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- =========================== 1. ПЕРВЫЙ ЭКРАН =========================== -->
+  <section class="tf-hero">
+    <div class="container tf-hero__grid">
+      <div>
+        <h1>Тарифы</h1>
+        <ul class="tf-points">
+          <li>Сессия длится 50&nbsp;минут и&nbsp;стоит <b>от&nbsp;45 до&nbsp;110&nbsp;BYN</b> – цену устанавливает психолог</li>
+          <li>Подбор и&nbsp;смена психолога – бесплатно</li>
+          <li>Оплата картой при записи, без пакетов и&nbsp;подписок</li>
+          <li>Отмена и&nbsp;перенос бесплатно – не&nbsp;позднее чем за&nbsp;24&nbsp;часа</li>
+        </ul>
+      </div>
+      <div class="tf-hero__art">
+        <img src="assets/img/for-psy/calendar.webp" alt="Календарь с отмеченными днями и стопка монет" width="1000" height="390">
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 2. ЦЕНА ЗАВИСИТ ОТ ОПЫТА =========================== -->
+  <section class="tf-levels">
+    <div class="container tf-levels__grid">
+      <div class="tf-levels__head">
+        <h2 class="h2">Цена зависит от&nbsp;опыта</h2>
+        <p>Каждый психолог сам устанавливает стоимость сессии. Чем больше практики, тем обычно выше цена.</p>
+      </div>
+      <div class="lvls">
+        <article class="lvl lvl--teal rv" style="--d:0ms">
+          <span class="lvl__badge">2 психолога</span>
+          <h3>Опыт до&nbsp;5&nbsp;лет</h3>
+          <p class="lvl__price">45–50&nbsp;<span>BYN</span></p>
+          <p class="lvl__desc">Молодые специалисты с&nbsp;практикой от&nbsp;3&nbsp;лет – самая доступная цена.</p>
+          <div class="lvl__foot">
+            <span class="lvl__faces"><img src="assets/img/psychologists/p10-sq.webp" alt="" title="Артём Савицкий"><img src="assets/img/psychologists/p04-sq.webp" alt="" title="Илья Ковальчук"></span>
+            <a href="catalog.html?expmax=4" class="lvl__link">Смотреть <svg><use href="#i-arrow"/></svg></a>
+          </div>
+        </article>
+        <article class="lvl lvl--yellow rv" style="--d:90ms">
+          <span class="lvl__badge">7 психологов</span>
+          <h3>Опыт 5–10 лет</h3>
+          <p class="lvl__price">50–90&nbsp;<span>BYN</span></p>
+          <p class="lvl__desc">Специалисты с&nbsp;большой практикой и&nbsp;несколькими методами в&nbsp;работе.</p>
+          <div class="lvl__foot">
+            <span class="lvl__faces"><img src="assets/img/psychologists/p07-sq.webp" alt="" title="Алина Ковалёва"><img src="assets/img/psychologists/p05-sq.webp" alt="" title="Дарья Миронова"><img src="assets/img/psychologists/p01-sq.webp" alt="" title="Марина Волкова"><img src="assets/img/psychologists/p08-sq.webp" alt="" title="Никита Белов"></span>
+            <a href="catalog.html?exp=5&amp;expmax=10" class="lvl__link">Смотреть <svg><use href="#i-arrow"/></svg></a>
+          </div>
+        </article>
+        <article class="lvl lvl--coral rv" style="--d:180ms">
+          <span class="lvl__badge">3 психолога</span>
+          <h3>Опыт более 10&nbsp;лет</h3>
+          <p class="lvl__price">80–110&nbsp;<span>BYN</span></p>
+          <p class="lvl__desc">Эксперты: сложные запросы, кризисы, работа с&nbsp;парами и&nbsp;семьями.</p>
+          <div class="lvl__foot">
+            <span class="lvl__faces"><img src="assets/img/psychologists/p03-sq.webp" alt="" title="Ольга Ермак"><img src="assets/img/psychologists/p06-sq.webp" alt="" title="Дмитрий Соколов"><img src="assets/img/psychologists/p11-sq.webp" alt="" title="Екатерина Новик"></span>
+            <a href="catalog.html?exp=10" class="lvl__link">Смотреть <svg><use href="#i-arrow"/></svg></a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 3. ФОРМАТЫ =========================== -->
+  <section class="section">
+    <div class="container">
+      <h2 class="h2">Стоимость по&nbsp;форматам</h2>
+      <!-- Переключатель форматов: панель с ценами и психологами этого формата -->
+      <div class="fsw rv" data-fsw>
+        <div class="fsw__tabs" role="tablist" aria-label="Формат сессии">
+          <button type="button" role="tab" class="fsw__tab is-on" id="ftab-individual" aria-controls="fpane-individual" aria-selected="true" data-ftab="0"><svg><use href="#i-user"/></svg>Индивидуальная</button>
+          <button type="button" role="tab" class="fsw__tab" id="ftab-couple" aria-controls="fpane-couple" aria-selected="false" data-ftab="1"><svg><use href="#i-users"/></svg>Парная</button>
+          <button type="button" role="tab" class="fsw__tab" id="ftab-child" aria-controls="fpane-child" aria-selected="false" data-ftab="2"><svg><use href="#i-child"/></svg>С&nbsp;ребёнком</button>
+        </div>
+        <div class="fsw__pane fsw__pane--blue is-on" role="tabpanel" id="fpane-individual" aria-labelledby="ftab-individual">
+          <div class="fsw__info">
+            <img src="assets/img/formats/individual.webp" alt="Девушка спокойно отдыхает в кресле" width="800" height="760" loading="lazy">
+            <div>
+              <p class="fsw__desc">Вы и&nbsp;психолог · 50&nbsp;минут</p>
+              <p class="fsw__price">45–110<small>&nbsp;BYN</small></p>
+              <p class="fsw__count">12 психологов работают в&nbsp;этом формате</p>
+            </div>
+          </div>
+          <ul class="fsw__list">
+              <li><a href="psychologist.html?id=10"><img src="assets/img/psychologists/p10-sq.webp" alt=""><span>Артём Савицкий<small>опыт 3 года</small></span><b>45&nbsp;BYN</b></a></li>
+              <li><a href="psychologist.html?id=4"><img src="assets/img/psychologists/p04-sq.webp" alt=""><span>Илья Ковальчук<small>опыт 4 года</small></span><b>50&nbsp;BYN</b></a></li>
+              <li><a href="psychologist.html?id=7"><img src="assets/img/psychologists/p07-sq.webp" alt=""><span>Алина Ковалёва<small>опыт 5 лет</small></span><b>50&nbsp;BYN</b></a></li>
+              <li><a href="psychologist.html?id=5"><img src="assets/img/psychologists/p05-sq.webp" alt=""><span>Дарья Миронова<small>опыт 5 лет</small></span><b>60&nbsp;BYN</b></a></li>
+            <li class="fsw__more"><a href="catalog.html?format=Индивидуальная">и&nbsp;ещё 8 психологов в&nbsp;каталоге <svg><use href="#i-arrow"/></svg></a></li>
+          </ul>
+        </div>
+        <div class="fsw__pane fsw__pane--coral" role="tabpanel" id="fpane-couple" aria-labelledby="ftab-couple" hidden>
+          <div class="fsw__info">
+            <img src="assets/img/formats/couple.webp" alt="Пара стоит рядом" width="800" height="760" loading="lazy">
+            <div>
+              <p class="fsw__desc">Для партнёров · 50&nbsp;минут</p>
+              <p class="fsw__price">80–110<small>&nbsp;BYN</small></p>
+              <p class="fsw__count">3 психолога работают в&nbsp;этом формате</p>
+            </div>
+          </div>
+          <ul class="fsw__list">
+              <li><a href="psychologist.html?id=3"><img src="assets/img/psychologists/p03-sq.webp" alt=""><span>Ольга Ермак<small>опыт 11 лет</small></span><b>80&nbsp;BYN</b></a></li>
+              <li><a href="psychologist.html?id=6"><img src="assets/img/psychologists/p06-sq.webp" alt=""><span>Дмитрий Соколов<small>опыт 12 лет</small></span><b>80&nbsp;BYN</b></a></li>
+              <li><a href="psychologist.html?id=11"><img src="assets/img/psychologists/p11-sq.webp" alt=""><span>Екатерина Новик<small>опыт 18 лет</small></span><b>110&nbsp;BYN</b></a></li>
+            <li class="fsw__more"><a href="catalog.html?format=Парная">Смотреть в&nbsp;каталоге <svg><use href="#i-arrow"/></svg></a></li>
+          </ul>
+        </div>
+        <div class="fsw__pane fsw__pane--yellow" role="tabpanel" id="fpane-child" aria-labelledby="ftab-child" hidden>
+          <div class="fsw__info">
+            <img src="assets/img/formats/child.webp" alt="Мама с дочкой и игрушечным зайцем" width="800" height="760" loading="lazy">
+            <div>
+              <p class="fsw__desc">Ребёнок или подросток вместе с&nbsp;родителем · 50&nbsp;минут</p>
+              <p class="fsw__price">75–80<small>&nbsp;BYN</small></p>
+              <p class="fsw__count">2 психолога работают в&nbsp;этом формате</p>
+            </div>
+          </div>
+          <ul class="fsw__list">
+              <li><a href="psychologist.html?id=9"><img src="assets/img/psychologists/p09-sq.webp" alt=""><span>Вероника Жук<small>опыт 7 лет</small></span><b>75&nbsp;BYN</b></a></li>
+              <li><a href="psychologist.html?id=3"><img src="assets/img/psychologists/p03-sq.webp" alt=""><span>Ольга Ермак<small>опыт 11 лет</small></span><b>80&nbsp;BYN</b></a></li>
+            <li class="fsw__more"><a href="catalog.html?format=С%20ребёнком">Смотреть в&nbsp;каталоге <svg><use href="#i-arrow"/></svg></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 4. ОПЛАТА И ОТМЕНА: ШКАЛА =========================== -->
+  <section class="section section--soft">
+    <div class="container">
+      <h2 class="h2">Оплата и&nbsp;отмена</h2>
+      <p class="section__sub">Сессия оплачивается сразу при записи. Если планы изменились – чем раньше вы отмените или перенесёте встречу, тем лучше.</p>
+
+      <div class="tline rv" data-tline>
+        <div class="tline__bar">
+          <span class="tline__seg tline__seg--ok"></span>
+          <span class="tline__seg tline__seg--late"></span>
+          <span class="tline__mark tline__mark--start"><svg><use href="#i-wallet"/></svg></span>
+          <span class="tline__mark tline__mark--cut">24 ч</span>
+          <span class="tline__mark tline__mark--end"><svg><use href="#i-calendar"/></svg></span>
+        </div>
+        <div class="tline__labels">
+          <div class="tline__lab"><b>Запись и&nbsp;оплата</b><span>картой на&nbsp;сайте</span></div>
+          <div class="tline__lab tline__lab--ok"><b>Отмена и&nbsp;перенос бесплатно</b><span>деньги вернутся на&nbsp;карту</span></div>
+          <div class="tline__lab tline__lab--late"><b>Менее чем за&nbsp;24&nbsp;часа</b><span>оплата сохраняется за&nbsp;психологом</span></div>
+          <div class="tline__lab tline__lab--end"><b>Сессия</b><span>50&nbsp;минут по&nbsp;видеосвязи</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 5. БЕСПЛАТНО + БЕЗ ПАКЕТОВ =========================== -->
+  <section class="section">
+    <div class="container tf-two">
+      <div class="tf-free rv">
+        <h2 class="h3">Входит бесплатно</h2>
+        <ul><li><svg><use href="#i-search"/></svg>Подбор психолога</li><li><svg><use href="#i-users"/></svg>Смена психолога</li><li><svg><use href="#i-chat"/></svg>Чат с&nbsp;психологом</li><li><svg><use href="#i-bell"/></svg>Напоминания о&nbsp;сессии</li></ul>
+      </div>
+      <div class="tf-nopack rv" style="--d:100ms">
+        <h2 class="h3">Почему у&nbsp;нас нет пакетов</h2>
+        <p>Мы не&nbsp;продаём курсы и&nbsp;пакеты сессий со&nbsp;скидкой. Вы платите только за&nbsp;ту встречу, на&nbsp;которую записались, и&nbsp;можете остановиться или сменить психолога в&nbsp;любой момент – без сгоревших денег.</p>
+        <a href="about.html#rules" class="tf-link">Наши правила <svg><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="index.html" class="logo logo--light">
+          <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="logo__text">рядом</span>
+        </a>
+        <p>Сервис для поиска психологов и&nbsp;записи на&nbsp;онлайн-сессии.</p>
+      </div>
+      <nav class="footer__col" aria-label="Клиентам">
+        <b>Клиентам</b>
+        <a href="quiz.html">Подобрать психолога</a>
+        <a href="catalog.html">Каталог специалистов</a>
+        <a href="tariffs.html">Тарифы и&nbsp;оплата</a>
+        <a href="index.html#faq">Частые вопросы</a>
+        <a href="about.html">О&nbsp;сервисе</a>
+      </nav>
+      <nav class="footer__col" aria-label="Психологам">
+        <b>Психологам</b>
+        <a href="login.html#register-psychologist">Подать заявку</a>
+        <a href="for-psychologists.html">Условия работы</a>
+        <a href="index.html#check">Требования к&nbsp;специалистам</a>
+      </nav>
+      <nav class="footer__col" aria-label="Аккаунт">
+        <b>Аккаунт</b>
+        <a href="login.html">Войти</a>
+        <a href="login.html#register">Регистрация</a>
+        <a href="mailto:support@ryadom.by">Поддержка</a>
+      </nav>
+    </div>
+
+    <!-- Важно для сервиса психологической помощи: не заменяет экстренную помощь -->
+    <div class="footer__sos">
+      <b>Сервис не&nbsp;оказывает экстренную помощь.</b>
+      Если вам или кому-то рядом угрожает опасность – звоните <a href="tel:103">103</a> или <a href="tel:112">112</a>.
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 «Рядом». Курсовой проект, БГТУ</span>
+      <a href="privacy.html">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  /* Переключатель форматов */
+  (() => {
+    const tabs = [...document.querySelectorAll('[data-ftab]')];
+    const panes = document.querySelectorAll('.fsw__pane');
+    const show = (i) => {
+      tabs.forEach((t, k) => { t.classList.toggle('is-on', k === i); t.setAttribute('aria-selected', String(k === i)); });
+      panes.forEach((p, k) => { p.hidden = k !== i; p.classList.toggle('is-on', k === i); });
+    };
+    tabs.forEach((t, i) => t.addEventListener('click', () => show(i)));
+    // Стрелки влево/вправо по вкладкам
+    document.querySelector('.fsw__tabs').addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const cur = tabs.findIndex((t) => t.classList.contains('is-on'));
+      const next = (cur + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+      show(next); tabs[next].focus();
+    });
+  })();
+
+  /* Появление блоков при прокрутке (шкала оплаты «заполняется» слева направо) */
+  (() => {
+    const els = document.querySelectorAll('.rv');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      els.forEach((el) => el.classList.add('is-in')); return;
+    }
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+    }), { threshold: 0.25 });
+    els.forEach((el) => io.observe(el));
+  })();
+</script>
+</body>
+</html>

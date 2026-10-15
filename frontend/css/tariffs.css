@@ -1,0 +1,164 @@
+/* =====================================================================
+   «Рядом» – страница «Тарифы»
+   1. Первый экран   2. Уровни по опыту   3. Форматы (переключатель)
+   4. Шкала оплаты и отмены   5. Бесплатно / без пакетов
+   7. Адаптив
+   ===================================================================== */
+.tf-page main { overflow-x: clip; }
+.js .rv { opacity: 0; translate: 0 24px; transition: opacity .7s ease, translate .8s cubic-bezier(.2, .8, .2, 1); transition-delay: var(--d, 0ms); }
+.js .rv.is-in { opacity: 1; translate: 0 0; }
+
+/* ---------- 1. Первый экран ---------------------------------------- */
+.tf-hero { padding: 64px 0 72px; background: #fff; }
+.tf-hero__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 40px; align-items: center; }
+.tf-hero h1 { font-size: clamp(38px, 5vw, 64px); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+.tf-points { display: grid; gap: 12px; margin: 30px 0 0; padding: 0; list-style: none; }
+.tf-points li { position: relative; padding-left: 22px; font-size: 17px; line-height: 1.5; color: var(--ink-2); }
+.tf-points li::before { content: ""; position: absolute; left: 0; top: .55em; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+.tf-points b { color: var(--ink); }
+.tf-hero__art img { display: block; width: 100%; height: auto; mix-blend-mode: multiply; }
+
+/* ---------- 2. Цена зависит от опыта -------------------------------- */
+.tf-levels { padding: 80px 0; background: var(--soft); }
+.tf-levels__grid { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 2fr); gap: 40px; align-items: start; }
+.tf-levels__head p { margin-top: 16px; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.lvls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.lvl {
+  position: relative; display: flex; flex-direction: column;
+  padding: 28px 24px 22px; background: #fff;
+  box-shadow: 0 0 0 1.5px #DCE4EF;
+  transition: box-shadow .25s, transform .25s;
+}
+.lvl:hover { transform: translateY(-4px); box-shadow: 0 0 0 1.5px var(--c), 0 16px 34px rgba(46, 76, 134, .1); }
+.lvl--teal { --c: var(--teal); --cs: var(--teal-soft); }
+.lvl--yellow { --c: #E2B53A; --cs: var(--yellow-soft); }
+.lvl--coral { --c: var(--coral); --cs: var(--coral-soft); }
+.lvl__badge { position: absolute; top: -13px; right: 18px; padding: 5px 12px; background: var(--cs); font-size: 13px; font-weight: 800; }
+.lvl h3 { font-size: 16px; font-weight: 700; color: var(--ink-2); }
+.lvl__price { margin: 10px 0 12px; font-size: clamp(30px, 3vw, 38px); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; color: var(--ink); }
+.lvl__price span { font-size: .6em; color: var(--ink-3); }
+.lvl__desc { flex: 1; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.lvl__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; padding-top: 16px; border-top: 1.5px dashed #E1E7EF; }
+.lvl__faces { display: flex; }
+.lvl__faces img { width: 34px; height: 34px; border-radius: 24%; box-shadow: 0 0 0 2.5px #fff; }
+.lvl__faces img + img { margin-left: -8px; }
+.lvl__link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.lvl__link svg { width: 16px; height: 16px; transition: transform .2s; }
+.lvl__link:hover svg { transform: translateX(4px); }
+
+/* ---------- 3. Форматы: переключатель --------------------------------- */
+.fsw { margin-top: 32px; }
+.fsw__tabs { display: inline-flex; gap: 4px; padding: 5px; background: #F3F6FA; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.fsw__tabs::-webkit-scrollbar { display: none; }
+.fsw__tab {
+  display: flex; align-items: center; gap: 8px; padding: 12px 20px;
+  border: 0; background: none; font: inherit; font-size: 15px; font-weight: 700; color: var(--ink-2);
+  cursor: pointer; white-space: nowrap; transition: background-color .2s, color .2s, box-shadow .2s;
+}
+.fsw__tab svg { width: 20px; height: 20px; }
+.fsw__tab:hover { color: var(--ink); }
+.fsw__tab.is-on { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(38, 42, 51, .08); }
+.fsw__tab:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+.fsw__pane { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; margin-top: 18px; padding: 32px; }
+.fsw__pane[hidden] { display: none; }
+.fsw__pane.is-on { animation: paneIn .45s cubic-bezier(.2, .8, .2, 1); }
+@keyframes paneIn { from { opacity: 0; transform: translateY(10px); } }
+.fsw__pane--blue { background: var(--blue-soft); }
+.fsw__pane--coral { background: var(--coral-soft); }
+.fsw__pane--yellow { background: var(--yellow-soft); }
+.fsw__info { display: flex; align-items: center; gap: 24px; }
+.fsw__info img { width: 190px; height: auto; flex-shrink: 0; mix-blend-mode: multiply; }
+.fsw__desc { font-size: 15px; color: var(--ink-2); }
+.fsw__price { margin: 6px 0; font-size: clamp(40px, 4.4vw, 58px); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+.fsw__price small { font-size: .34em; letter-spacing: 0; color: var(--ink-2); }
+.fsw__count { font-size: 14px; color: var(--ink-2); }
+.fsw__list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.fsw__list a { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; transition: transform .2s, box-shadow .2s; }
+.fsw__list a:hover { transform: translateX(4px); box-shadow: 0 6px 16px rgba(38, 42, 51, .08); }
+.fsw__list img { width: 40px; height: 40px; border-radius: 24%; }
+.fsw__list span { flex: 1; font-size: 15px; font-weight: 700; }
+.fsw__list small { display: block; font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.fsw__list b { font-size: 16px; white-space: nowrap; }
+.fsw__pane.is-on .fsw__list li { animation: rowIn .45s cubic-bezier(.2, .8, .2, 1) both; }
+.fsw__pane.is-on .fsw__list li:nth-child(2) { animation-delay: .05s; }
+.fsw__pane.is-on .fsw__list li:nth-child(3) { animation-delay: .1s; }
+.fsw__pane.is-on .fsw__list li:nth-child(4) { animation-delay: .15s; }
+.fsw__pane.is-on .fsw__list li:nth-child(5) { animation-delay: .2s; }
+@keyframes rowIn { from { opacity: 0; transform: translateX(14px); } }
+.fsw__more a { justify-content: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--teal-dark); background: rgba(255, 255, 255, .6); }
+.fsw__more svg { width: 16px; height: 16px; }
+
+/* ---------- 4. Шкала оплаты и отмены -------------------------------- */
+.tline { margin-top: 44px; }
+.tline__bar { position: relative; display: flex; height: 14px; margin: 0 22px; }
+.tline__seg { height: 100%; transform: scaleX(0); transform-origin: left; transition: transform .9s cubic-bezier(.6, .1, .3, 1); }
+.tline__seg--ok { flex: 3; background: var(--teal); }
+.tline__seg--late { flex: 1; background: var(--coral); transition-delay: .8s; }
+.tline.is-in .tline__seg { transform: scaleX(1); }
+.tline__mark {
+  position: absolute; top: 50%; translate: -50% -50%;
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: #fff; box-shadow: inset 0 0 0 2.5px var(--ink); font-size: 13px; font-weight: 800;
+}
+.tline__mark svg { width: 20px; height: 20px; }
+.tline__mark--start { left: 0; }
+.tline__mark--cut { left: 75%; width: 52px; height: 52px; background: var(--yellow); }
+.tline__mark--end { left: 100%; background: var(--ink); color: #fff; }
+.tline__labels { display: grid; grid-template-columns: 1fr 2fr 1fr .6fr; gap: 16px; margin-top: 34px; }
+.tline__lab b { display: block; font-size: 15px; }
+.tline__lab span { font-size: 14px; color: var(--ink-3); }
+.tline__lab--ok b { color: var(--teal-dark); }
+.tline__lab--late b { color: #C9573A; }
+.tline__lab--end { text-align: right; }
+
+/* ---------- 5. Бесплатно + без пакетов ------------------------------- */
+.tf-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.tf-free, .tf-nopack { padding: 32px; }
+.tf-free { background: var(--teal-soft); }
+.tf-free ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 22px 0 0; padding: 0; list-style: none; }
+.tf-free li { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: #fff; font-weight: 700; font-size: 15px; }
+.tf-free li svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--teal-dark); }
+.tf-nopack { background: var(--yellow-soft); }
+.tf-nopack p { margin: 14px 0 18px; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.tf-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink); }
+.tf-link svg { width: 18px; height: 18px; transition: transform .2s; }
+.tf-link:hover svg { transform: translateX(4px); }
+
+/* ---------- 7. Адаптив ---------------------------------------------- */
+@media (max-width: 1100px) {
+  .tf-levels__grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .tf-hero__grid { grid-template-columns: minmax(0, 1fr); }
+  .tf-hero__art { max-width: 520px; }
+  .lvls { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .tf-two { grid-template-columns: minmax(0, 1fr); }
+  .fsw__pane { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .tf-hero { padding: 32px 0 48px; }
+  .tf-points li { font-size: 16px; }
+  .tf-levels { padding: 56px 0; }
+  .fsw__tabs { display: flex; }
+  .fsw__tab { flex: 1; justify-content: center; padding: 10px 6px; font-size: 13px; }
+  .fsw__tab svg { display: none; }
+  .fsw__pane { padding: 20px 16px; gap: 20px; }
+  .fsw__info { gap: 14px; }
+  .fsw__info img { width: 110px; }
+  /* Шкала – вертикально */
+  .tline__bar { display: none; }
+  .tline__labels { grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 24px; }
+  .tline__lab { position: relative; padding: 0 0 22px 26px; border-left: 4px solid var(--teal); margin-left: 8px; }
+  .tline__lab--late { border-color: var(--coral); }
+  .tline__lab--end { text-align: left; border-color: transparent; }
+  .tline__lab::before { content: ""; position: absolute; left: -12px; top: 0; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2.5px var(--ink); }
+  .tline__lab--end::before { background: var(--ink); }
+  .tf-free, .tf-nopack { padding: 24px 20px; }
+  .tf-free ul { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .rv { opacity: 1; translate: none; transition: none; }
+  .tline__seg { transform: none; transition: none; }
+  .fsw__pane.is-on, .fsw__pane.is-on .fsw__list li { animation: none; }
+}

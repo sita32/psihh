@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Психолог – Рядом</title>
+  <meta name="description" content="Профиль психолога: образование, методы работы, стоимость, отзывы и свободное время для записи.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Общие стили + компоненты кабинета (диалоги, поля, уведомление) + стили профиля -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/cabinet.css">
+  <link rel="stylesheet" href="css/psychologist.css">
+</head>
+<body class="psy-page">
+
+<!-- Иконки -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-login" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.3 3.2-5 6.5-5s5.9 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-child" viewBox="0 0 24 24"><circle cx="8" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.5-3.4 2.6-5.3 5.5-5.3s5 1.9 5.5 5.3M14 20c.3-2.5 1.4-4 3-4s2.7 1.5 3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5v5.5M12 16.5v.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 10h19M6.5 15h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M5 18a7 7 0 0 1 14 0M3 18h18M12 4v4M8.5 7.5L7 6M15.5 7.5L17 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v2M12 19.5v2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M2.5 12h2M19.5 12h2M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a href="index.html" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <a href="catalog.html" class="is-current">Психологи</a>
+      <a href="tariffs.html">Тарифы</a>
+      <a href="for-psychologists.html">Психологам</a>
+      <a href="about.html">О&nbsp;нас</a>
+    </nav>
+
+    <div class="header__actions">
+      <a href="quiz.html" class="btn btn--soft btn--sm">Подобрать психолога</a>
+      <a href="login.html" class="btn btn--icon" aria-label="Войти в личный кабинет" title="Войти">
+        <svg><use href="#i-login"/></svg>
+      </a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="container pp" data-profile>
+  <a href="catalog.html" class="pp__back"><svg><use href="#i-back"/></svg>Все психологи</a>
+
+  <div class="pp__grid">
+    <!-- =========================== ЛЕВАЯ КОЛОНКА: О ПСИХОЛОГЕ =========================== -->
+    <div class="pp__main">
+
+      <!-- Шапка профиля: фото, имя, главные цифры (заполняет psychologist.js) -->
+      <section class="pp-hero">
+        <div class="pp-hero__photo" data-photo></div>
+        <div class="pp-hero__info">
+          <span class="pp-hero__role" data-role></span>
+          <h1 class="pp-hero__name" data-name></h1>
+          <span class="verified"><svg><use href="#i-shield"/></svg>Документы проверены модератором</span>
+          <dl class="pp-facts">
+            <div><dt>Рейтинг</dt><dd><svg class="star"><use href="#i-star"/></svg><span data-rating></span></dd></div>
+            <div><dt>Отзывы</dt><dd data-reviews-count></dd></div>
+            <div><dt>Опыт</dt><dd data-exp></dd></div>
+            <div><dt>Сессия</dt><dd data-price></dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="pp-sec">
+        <h2>О&nbsp;себе</h2>
+        <p class="pp-about" data-about></p>
+      </section>
+
+      <section class="pp-sec">
+        <h2>С&nbsp;чем работаю</h2>
+        <div class="tags" data-topics></div>
+      </section>
+
+      <section class="pp-sec">
+        <h2>Методы</h2>
+        <div class="pp-methods" data-methods></div>
+      </section>
+
+      <section class="pp-sec">
+        <h2>Как проходит работа</h2>
+        <ol class="pp-steps" data-work-steps></ol>
+      </section>
+
+      <section class="pp-sec">
+        <h2>Образование</h2>
+        <ul class="pp-edu" data-edu></ul>
+      </section>
+
+      <section class="pp-sec" id="reviews">
+        <div class="pp-sec__head">
+          <h2>Отзывы</h2>
+          <span class="pp-sec__note">Оставить отзыв можно только после проведённой сессии</span>
+        </div>
+        <div class="pp-rev-sum" data-rev-sum></div>
+        <div class="pp-reviews" data-reviews></div>
+      </section>
+    </div>
+
+    <!-- =========================== ПРАВАЯ КОЛОНКА: ЗАПИСЬ =========================== -->
+    <aside class="book" aria-label="Запись на сессию">
+      <h2 class="book__title">Записаться на&nbsp;сессию</h2>
+
+      <!-- Формат и цена -->
+      <div class="book__formats" data-formats></div>
+
+      <!-- Лента дней (рисует psychologist.js) -->
+      <div class="book__days-head">
+        <b data-month></b>
+        <span class="fdays__nav">
+          <button type="button" class="book__arrow book__arrow--prev" aria-label="Раньше" data-days-prev disabled><svg><use href="#i-chevron"/></svg></button>
+          <button type="button" class="book__arrow" aria-label="Позже" data-days-next><svg><use href="#i-chevron"/></svg></button>
+        </span>
+      </div>
+      <div class="book__days" data-days></div>
+
+      <!-- Свободное время выбранного дня -->
+      <div class="book__times" data-times></div>
+
+      <div class="book__total" data-total hidden>
+        <span data-total-when></span>
+        <b data-total-price></b>
+      </div>
+      <button type="button" class="btn btn--primary btn--lg btn--block" data-book disabled>Выберите время</button>
+      <a href="client-chat.html" class="btn btn--line btn--block book__chat"><svg><use href="#i-chat"/></svg>Написать психологу</a>
+
+      <ul class="book__notes">
+        <li><svg><use href="#i-clock"/></svg>Сессия 50&nbsp;минут, онлайн по&nbsp;видеосвязи</li>
+        <li><svg><use href="#i-check"/></svg>Бесплатная отмена и&nbsp;перенос не&nbsp;позднее чем за&nbsp;24&nbsp;часа</li>
+        <li><svg><use href="#i-card"/></svg>Оплата картой при записи</li>
+      </ul>
+    </aside>
+  </div>
+</main>
+
+<!-- Психолог не найден (неверный id в адресе) -->
+<section class="container pp-404" data-not-found hidden>
+  <img src="assets/img/formats/individual.webp" alt="">
+  <h1>Такого психолога нет</h1>
+  <p>Возможно, ссылка устарела или специалист больше не&nbsp;принимает.</p>
+  <a href="catalog.html" class="btn btn--primary">Перейти в&nbsp;каталог</a>
+</section>
+
+<!-- =========================== ДИАЛОГ: ПОДТВЕРЖДЕНИЕ ЗАПИСИ =========================== -->
+<dialog class="modal" id="book-modal" aria-labelledby="book-title">
+  <form method="dialog" data-book-form>
+    <!-- Шаг 1: проверить данные -->
+    <div data-step="confirm">
+      <div class="modal__head">
+        <h3 id="book-title">Подтвердите запись</h3>
+        <button class="icon-btn" value="cancel" formnovalidate aria-label="Закрыть"><svg><use href="#i-x"/></svg></button>
+      </div>
+      <div class="modal__body">
+        <div class="book-sum" data-book-sum></div>
+        <label class="f">
+          <span class="f__label">Что хотите обсудить <small>необязательно</small></span>
+          <textarea class="f__area" name="note" maxlength="500" rows="3" placeholder="Пара слов о&nbsp;запросе поможет психологу подготовиться"></textarea>
+        </label>
+        <p class="book-sum__pay"><svg><use href="#i-card"/></svg>Оплата картой на&nbsp;следующем шаге. Отменить бесплатно можно не&nbsp;позднее чем за&nbsp;24&nbsp;часа.</p>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--line" value="cancel" formnovalidate>Назад</button>
+        <button class="btn btn--primary" type="button" data-book-confirm>Записаться и&nbsp;оплатить</button>
+      </div>
+    </div>
+
+    <!-- Шаг 2: готово -->
+    <div data-step="done" hidden>
+      <div class="book-done">
+        <span class="book-done__ic"><svg><use href="#i-check"/></svg></span>
+        <h3>Вы записаны</h3>
+        <p data-book-done></p>
+        <div class="book-done__btns">
+          <a href="client-sessions.html" class="btn btn--primary">Мои сессии</a>
+          <button class="btn btn--line" value="cancel">Остаться здесь</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="index.html" class="logo logo--light">
+          <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="logo__text">рядом</span>
+        </a>
+        <p>Сервис для поиска психологов и&nbsp;записи на&nbsp;онлайн-сессии.</p>
+      </div>
+      <nav class="footer__col" aria-label="Клиентам">
+        <b>Клиентам</b>
+        <a href="quiz.html">Подобрать психолога</a>
+        <a href="catalog.html">Каталог специалистов</a>
+        <a href="tariffs.html">Тарифы и&nbsp;оплата</a>
+        <a href="index.html#faq">Частые вопросы</a>
+        <a href="about.html">О&nbsp;сервисе</a>
+      </nav>
+      <nav class="footer__col" aria-label="Психологам">
+        <b>Психологам</b>
+        <a href="login.html#register-psychologist">Подать заявку</a>
+        <a href="for-psychologists.html">Условия работы</a>
+        <a href="index.html#check">Требования к&nbsp;специалистам</a>
+      </nav>
+      <nav class="footer__col" aria-label="Аккаунт">
+        <b>Аккаунт</b>
+        <a href="login.html">Войти</a>
+        <a href="login.html#register">Регистрация</a>
+        <a href="mailto:support@ryadom.by">Поддержка</a>
+      </nav>
+    </div>
+
+    <!-- Важно для сервиса психологической помощи: не заменяет экстренную помощь -->
+    <div class="footer__sos">
+      <b>Сервис не&nbsp;оказывает экстренную помощь.</b>
+      Если вам или кому-то рядом угрожает опасность – звоните <a href="tel:103">103</a> или <a href="tel:112">112</a>.
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 «Рядом». Курсовой проект, БГТУ</span>
+      <a href="privacy.html">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Всплывающее уведомление -->
+<div class="toast" role="status" aria-live="polite"><svg><use href="#i-check"/></svg><span></span></div>
+
+<script src="js/main.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/psychologist.js"></script>
+</body>
+</html>

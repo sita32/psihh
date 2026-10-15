@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>О нас – Рядом</title>
+  <meta name="description" content="Зачем мы сделали «Рядом», как устроен сервис, как мы отбираем психологов и по каким правилам работаем.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Общие стили сайта + стили страницы «О нас» -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/about.css">
+</head>
+<body class="about-page">
+<script>document.documentElement.classList.add('js');</script>
+
+<!-- Иконки (те же, что на главной) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Иконки (линейные, stroke = currentColor) -->
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-login" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6.5 11.5V16c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4.5M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v14H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.3 3.2-5 6.5-5s5.9 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.8-3.6 3.7-5.5 7.5-5.5s6.7 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-child" viewBox="0 0 24 24"><circle cx="8" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.5-3.4 2.6-5.3 5.5-5.3s5 1.9 5.5 5.3M14 20c.3-2.5 1.4-4 3-4s2.7 1.5 3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12.5" rx="2.5" fill="currentColor"/><circle cx="12" cy="12.25" r="2.6" fill="#fff"/><circle cx="6" cy="12.25" r="1" fill="#fff"/><circle cx="18" cy="12.25" r="1" fill="#fff"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- Лица-настроения: круг закрашивается currentColor, черты лица – тёмные -->
+    <symbol id="face-calm" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 44q8-8 16 0M57 44q8-8 16 0"/><path d="M38 64q12 10 24 0"/></g></symbol>
+    <symbol id="face-worried" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 34l12-5M72 34l-12-5"/><path d="M34 70q4-5 8 0t8 0 8 0 8 0"/></g><circle cx="36" cy="46" r="4.5" fill="#262A33"/><circle cx="64" cy="46" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-sad" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 40q8 6 16 0M56 40q8 6 16 0"/><path d="M38 72q12-10 24 0"/></g></symbol>
+    <symbol id="face-tired" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 45h16M57 45h16M42 68h16"/></g></symbol>
+    <symbol id="face-neutral" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M40 68q10-3 20 2"/></g><circle cx="36" cy="45" r="4.5" fill="#262A33"/><circle cx="64" cy="45" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-happy" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 46q8-9 16 0M57 46q8-9 16 0"/></g><path d="M35 60h30q-3 14-15 14t-15-14z" fill="#262A33"/></symbol>
+  </defs>
+</svg>
+
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a href="index.html" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <!-- Ссылки на отдельные страницы сайта (якоря главной сюда не добавляем) -->
+      <a href="catalog.html">Психологи</a>
+      <a href="tariffs.html">Тарифы</a>
+      <a href="for-psychologists.html">Психологам</a>
+      <a href="about.html" class="is-current" aria-current="page">О&nbsp;нас</a>
+    </nav>
+
+    <div class="header__actions">
+      <a href="quiz.html" class="btn btn--soft btn--sm">Подобрать психолога</a>
+      <a href="login.html" class="btn btn--icon" aria-label="Войти в личный кабинет" title="Войти">
+        <svg><use href="#i-login"/></svg>
+      </a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- =========================== 1. ПЕРВЫЙ ЭКРАН: ЗАЧЕМ МЫ ЭТО СДЕЛАЛИ =========================== -->
+  <section class="ab-hero">
+    <div class="container ab-hero__grid">
+      <div class="ab-hero__text">
+        <span class="eyebrow">О&nbsp;проекте</span>
+        <h1>Зачем мы сделали <span class="scribble">«Рядом»<svg viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20 C 60 8, 120 6, 170 14 S 260 24, 296 10"/></svg></span></h1>
+        <p class="ab-hero__lead">Многие годами откладывают поход к&nbsp;психологу. Не&nbsp;потому, что помощь не&nbsp;нужна, а&nbsp;потому что первый шаг слишком сложный. Мы хотели сделать его проще – и&nbsp;вот что из&nbsp;этого получилось.</p>
+      </div>
+
+      <!-- Иллюстрация: пятно «дышит», наклейки плавают и чуть сдвигаются за мышкой -->
+      <div class="ab-hero__art" data-parallax>
+        <span class="blob" aria-hidden="true"></span>
+        <img class="ab-hero__img" src="assets/img/about/bench.webp" alt="Двое сидят на скамейке и разговаривают" width="1400" height="857">
+        <img class="sticker sticker--flower" data-depth="18" src="assets/img/about/d-flower.webp" alt="">
+        <img class="sticker sticker--moon" data-depth="-14" src="assets/img/about/d-moon.webp" alt="">
+        <img class="sticker sticker--star" data-depth="10" src="assets/img/about/d-star.webp" alt="">
+      </div>
+    </div>
+  </section>
+
+  <!-- Фон этих разделов плавно меняет цвет при прокрутке: кремовый → голубой → мятный -->
+  <div class="flow" data-flow>
+
+    <!-- =========================== 3. ПОЧЕМУ «РЯДОМ»: ТРИ БАРЬЕРА =========================== -->
+    <section class="ab-why" id="why" data-flow-color="#FFF6DD">
+      <div class="container">
+        <span class="eyebrow">Почему «Рядом»</span>
+        <p class="ab-why__lead rv">Обратиться к&nbsp;психологу – <mark>уже смелый шаг</mark>. Мы посмотрели, что чаще всего <mark>мешает его сделать</mark>, и&nbsp;постарались убрать эти преграды.</p>
+        <ul class="barriers">
+          <li class="barrier rv" style="--d:0ms">
+            <h3 class="barrier__word"><span>Страшно</span></h3>
+            <p>Можно сначала почитать анкету, посмотреть фото и&nbsp;написать психологу в&nbsp;чат – понять, комфортно ли с&nbsp;ним, ещё до&nbsp;первой встречи.</p>
+          </li>
+          <li class="barrier rv" style="--d:120ms">
+            <h3 class="barrier__word"><span>Непонятно, с&nbsp;чего начать</span></h3>
+            <p>Ответьте на&nbsp;несколько вопросов о&nbsp;своём запросе – и&nbsp;увидите психологов, которые с&nbsp;ним работают.</p>
+          </li>
+          <li class="barrier rv" style="--d:240ms">
+            <h3 class="barrier__word"><span>Неловко рассказывать</span></h3>
+            <p>Сессия проходит онлайн, из&nbsp;дома и&nbsp;в&nbsp;удобное время. Переписку видите только вы и&nbsp;психолог.</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Руки сходятся по мере прокрутки, в конце появляется сердце -->
+      <div class="hands" data-hands aria-hidden="true">
+        <img class="hands__l" src="assets/img/about/hands-left.webp" alt="" width="1300" height="694">
+        <img class="hands__r" src="assets/img/about/hands-right.webp" alt="" width="1300" height="694">
+        <img class="hands__heart" src="assets/img/about/hands-heart.webp" alt="" width="1300" height="694">
+      </div>
+      <p class="hands__caption rv">Поэтому и&nbsp;«Рядом»: помощь – на&nbsp;расстоянии одного сообщения</p>
+    </section>
+
+    <!-- =========================== 4. КАК УСТРОЕН СЕРВИС: ТРИ УЧАСТНИКА =========================== -->
+    <section class="ab-how" id="how" data-flow-color="#EAF1FB">
+      <div class="container">
+        <span class="eyebrow">Как устроен сервис</span>
+        <h2 class="h2">Три участника и&nbsp;одна цель</h2>
+        <p class="section__sub">Клиент ищет помощь, психолог её оказывает, модератор следит, чтобы всё было честно и&nbsp;безопасно.</p>
+
+        <div class="roles" data-roles>
+          <svg width="0" height="0" aria-hidden="true"><defs><marker id="arrowhead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L 8 5 L 1 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker></defs></svg>
+
+          <div class="role role--mod rv">
+            <img class="role__ava" src="assets/img/avatars/a04.webp" alt="">
+            <h3>Модератор</h3>
+            <ul><li>проверяет документы психологов</li><li>следит за&nbsp;отзывами и&nbsp;жалобами</li><li>помогает в&nbsp;поддержке</li></ul>
+          </div>
+
+          <!-- Связи модератора: вниз-влево к клиенту, вниз-вправо к психологу -->
+          <div class="link link--ml">
+            <svg viewBox="0 0 200 120" aria-hidden="true"><path pathLength="1" d="M190 10 C 120 14, 40 40, 14 110"/></svg>
+            <span>проверяет отзывы</span>
+          </div>
+          <div class="link link--mr">
+            <svg viewBox="0 0 200 120" aria-hidden="true"><path pathLength="1" d="M10 10 C 80 14, 160 40, 186 110"/></svg>
+            <span>проверяет документы</span>
+          </div>
+
+          <div class="role role--client rv">
+            <img class="role__ava" src="assets/img/avatars/a03.webp" alt="">
+            <h3>Клиент</h3>
+            <ul><li>ищет психолога и&nbsp;записывается</li><li>переносит или отменяет сессию</li><li>оставляет отзыв после встречи</li></ul>
+          </div>
+
+          <!-- Связи между клиентом и психологом -->
+          <div class="link link--cp">
+            <div class="link__row">
+              <span>запись и&nbsp;сообщения</span>
+              <svg viewBox="0 0 200 20" aria-hidden="true"><path pathLength="1" d="M6 10 C 70 2, 130 18, 192 10"/></svg>
+            </div>
+            <div class="link__row link__row--back">
+              <svg viewBox="0 0 200 20" aria-hidden="true"><path pathLength="1" d="M194 10 C 130 18, 70 2, 8 10"/></svg>
+              <span>сессии и&nbsp;ответы в&nbsp;чате</span>
+            </div>
+          </div>
+
+          <div class="role role--psy rv">
+            <img class="role__ava" src="assets/img/avatars/a01.webp" alt="">
+            <h3>Психолог</h3>
+            <ul><li>ведёт расписание и&nbsp;сессии</li><li>отвечает клиентам в&nbsp;чате</li><li>обновляет анкету и&nbsp;документы</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================== 5. ОТБОР ПСИХОЛОГОВ =========================== -->
+    <section class="ab-route" id="selection" data-flow-color="#E2F4EF">
+      <div class="container">
+        <div class="ab-route__head">
+          <div>
+            <span class="eyebrow">Отбор психологов</span>
+            <h2 class="h2">Как анкета попадает в&nbsp;каталог</h2>
+            <p class="section__sub">Пять этапов, которые проходит каждый психолог до&nbsp;первой сессии на&nbsp;«Рядом».</p>
+          </div>
+          <div class="funnel" data-funnel>
+            <div class="funnel__dots" aria-hidden="true"><i class="" style="--k:0"></i><i class="" style="--k:1"></i><i class="" style="--k:2"></i><i class="" style="--k:3"></i><i class="" style="--k:4"></i><i class="" style="--k:5"></i><i class="is-pass" style="--k:6"></i><i class="" style="--k:7"></i><i class="" style="--k:8"></i><i class="" style="--k:9"></i><i class="" style="--k:10"></i><i class="" style="--k:11"></i><i class="" style="--k:12"></i><i class="" style="--k:13"></i><i class="" style="--k:14"></i><i class="" style="--k:15"></i><i class="" style="--k:16"></i><i class="" style="--k:17"></i><i class="" style="--k:18"></i><i class="is-pass" style="--k:19"></i><i class="" style="--k:20"></i><i class="" style="--k:21"></i><i class="" style="--k:22"></i><i class="" style="--k:23"></i><i class="" style="--k:24"></i><i class="" style="--k:25"></i><i class="" style="--k:26"></i><i class="" style="--k:27"></i><i class="" style="--k:28"></i><i class="" style="--k:29"></i><i class="" style="--k:30"></i><i class="" style="--k:31"></i><i class="" style="--k:32"></i><i class="is-pass" style="--k:33"></i><i class="" style="--k:34"></i><i class="" style="--k:35"></i><i class="" style="--k:36"></i><i class="" style="--k:37"></i><i class="" style="--k:38"></i><i class="" style="--k:39"></i><i class="" style="--k:40"></i><i class="" style="--k:41"></i><i class="" style="--k:42"></i><i class="" style="--k:43"></i><i class="" style="--k:44"></i><i class="" style="--k:45"></i><i class="" style="--k:46"></i><i class="" style="--k:47"></i><i class="is-pass" style="--k:48"></i><i class="" style="--k:49"></i><i class="" style="--k:50"></i><i class="" style="--k:51"></i><i class="" style="--k:52"></i><i class="" style="--k:53"></i><i class="" style="--k:54"></i><i class="" style="--k:55"></i><i class="" style="--k:56"></i><i class="is-pass" style="--k:57"></i><i class="" style="--k:58"></i><i class="" style="--k:59"></i><i class="" style="--k:60"></i><i class="" style="--k:61"></i><i class="" style="--k:62"></i><i class="" style="--k:63"></i><i class="" style="--k:64"></i><i class="" style="--k:65"></i><i class="" style="--k:66"></i><i class="" style="--k:67"></i><i class="" style="--k:68"></i><i class="" style="--k:69"></i><i class="" style="--k:70"></i><i class="" style="--k:71"></i><i class="is-pass" style="--k:72"></i><i class="" style="--k:73"></i><i class="" style="--k:74"></i><i class="" style="--k:75"></i><i class="" style="--k:76"></i><i class="" style="--k:77"></i><i class="" style="--k:78"></i><i class="" style="--k:79"></i><i class="" style="--k:80"></i><i class="" style="--k:81"></i><i class="" style="--k:82"></i><i class="" style="--k:83"></i><i class="" style="--k:84"></i><i class="" style="--k:85"></i><i class="" style="--k:86"></i><i class="" style="--k:87"></i><i class="" style="--k:88"></i><i class="" style="--k:89"></i><i class="" style="--k:90"></i><i class="is-pass" style="--k:91"></i><i class="" style="--k:92"></i><i class="" style="--k:93"></i><i class="" style="--k:94"></i><i class="" style="--k:95"></i><i class="" style="--k:96"></i><i class="" style="--k:97"></i><i class="" style="--k:98"></i><i class="" style="--k:99"></i></div>
+            <p>Из&nbsp;<b>100</b> заявок проходят <b class="funnel__pass">7</b></p>
+          </div>
+        </div>
+
+        <!-- Дорожка рисуется при прокрутке, по ней «едет» цветок -->
+        <div class="route" data-route>
+          <svg class="route__line" aria-hidden="true"><path class="route__bg" data-route-bg/><path class="route__path" data-route-path/></svg>
+          <img class="route__rider" src="assets/img/about/d-flower.webp" alt="" data-route-rider>
+          <ol class="route__steps">
+          <li class="route__step rv" style="--d:0ms">
+            <span class="route__dot" data-route-dot>1</span>
+            <h3>Анкета и&nbsp;диплом</h3>
+            <p>Психолог присылает анкету, диплом о&nbsp;высшем психологическом образовании и&nbsp;сертификаты.</p>
+          </li>
+          <li class="route__step rv" style="--d:80ms">
+            <span class="route__dot" data-route-dot>2</span>
+            <h3>Проверка документов</h3>
+            <p>Модератор сверяет документы и&nbsp;опыт: в&nbsp;каталог попадают специалисты с&nbsp;практикой от&nbsp;3&nbsp;лет.</p>
+          </li>
+          <li class="route__step rv" style="--d:160ms">
+            <span class="route__dot" data-route-dot>3</span>
+            <h3>Собеседование</h3>
+            <p>Видеовстреча с&nbsp;психологом-экспертом: как специалист работает и&nbsp;с&nbsp;какими темами.</p>
+          </li>
+          <li class="route__step rv" style="--d:240ms">
+            <span class="route__dot" data-route-dot>4</span>
+            <h3>Разбор случая</h3>
+            <p>Психолог разбирает учебный случай – так видно, как он ведёт сессию на&nbsp;практике.</p>
+          </li>
+          <li class="route__step rv" style="--d:320ms">
+            <span class="route__dot" data-route-dot>5</span>
+            <h3>Допуск к&nbsp;работе</h3>
+            <p>Анкета появляется в&nbsp;каталоге с&nbsp;отметкой «Документы проверены». Дальше следим за&nbsp;отзывами.</p>
+          </li>
+          </ol>
+          <span class="stamp" data-stamp aria-hidden="true"><b>Допущен</b><svg><use href="#i-check"/></svg></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- =========================== 6. ПРАВИЛА СЕРВИСА =========================== -->
+  <section class="ab-principles" id="rules">
+    <div class="container">
+      <span class="eyebrow">Наши правила</span>
+      <h2 class="h2">Четыре правила, которые мы не&nbsp;нарушаем</h2>
+      <div class="pr-grid">
+        <article class="pr pr--violet rv" style="--d:0ms">
+          <img class="pr__peek" src="assets/img/about/d-cloud.webp" alt="">
+          <div class="pr__card">
+            <span class="pr__num">01</span>
+            <h3>Цена видна сразу</h3>
+            <p>Стоимость сессии указана в&nbsp;анкете психолога. После записи ничего не&nbsp;доплачивается.</p>
+          </div>
+        </article>
+        <article class="pr pr--coral rv" style="--d:90ms">
+          <img class="pr__peek" src="assets/img/about/d-blob.webp" alt="">
+          <div class="pr__card">
+            <span class="pr__num">02</span>
+            <h3>Без пакетов и&nbsp;подписок</h3>
+            <p>Платите за&nbsp;каждую встречу отдельно. Не&nbsp;нужно заранее покупать курс из&nbsp;десяти сессий.</p>
+          </div>
+        </article>
+        <article class="pr pr--yellow rv" style="--d:180ms">
+          <img class="pr__peek" src="assets/img/about/d-flower.webp" alt="">
+          <div class="pr__card">
+            <span class="pr__num">03</span>
+            <h3>Выбор за&nbsp;вами</h3>
+            <p>Подбор только подсказывает. К&nbsp;кому идти и&nbsp;когда остановиться, решаете вы.</p>
+          </div>
+        </article>
+        <article class="pr pr--teal rv" style="--d:270ms">
+          <img class="pr__peek" src="assets/img/about/d-sprout.webp" alt="">
+          <div class="pr__card">
+            <span class="pr__num">04</span>
+            <h3>Простым языком</h3>
+            <p>Анкеты без сложных терминов: психолог пишет, с&nbsp;чем помогает и&nbsp;как проходит работа.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 7. ПСИХОЛОГАМ: ПРИСОЕДИНЯЙТЕСЬ =========================== -->
+  <section class="ab-cta">
+    <div class="container">
+      <div class="cta-card rv">
+        <div class="cta-card__text">
+          <span class="eyebrow">Для психологов</span>
+          <h2>Вы психолог? <span>Присоединяйтесь</span> к&nbsp;«Рядом»</h2>
+          <p>Заполните анкету – модератор проверит документы, и&nbsp;профиль появится в&nbsp;каталоге. Расписание, клиенты и&nbsp;чат – в&nbsp;одном кабинете.</p>
+          <div class="cta-card__actions">
+            <a href="login.html#register-psychologist" class="btn btn--primary btn--lg">Подать заявку</a>
+            <a href="for-psychologists.html" class="cta-card__link">Условия работы</a>
+          </div>
+          <svg class="cta-card__arrow" viewBox="0 0 140 90" aria-hidden="true"><path pathLength="1" d="M8 10 C 40 0, 90 10, 104 44 S 96 78, 70 80"/><path pathLength="1" d="M82 70 L 69 80 L 84 88"/></svg>
+        </div>
+        <div class="cta-card__photos">
+          <span class="cta-card__with">Уже с&nbsp;нами</span>
+          <figure class="ph ph--1"><img src="assets/img/psychologists/p01-sq.webp" alt="Марина Волкова"><figcaption>КПТ</figcaption></figure>
+          <figure class="ph ph--2"><img src="assets/img/psychologists/p06-sq.webp" alt="Дмитрий Соколов"><figcaption>Гештальт</figcaption></figure>
+          <figure class="ph ph--3"><img src="assets/img/psychologists/p12-sq.webp" alt="Полина Гордеева"><figcaption>ACT</figcaption></figure>
+          <img class="ph__sparkle ph__sparkle--1" src="assets/img/about/d-sparkle-yellow.webp" alt="">
+          <img class="ph__sparkle ph__sparkle--2" src="assets/img/about/d-sparkle-teal.webp" alt="">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== 8. НАПИШИТЕ НАМ =========================== -->
+  <section class="ab-contact" id="contact">
+    <div class="container ab-contact__grid">
+      <div class="ab-contact__text rv">
+        <span class="eyebrow">Связаться</span>
+        <h2 class="h2">Напишите нам</h2>
+        <p>Ответим в&nbsp;чате поддержки каждый день с&nbsp;9:00 до&nbsp;21:00. Можно спросить про запись, оплату или предложить, что улучшить в&nbsp;сервисе.</p>
+        <div class="ab-contact__actions">
+          <a href="client-chat.html" class="btn btn--dark btn--lg">Написать в&nbsp;поддержку</a>
+          <a href="mailto:support@ryadom.by" class="ab-contact__mail">support@ryadom.by</a>
+        </div>
+      </div>
+      <div class="ab-contact__art rv" style="--d:120ms">
+        <img src="assets/img/about/girl-phone.webp" alt="Девушка пишет сообщение в телефоне" width="1300" height="791" loading="lazy">
+        <span class="typing" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="index.html" class="logo logo--light">
+          <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="logo__text">рядом</span>
+        </a>
+        <p>Сервис для поиска психологов и&nbsp;записи на&nbsp;онлайн-сессии.</p>
+      </div>
+      <nav class="footer__col" aria-label="Клиентам">
+        <b>Клиентам</b>
+        <a href="quiz.html">Подобрать психолога</a>
+        <a href="catalog.html">Каталог специалистов</a>
+        <a href="tariffs.html">Тарифы и&nbsp;оплата</a>
+        <a href="index.html#faq">Частые вопросы</a>
+        <a href="about.html">О&nbsp;сервисе</a>
+      </nav>
+      <nav class="footer__col" aria-label="Психологам">
+        <b>Психологам</b>
+        <a href="login.html#register-psychologist">Подать заявку</a>
+        <a href="for-psychologists.html">Условия работы</a>
+        <a href="index.html#check">Требования к&nbsp;специалистам</a>
+      </nav>
+      <nav class="footer__col" aria-label="Аккаунт">
+        <b>Аккаунт</b>
+        <a href="login.html">Войти</a>
+        <a href="login.html#register">Регистрация</a>
+        <a href="mailto:support@ryadom.by">Поддержка</a>
+      </nav>
+    </div>
+
+    <!-- Важно для сервиса психологической помощи: не заменяет экстренную помощь -->
+    <div class="footer__sos">
+      <b>Сервис не&nbsp;оказывает экстренную помощь.</b>
+      Если вам или кому-то рядом угрожает опасность – звоните <a href="tel:103">103</a> или <a href="tel:112">112</a>.
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 «Рядом». Курсовой проект, БГТУ</span>
+      <a href="privacy.html">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/about.js"></script>
+</body>
+</html>
