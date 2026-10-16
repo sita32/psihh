@@ -3,8 +3,9 @@
  * Пока только интерфейс: переключение вкладок, показ пароля,
  * подсказка для психологов и простая проверка полей (без отправки на сервер).
  */
-/* Демо-почта психолога для входа без сервера */
+/* Демо-почты для входа без сервера: психолог и модератор (любая другая почта – клиент) */
 const DEMO_PSYCHOLOGIST = 'marina@ryadom.by';
+const DEMO_MODERATOR = 'moderator@ryadom.by';
 
 document.addEventListener('DOMContentLoaded', () => {
   const tabs = document.querySelector('.tabs');
@@ -129,9 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Пока для демонстрации сразу открываем нужный кабинет.
         const data = Object.fromEntries(new FormData(form));
         // Демо-вход: роль определяется по почте (как будто сервер вернул роль пользователя).
-        // marina@ryadom.by – психолог Марина Волкова, любая другая почта – клиент Анна.
-        const role = data.role || (data.email.trim().toLowerCase() === DEMO_PSYCHOLOGIST ? 'psychologist' : 'client');
-        location.href = role === 'psychologist' ? 'cabinet-psychologist.html' : 'cabinet-client.html';
+        // marina@ryadom.by – психолог Марина Волкова, moderator@ryadom.by – модератор, любая другая почта – клиент Анна.
+        const email = (data.email || '').trim().toLowerCase();
+        const role = data.role || (email === DEMO_PSYCHOLOGIST ? 'psychologist' : email === DEMO_MODERATOR ? 'moderator' : 'client');
+        const CABINETS = { client: 'cabinet-client.html', psychologist: 'cabinet-psychologist.html', moderator: 'mod-users.html' };
+        location.href = CABINETS[role];
       }
     });
 

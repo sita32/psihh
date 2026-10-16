@@ -206,3 +206,101 @@ const PSY_SESSIONS = [
 /* Шаблон рабочей недели Марины: дни (1 – пн … 0 – вс) и время начала окон.
    Из него при первом открытии собирается расписание (таблица schedule_slots) */
 const PSY_TEMPLATE = { days: [1, 2, 3, 4, 5], times: ['09:00', '10:00', '12:30', '15:00', '17:00', '18:30'] };
+
+/* =====================================================================
+   Панель модератора «Ирина Литвин»
+   ===================================================================== */
+
+/* Пользователи (GET /api/admin/users). roles – коды ролей, status – active | blocked.
+   reg / last – через сколько дней от сегодня (отрицательные – в прошлом) */
+const MOD_USERS = [
+  { id: 1, name: 'Анна Петрова', email: 'anna@mail.com', roles: ['client'], status: 'active', reg: -40, last: 0, avatar: 'a03' },
+  { id: 2, name: 'Павел Морозов', email: 'pavel.m@gmail.com', roles: ['client'], status: 'active', reg: -21, last: -1, avatar: 'a04' },
+  { id: 3, name: 'Ольга Сидоренко', email: 'olga.s@mail.ru', roles: ['client'], status: 'active', reg: -3, last: -2, avatar: 'a07' },
+  { id: 4, name: 'Дмитрий К.', email: 'dk_1990@yandex.by', roles: ['client'], status: 'blocked', reg: -60, last: -12, avatar: null,
+    blocks: [{ k: -12, by: 'Ирина Литвин', reason: 'Оскорбления психолога в чате после сессии' }] },
+  { id: 5, name: 'Кирилл Шевчук', email: 'kirill.sh@gmail.com', roles: ['client'], status: 'active', reg: -9, last: -1, avatar: 'a02' },
+  { id: 101, name: 'Марина Волкова', email: 'marina@ryadom.by', roles: ['psychologist'], status: 'active', reg: -120, last: 0, photo: 'p01' },
+  { id: 102, name: 'Андрей Лукашевич', email: 'a.lukashevich@ryadom.by', roles: ['psychologist'], status: 'active', reg: -200, last: -3, photo: 'p02' },
+  { id: 103, name: 'Ольга Ермак', email: 'o.ermak@ryadom.by', roles: ['psychologist'], status: 'active', reg: -180, last: 0, photo: 'p03' },
+  { id: 104, name: 'Никита Белов', email: 'n.belov@ryadom.by', roles: ['psychologist'], status: 'active', reg: -90, last: -1, photo: 'p08' },
+  { id: 105, name: 'Светлана Гринь', email: 'grin.sv@mail.ru', roles: ['psychologist'], status: 'active', reg: -2, last: -1, avatar: null, pending: true },
+  { id: 106, name: 'Тимур Алиев', email: 't.aliev@gmail.com', roles: ['psychologist'], status: 'active', reg: -4, last: -4, avatar: null, pending: true },
+  { id: 107, name: 'Юлия Ковалёва', email: 'yulia.kov@ryadom.by', roles: ['psychologist'], status: 'active', reg: -1, last: 0, avatar: null, pending: true },
+  { id: 201, name: 'Ирина Литвин', email: 'moderator@ryadom.by', roles: ['moderator'], status: 'active', reg: -365, last: 0, avatar: null },
+];
+
+/* Заявки психологов на подтверждение статуса (таблица verification_requests + documents).
+   status: pending | approved | rejected */
+const MOD_APPLICATIONS = [
+  { id: 1, user: 105, status: 'pending', sent: -1, exp: 6, role: 'Психолог-консультант', methods: ['Гештальт'], price: 60,
+    about: 'Работаю со взрослыми: тревога, отношения, поиск себя. Личная терапия более 300 часов, регулярная супервизия.',
+    edu: [{ title: 'БГУ, психология', year: 2018 }, { title: 'Московский гештальт-институт, программа «Гештальт-терапия»', year: 2022 }],
+    docs: [{ name: 'Диплом БГУ.pdf', size: '1,2 МБ', kind: 'Диплом' }, { name: 'Сертификат МГИ.jpg', size: '840 КБ', kind: 'Сертификат' }] },
+  { id: 2, user: 106, status: 'pending', sent: -3, exp: 2, role: 'Психолог', methods: ['КПТ'], price: 45,
+    about: 'Помогаю студентам и молодым специалистам справиться со стрессом и прокрастинацией.',
+    edu: [{ title: 'ГрГУ им. Купалы, психология', year: 2023 }],
+    docs: [{ name: 'diplom_scan.png', size: '3,4 МБ', kind: 'Диплом' }] },
+  { id: 3, user: 107, status: 'pending', sent: 0, exp: 9, role: 'Клинический психолог', methods: ['Схема-терапия', 'КПТ'], price: 85,
+    about: 'Клинический психолог, 9 лет практики. Работаю с тревожными и депрессивными состояниями, расстройствами личности.',
+    edu: [{ title: 'БГУ, клиническая психология', year: 2015 }, { title: 'Повышение квалификации по схема-терапии', year: 2020 }],
+    docs: [{ name: 'Диплом магистра.pdf', size: '2,1 МБ', kind: 'Диплом' }, { name: 'Схема-терапия сертификат.pdf', size: '640 КБ', kind: 'Сертификат' }, { name: 'Супервизия справка.pdf', size: '210 КБ', kind: 'Справка' }] },
+  { id: 4, user: 104, status: 'approved', sent: -95, decided: -92, exp: 7, role: 'Психолог', methods: ['EMDR', 'КПТ'], price: 70,
+    about: 'Специализируюсь на панических атаках и сильной тревоге.', edu: [{ title: 'БГПУ им. Танка, психология', year: 2014 }],
+    docs: [{ name: 'Диплом.pdf', size: '1,0 МБ', kind: 'Диплом' }], by: 'Ирина Литвин' },
+  { id: 5, user: 0, name: 'Виктор Н.', status: 'rejected', sent: -15, decided: -13, exp: 1, role: 'Коуч', methods: [], price: 40,
+    about: 'Помогу достичь целей за 3 сессии.', edu: [{ title: 'Онлайн-курс «Коучинг за 30 дней»', year: 2025 }],
+    docs: [{ name: 'certificate.jpg', size: '300 КБ', kind: 'Сертификат' }], by: 'Ирина Литвин',
+    comment: 'Нет высшего психологического образования. Онлайн-курс не подтверждает квалификацию психолога.' },
+];
+
+/* Отзывы на модерации и жалобы психологов (таблицы reviews и review_reports).
+   kind: new – новый отзыв, report – жалоба психолога на опубликованный отзыв */
+const MOD_REVIEWS = [
+  { id: 1, kind: 'new', client: 'Анна Петрова', psy: 1, rating: 5, k: -12, session: -13,
+    text: 'Марина помогает разобраться, откуда берётся тревога. После каждой встречи уношу с собой понятные упражнения.' },
+  { id: 2, kind: 'new', client: 'Кирилл Шевчук', psy: 4, rating: 2, k: -1, session: -2,
+    text: 'Психолог опоздал на 10 минут, связь постоянно прерывалась. Содержательно – нормально, но осадок остался.' },
+  { id: 3, kind: 'new', client: 'Ольга Сидоренко', psy: 3, rating: 5, k: 0, session: -1,
+    text: 'Пришли с мужем на грани развода. За одну встречу Ольга помогла нам впервые за месяц спокойно поговорить. Мой телефон +375 29 123-45-67, если кто-то захочет спросить подробнее.' },
+  { id: 4, kind: 'report', client: 'Аноним', psy: 1, rating: 3, k: -80, session: -82,
+    text: 'Мне показалось, что подход слишком структурированный – много заданий. Возможно, просто не мой формат.',
+    report: { k: 0, reason: 'Клиент был только на двух сессиях и прервал работу – оценка кажется несправедливой' } },
+  { id: 5, kind: 'report', client: 'Аноним', psy: 2, rating: 1, k: -5, session: -6,
+    text: 'Шарлатан!!! Не ходите к нему, только деньги тянет.',
+    report: { k: -1, reason: 'Оскорбления' } },
+];
+
+/* Роли и права (таблицы roles, permissions, role_permissions – как в database/seed.sql) */
+const MOD_ROLES = [
+  { code: 'client', name: 'Клиент' },
+  { code: 'psychologist', name: 'Психолог' },
+  { code: 'moderator', name: 'Модератор' },
+];
+const MOD_PERMISSIONS = [
+  { code: 'profile.edit_own', module: 'Профиль', name: 'Редактирование своего профиля', roles: ['client', 'psychologist'] },
+  { code: 'catalog.view', module: 'Каталог', name: 'Поиск и просмотр психологов', roles: ['client', 'psychologist', 'moderator'] },
+  { code: 'appointments.book', module: 'Записи', name: 'Запись на консультацию', roles: ['client'] },
+  { code: 'appointments.manage_own', module: 'Записи', name: 'Отмена и перенос своих записей', roles: ['client', 'psychologist'] },
+  { code: 'schedule.manage', module: 'Расписание', name: 'Управление окнами расписания', roles: ['psychologist'] },
+  { code: 'documents.upload', module: 'Документы', name: 'Загрузка документов об образовании', roles: ['psychologist'] },
+  { code: 'chat.use', module: 'Чат', name: 'Встроенный чат', roles: ['client', 'psychologist'] },
+  { code: 'reviews.create', module: 'Отзывы', name: 'Публикация отзывов', roles: ['client'] },
+  { code: 'users.view', module: 'Модерация', name: 'Просмотр пользователей', roles: ['moderator'] },
+  { code: 'users.edit', module: 'Модерация', name: 'Редактирование профилей', roles: ['moderator'] },
+  { code: 'users.block', module: 'Модерация', name: 'Блокировка и разблокировка', roles: ['moderator'] },
+  { code: 'roles.assign', module: 'Модерация', name: 'Назначение ролей и прав', roles: ['moderator'] },
+  { code: 'psychologists.verify', module: 'Модерация', name: 'Проверка документов специалистов', roles: ['moderator'] },
+  { code: 'reviews.moderate', module: 'Модерация', name: 'Модерация отзывов', roles: ['moderator'] },
+  { code: 'audit.view', module: 'Модерация', name: 'Просмотр журнала действий', roles: ['moderator'] },
+];
+
+/* Журнал действий (таблица audit_log). k – день, time – время */
+const MOD_AUDIT = [
+  { k: 0, time: '09:12', who: 'Ирина Литвин', action: 'review.approve', object: 'Отзыв о Никите Белове', details: 'Опубликован' },
+  { k: -1, time: '18:40', who: 'Ирина Литвин', action: 'document.approve', object: 'Заявка Никиты Белова', details: 'Статус специалиста подтверждён' },
+  { k: -2, time: '11:05', who: 'Ирина Литвин', action: 'review.reject', object: 'Отзыв о Дмитрии Соколове', details: 'Причина: реклама стороннего сервиса' },
+  { k: -12, time: '20:31', who: 'Ирина Литвин', action: 'user.block', object: 'Дмитрий К.', details: 'Причина: оскорбления психолога в чате после сессии' },
+  { k: -13, time: '14:17', who: 'Ирина Литвин', action: 'document.reject', object: 'Заявка Виктора Н.', details: 'Нет высшего психологического образования' },
+  { k: -20, time: '10:00', who: 'Ирина Литвин', action: 'role.grant', object: 'Никита Белов', details: 'Назначена роль «Психолог»' },
+];
