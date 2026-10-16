@@ -5,7 +5,7 @@
  *        GET /api/psychologists/:id/slots, POST /api/appointments.
  */
 
-/* Описание методов для блока «Методы» */
+/* Короткое описание методов – подсказка при наведении на плашку метода */
 const METHOD_INFO = {
   'КПТ': 'Ищем связь между мыслями, чувствами и поведением и пробуем новые способы реагировать.',
   'Гештальт': 'Внимание к тому, что происходит здесь и сейчас: чувства, телесные ощущения, отношения.',
@@ -40,21 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.title = `${p.name} – Рядом`;
 
-  /* ---------- Шапка профиля ---------- */
+  /* ---------- Обложка профиля ---------- */
   $('[data-photo]').innerHTML = `<img src="assets/img/psychologists/${p.photo}.webp" alt="${escapeHtml(p.name)}">`
     + (p.online ? '<span class="pp-hero__online">в сети</span>' : '');
   $('[data-role]').textContent = p.role;
   $('[data-name]').textContent = p.name;
   $('[data-rating]').textContent = p.rating.toFixed(1).replace('.', ',');
   $('[data-reviews-count]').textContent = `${p.reviews} ${plural(p.reviews, 'отзыв', 'отзыва', 'отзывов')}`;
-  $('[data-exp]').textContent = `${p.exp} ${plural(p.exp, 'год', 'года', 'лет')}`;
+  $('[data-exp]').textContent = `${p.exp} ${plural(p.exp, 'год', 'года', 'лет')} практики`;
   $('[data-price]').textContent = `от ${p.price} BYN`;
   $('[data-about]').textContent = p.about;
 
   /* ---------- Запросы, методы, этапы, образование ---------- */
   $('[data-topics]').innerHTML = p.topics.map((t) => `<span class="tag tag--blue">${escapeHtml(t)}</span>`).join('');
-  $('[data-methods]').innerHTML = p.methods.map((m) => `
-    <div class="pp-method"><b>${escapeHtml(m)}</b><p>${METHOD_INFO[m] || ''}</p></div>`).join('');
+  $('[data-methods]').innerHTML = p.methods.map((m) => `<span class="tag tag--grey" title="${METHOD_INFO[m] || ''}">${escapeHtml(m)}</span>`).join('');
   $('[data-work-steps]').innerHTML = PSY_EXTRA.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join('');
 
   const [uni, year] = p.edu.split(' · ');
@@ -92,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${stars(r.rating, 15)}
       </header>
       <p>${escapeHtml(r.text)}</p>
+      ${r.reply ? `<div class="pp-review__reply"><b>Ответ психолога</b>${escapeHtml(r.reply)}</div>` : ''}
     </article>`).join('') : '<p class="pp-empty">Отзывов пока нет</p>';
 
   /* ---------- Запись: формат ---------- */
@@ -111,10 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const daysEl = $('[data-days]');
   let day = null;     // выбранный день (через сколько дней от сегодня)
   let time = null;    // выбранное время
+  const booked = new Set();                         // «k|время», записанные на этой странице
+  const freeOn = (k) => demoSlotsOn(p, k).filter((t) => !booked.has(`${k}|${t}`));
 
   daysEl.innerHTML = Array.from({ length: DAYS_AHEAD }, (_, k) => {
     const d = dateAt(k);
-    const free = demoSlotsOn(p, k).length;
+    const free = freeOn(k).length;
     const label = k === 0 ? 'Сегодня' : k === 1 ? 'Завтра' : WEEK[d.getDay()];
     return `<button type="button" class="bday${free ? '' : ' is-empty'}" data-day="${k}"${free ? '' : ' disabled'}
       aria-label="${d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}${free ? '' : ', нет времени'}">
@@ -138,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       timesEl.innerHTML = '<p class="book__hint"><svg><use href="#i-calendar"/></svg>Выберите день – покажем свободное время</p>';
       return;
     }
-    const free = demoSlotsOn(p, day);
+    const free = freeOn(day);
     timesEl.innerHTML = PARTS.map((part) => {
       const ts = free.filter((t) => part.test(demoMins(t)));
       if (!ts.length) return '';
@@ -151,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- Итог и кнопка записи ---------- */
   const bookBtn = $('[data-book]');
-  const whenText = () => dateAt(day).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+  const whenText = (k = day) => dateAt(k).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
   const renderTotal = () => {
     const ready = day !== null && time !== null;
     $('[data-total]').hidden = !ready;
@@ -166,10 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
   daysEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.bday');
     if (!btn) return;
-    day = Number(btn.dataset.day);
-    time = null;
-    daysEl.querySelectorAll('.bday').forEach((b) => b.classList.toggle('is-active', b === btn));
-    renderTimes(); renderTotal();
+    pickDay(Number(btn.dataset.day));
   });
   timesEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.bslot');
@@ -190,15 +189,37 @@ document.addEventListener('DOMContentLoaded', () => {
   nextBtn.addEventListener('click', () => daysEl.scrollBy({ left: 240 }));
   daysEl.addEventListener('scroll', updateArrows, { passive: true });
 
-  // Сразу выбираем ближайший день со свободным временем
-  const first = daysEl.querySelector('.bday:not(.is-empty)');
-  if (first) first.click();
-  else timesEl.innerHTML = '<p class="book__hint">В ближайшие три недели свободного времени нет. Напишите психологу в&nbsp;чат.</p>';
-  updateArrows();
+  /** Ближайший день и время со свободным окном */
+  const nearest = () => {
+    for (let k = 0; k < DAYS_AHEAD; k += 1) { const ts = freeOn(k); if (ts.length) return { k, t: ts[0] }; }
+    return null;
+  };
 
-  /* ---------- Диалог подтверждения ---------- */
+  /** Выбрать день (и, если передано, время) в окне записи */
+  const pickDay = (k, t = null) => {
+    const btn = daysEl.querySelector(`[data-day="${k}"]`);
+    if (!btn) return;
+    day = k;
+    time = t;
+    daysEl.querySelectorAll('.bday').forEach((b) => b.classList.toggle('is-active', b === btn));
+    renderTimes(); renderTotal();
+  };
+
+  /* ---------- Окно записи: шаги «время → подтверждение → готово» ---------- */
   const modal = document.getElementById('book-modal');
   const showStep = (name) => modal.querySelectorAll('[data-step]').forEach((s) => { s.hidden = s.dataset.step !== name; });
+  const openPicker = () => {
+    showStep('pick');
+    modal.showModal();
+    updateArrows();
+    daysEl.querySelector('.bday.is-active')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  };
+  $('[data-open-time]').addEventListener('click', openPicker);
+
+  // Сразу выбираем ближайший день со свободным временем
+  const startDay = nearest();
+  if (startDay) pickDay(startDay.k);
+  else timesEl.innerHTML = '<p class="book__hint">В ближайшие три недели свободного времени нет. Напишите психологу в&nbsp;чат.</p>';
 
   bookBtn.addEventListener('click', () => {
     const f = format();
@@ -212,20 +233,19 @@ document.addEventListener('DOMContentLoaded', () => {
         <div><dt>Формат</dt><dd>${f}, 50 мин</dd></div>
         <div><dt>Стоимость</dt><dd>${priceOf(f)} BYN</dd></div>
       </dl>`;
-    showStep('confirm');
     modal.querySelector('textarea').value = '';
-    modal.showModal();
+    showStep('confirm');
   });
+  $('[data-book-back]').addEventListener('click', () => showStep('pick'));
 
   $('[data-book-confirm]').addEventListener('click', () => {
     // API: POST /api/appointments { slotId, serviceId, note } → затем оплата
-    $('[data-book-done]').innerHTML = `Сессия с&nbsp;${escapeHtml(p.name.split(' ')[0])} – <b>${whenText()}, ${time}</b>. Напоминание придёт за&nbsp;сутки и&nbsp;за&nbsp;час до&nbsp;встречи.`;
+    $('[data-book-done]').innerHTML = `${escapeHtml(p.name)} ждёт вас <b>${whenText()}, ${time}</b>. Напоминание придёт за&nbsp;сутки и&nbsp;за&nbsp;час до&nbsp;встречи.`;
     showStep('done');
-    // Занятое время пропадает из списка
-    const slot = timesEl.querySelector(`[data-time="${time}"]`);
-    slot?.remove();
+    // Занятое время больше не предлагается
+    booked.add(`${day}|${time}`);
     time = null;
-    renderTotal();
+    renderTimes(); renderTotal();
   });
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.close(); });
 

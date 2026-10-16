@@ -77,31 +77,23 @@
 <main class="container pp" data-profile>
   <a href="catalog.html" class="pp__back"><svg><use href="#i-back"/></svg>Все психологи</a>
 
+  <!-- =========================== ОБЛОЖКА: имя, коротко о себе, фото в арке =========================== -->
+  <section class="pcover">
+    <div class="pcover__txt">
+      <span class="verified"><svg><use href="#i-shield"/></svg>Документы проверены модератором</span>
+      <h1 class="pcover__name" data-name></h1>
+      <p class="pcover__lead"><span data-role></span>. <span data-about></span></p>
+      <div class="pcover__chips">
+        <span class="pchip"><svg class="star"><use href="#i-star"/></svg><span data-rating></span> · <span data-reviews-count></span></span>
+        <span class="pchip" data-exp></span>
+      </div>
+    </div>
+    <div class="pcover__photo" data-photo></div>
+  </section>
+
   <div class="pp__grid">
     <!-- =========================== ЛЕВАЯ КОЛОНКА: О ПСИХОЛОГЕ =========================== -->
     <div class="pp__main">
-
-      <!-- Шапка профиля: фото, имя, главные цифры (заполняет psychologist.js) -->
-      <section class="pp-hero">
-        <div class="pp-hero__photo" data-photo></div>
-        <div class="pp-hero__info">
-          <span class="pp-hero__role" data-role></span>
-          <h1 class="pp-hero__name" data-name></h1>
-          <span class="verified"><svg><use href="#i-shield"/></svg>Документы проверены модератором</span>
-          <dl class="pp-facts">
-            <div><dt>Рейтинг</dt><dd><svg class="star"><use href="#i-star"/></svg><span data-rating></span></dd></div>
-            <div><dt>Отзывы</dt><dd data-reviews-count></dd></div>
-            <div><dt>Опыт</dt><dd data-exp></dd></div>
-            <div><dt>Сессия</dt><dd data-price></dd></div>
-          </dl>
-        </div>
-      </section>
-
-      <section class="pp-sec">
-        <h2>О&nbsp;себе</h2>
-        <p class="pp-about" data-about></p>
-      </section>
-
       <section class="pp-sec">
         <h2>С&nbsp;чем работаю</h2>
         <div class="tags" data-topics></div>
@@ -109,7 +101,7 @@
 
       <section class="pp-sec">
         <h2>Методы</h2>
-        <div class="pp-methods" data-methods></div>
+        <div class="tags" data-methods></div>
       </section>
 
       <section class="pp-sec">
@@ -134,31 +126,9 @@
 
     <!-- =========================== ПРАВАЯ КОЛОНКА: ЗАПИСЬ =========================== -->
     <aside class="book" aria-label="Запись на сессию">
-      <h2 class="book__title">Записаться на&nbsp;сессию</h2>
-
-      <!-- Формат и цена -->
-      <div class="book__formats" data-formats></div>
-
-      <!-- Лента дней (рисует psychologist.js) -->
-      <div class="book__days-head">
-        <b data-month></b>
-        <span class="fdays__nav">
-          <button type="button" class="book__arrow book__arrow--prev" aria-label="Раньше" data-days-prev disabled><svg><use href="#i-chevron"/></svg></button>
-          <button type="button" class="book__arrow" aria-label="Позже" data-days-next><svg><use href="#i-chevron"/></svg></button>
-        </span>
-      </div>
-      <div class="book__days" data-days></div>
-
-      <!-- Свободное время выбранного дня -->
-      <div class="book__times" data-times></div>
-
-      <div class="book__total" data-total hidden>
-        <span data-total-when></span>
-        <b data-total-price></b>
-      </div>
-      <button type="button" class="btn btn--primary btn--lg btn--block" data-book disabled>Выберите время</button>
-      <a href="client-chat.html" class="btn btn--line btn--block book__chat"><svg><use href="#i-chat"/></svg>Написать психологу</a>
-
+      <div class="book__price"><b data-price></b><span>50&nbsp;минут, онлайн</span></div>
+      <button type="button" class="btn btn--primary btn--lg btn--block" data-open-time><svg><use href="#i-calendar"/></svg>Выбрать время</button>
+      <a href="client-chat.html" class="btn btn--line btn--block"><svg><use href="#i-chat"/></svg>Написать психологу</a>
       <ul class="book__notes">
         <li><svg><use href="#i-clock"/></svg>Сессия 50&nbsp;минут, онлайн по&nbsp;видеосвязи</li>
         <li><svg><use href="#i-check"/></svg>Бесплатная отмена и&nbsp;перенос не&nbsp;позднее чем за&nbsp;24&nbsp;часа</li>
@@ -176,13 +146,37 @@
   <a href="catalog.html" class="btn btn--primary">Перейти в&nbsp;каталог</a>
 </section>
 
-<!-- =========================== ДИАЛОГ: ПОДТВЕРЖДЕНИЕ ЗАПИСИ =========================== -->
-<dialog class="modal" id="book-modal" aria-labelledby="book-title">
+<!-- =========================== ДИАЛОГ ЗАПИСИ: время → подтверждение → готово =========================== -->
+<dialog class="modal modal--book" id="book-modal" aria-labelledby="book-title">
   <form method="dialog" data-book-form>
-    <!-- Шаг 1: проверить данные -->
-    <div data-step="confirm">
+    <!-- Шаг 1: формат, день и время -->
+    <div data-step="pick">
       <div class="modal__head">
-        <h3 id="book-title">Подтвердите запись</h3>
+        <h3 id="book-title">Выберите время</h3>
+        <button class="icon-btn" value="cancel" formnovalidate aria-label="Закрыть"><svg><use href="#i-x"/></svg></button>
+      </div>
+      <div class="modal__body book__pick">
+        <div class="book__formats" data-formats></div>
+        <div class="book__days-head">
+          <b data-month></b>
+          <span class="fdays__nav">
+            <button type="button" class="book__arrow book__arrow--prev" aria-label="Раньше" data-days-prev disabled><svg><use href="#i-chevron"/></svg></button>
+            <button type="button" class="book__arrow" aria-label="Позже" data-days-next><svg><use href="#i-chevron"/></svg></button>
+          </span>
+        </div>
+        <div class="book__days" data-days></div>
+        <div class="book__times" data-times></div>
+      </div>
+      <div class="modal__foot book__foot">
+        <span class="book__total" data-total hidden><span data-total-when></span><b data-total-price></b></span>
+        <button class="btn btn--primary" type="button" data-book disabled>Выберите время</button>
+      </div>
+    </div>
+
+    <!-- Шаг 2: проверить данные -->
+    <div data-step="confirm" hidden>
+      <div class="modal__head">
+        <h3>Подтвердите запись</h3>
         <button class="icon-btn" value="cancel" formnovalidate aria-label="Закрыть"><svg><use href="#i-x"/></svg></button>
       </div>
       <div class="modal__body">
@@ -194,12 +188,12 @@
         <p class="book-sum__pay"><svg><use href="#i-card"/></svg>Оплата картой на&nbsp;следующем шаге. Отменить бесплатно можно не&nbsp;позднее чем за&nbsp;24&nbsp;часа.</p>
       </div>
       <div class="modal__foot">
-        <button class="btn btn--line" value="cancel" formnovalidate>Назад</button>
+        <button class="btn btn--line" type="button" data-book-back>Назад</button>
         <button class="btn btn--primary" type="button" data-book-confirm>Записаться и&nbsp;оплатить</button>
       </div>
     </div>
 
-    <!-- Шаг 2: готово -->
+    <!-- Шаг 3: готово -->
     <div data-step="done" hidden>
       <div class="book-done">
         <span class="book-done__ic"><svg><use href="#i-check"/></svg></span>

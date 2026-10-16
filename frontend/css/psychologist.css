@@ -30,31 +30,36 @@
 .pp__main { display: grid; gap: 16px; min-width: 0; }
 
 
-/* ---------- 2. Шапка профиля -------------------------------------- */
-.pp-hero {
-  display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: center;
-  padding: 20px; border-radius: 24px; background: #fff;
+/* ---------- 2. Обложка: имя, коротко о себе, фото в арке ---------- */
+.pcover {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px;
+  min-height: 360px; padding: 40px 44px 0; margin-bottom: -48px;
+  border-radius: 28px; background: var(--blue-soft); overflow: hidden;
+  isolation: isolate;          /* полоса у фото не перекрывает карточки под обложкой */
 }
-.pp-hero__photo { position: relative; aspect-ratio: 1; border-radius: 18px; overflow: hidden; background: var(--soft); }
-.pp-hero__photo img { width: 100%; height: 100%; object-fit: cover; }
+.pcover__txt { padding-bottom: 80px; }
+.pcover .verified { margin-top: 0; font-size: 13px; }
+.pcover__name { margin: 10px 0 8px; font-size: clamp(32px, 4vw, 48px); font-weight: 800; line-height: 1.05; letter-spacing: -.03em; }
+.pcover__lead { max-width: 560px; font-size: 17px; line-height: 1.55; color: var(--ink-2); }
+.pcover__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.pchip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: #fff; font-size: 14px; font-weight: 700; }
+.pchip .star { width: 16px; height: 16px; color: var(--yellow); }
+/* Квадратное фото, за ним – два круга из логотипа «рядом» (бирюзовый и жёлтый) */
+.pcover__photo { position: relative; align-self: start; justify-self: center; width: 240px; height: 240px; margin-top: 8px; }
+.pcover__photo::before, .pcover__photo::after { content: ""; position: absolute; width: 190px; height: 190px; border-radius: 50%; z-index: -1; }
+.pcover__photo::before { left: -60px; top: -40px; background: var(--teal); }
+.pcover__photo::after { right: -50px; bottom: -40px; background: var(--yellow); mix-blend-mode: multiply; }
+.pcover__photo img { width: 100%; height: 100%; object-fit: cover; }
 .pp-hero__online {
-  position: absolute; left: 12px; top: 12px;
+  position: absolute; right: 10px; top: 10px;
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 10px; border-radius: 999px;
   background: rgba(255, 255, 255, .92);
   font-size: 12px; font-weight: 700;
 }
 .pp-hero__online::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #3CC48F; }
-.pp-hero__role { font-size: 15px; color: var(--ink-2); }
-.pp-hero__name { margin: 2px 0 6px; font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
-.pp-hero .verified { margin-top: 0; font-size: 13px; }
-
-/* Четыре главные цифры */
-.pp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; margin: 22px 0 0; }
-.pp-facts > div { padding: 12px 14px; border-radius: 14px; background: #F5F8FB; }
-.pp-facts dt { font-size: 12px; font-weight: 600; color: var(--ink-3); }
-.pp-facts dd { display: flex; align-items: center; gap: 5px; margin: 2px 0 0; font-size: 17px; font-weight: 800; white-space: nowrap; }
-.pp-facts .star { width: 17px; height: 17px; color: var(--yellow); }
+/* Карточки под обложкой немного заходят на неё */
+.pp__grid { position: relative; padding: 0 24px; }
 
 
 /* ---------- 3. Секции -------------------------------------------- */
@@ -64,10 +69,8 @@
 .pp-sec__note { font-size: 13px; color: var(--ink-3); }
 .pp-about { font-size: 17px; line-height: 1.6; color: var(--ink-2); max-width: 720px; }
 
-.pp-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.pp-method { padding: 18px; border-radius: 16px; background: var(--blue-soft); }
-.pp-method b { display: block; font-size: 16px; color: var(--navy); }
-.pp-method p { margin-top: 4px; font-size: 14px; color: var(--ink-2); }
+/* Методы – такие же плашки, как запросы, но нейтрального цвета (подсказка с описанием – при наведении) */
+.pp-sec .tag--grey { cursor: help; }
 
 /* Нумерованные этапы */
 .pp-steps { display: grid; gap: 10px; counter-reset: st; }
@@ -111,16 +114,27 @@
 .pp-review header small { font-size: 12px; color: var(--ink-3); }
 .pp-review p { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
 .pp-empty { color: var(--ink-3); }
+.pp-review__reply { margin-top: 12px; padding: 10px 14px; border-left: 3px solid var(--teal); background: #F5FAF9; font-size: 14px; color: var(--ink-2); }
+.pp-review__reply b { display: block; font-size: 13px; color: var(--teal-dark); }
 
 
-/* ---------- 5. Блок записи --------------------------------------- */
+/* ---------- 5. Блок записи (правая колонка) и окно выбора времени ---------- */
 .book {
   position: sticky; top: calc(var(--header-h) + 16px);
-  display: grid; gap: 14px;
+  display: grid; gap: 12px;
   padding: 24px; border-radius: 24px; background: #fff;
-  box-shadow: 0 16px 40px rgba(46, 76, 134, .08);
+  box-shadow: 0 16px 40px rgba(46, 76, 134, .1);
 }
-.book__title { font-size: 20px; font-weight: 800; }
+.book__price { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.book__price b { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+.book__price span { font-size: 13px; color: var(--ink-3); }
+.book .btn svg { width: 20px; height: 20px; }
+
+/* Окно выбора времени */
+.modal--book { width: min(600px, calc(100vw - 32px)); }
+.book__pick { display: grid; gap: 14px; }
+.book__foot { align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 16px; }
+.book__foot .book__total { flex: 1; }
 
 /* Формат – карточки-радиокнопки */
 .book__formats { display: grid; gap: 8px; }
@@ -199,7 +213,6 @@
 .book__total span::first-letter { text-transform: uppercase; }
 .book__total b { font-size: 18px; white-space: nowrap; }
 .book .btn--primary:disabled { background: #C9D2DE; cursor: default; transform: none; }
-.book__chat { margin-top: -4px; }
 
 .book__notes { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
 .book__notes li { display: flex; gap: 8px; font-size: 13px; color: var(--ink-2); }
@@ -238,19 +251,25 @@
 /* ---------- 7. Адаптив ------------------------------------------- */
 @media (max-width: 1100px) {
   .pp__grid { grid-template-columns: minmax(0, 1fr) 340px; }
-  .pp-hero { grid-template-columns: 200px minmax(0, 1fr); gap: 22px; }
+  .pcover { grid-template-columns: minmax(0, 1fr) 260px; padding: 32px 32px 0; }
+  .pcover__photo { width: 200px; height: 200px; }
+  .pcover__photo::before, .pcover__photo::after { width: 160px; height: 160px; }
 }
 @media (max-width: 960px) {
   .pp__grid { grid-template-columns: minmax(0, 1fr); }
-  .book { position: static; }
+  .book { position: static; order: -1; }   /* запись – сразу под обложкой, а не в конце страницы */
+  .pp__grid { padding: 0; }
+  .pcover { margin-bottom: 16px; }
+  .pcover__txt { padding-bottom: 32px; }
 }
 @media (max-width: 640px) {
   .pp { padding-top: 12px; padding-bottom: 64px; }
-  .pp-hero { grid-template-columns: minmax(0, 1fr); padding: 14px; }
-  .pp-hero__photo { aspect-ratio: 4 / 3; }
-  .pp-hero__info { padding: 0 6px 6px; }
+  .pcover { grid-template-columns: minmax(0, 1fr); padding: 40px 20px 0; margin-bottom: 16px; border-radius: 22px; }
+  .pcover__photo { grid-row: 1; width: 180px; height: 180px; margin: 0 0 24px; }
+  .pcover__photo::before, .pcover__photo::after { width: 140px; height: 140px; }
+  .pcover__txt { padding: 0 0 24px; }
+  .pp__grid { padding: 0; }
   .pp-sec { padding: 20px; border-radius: 20px; }
-  .pp-methods { grid-template-columns: minmax(0, 1fr); }
   .pp-rev-sum { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .book { padding: 18px; border-radius: 20px; }
   .book__days { grid-auto-columns: calc((100% - 4 * 6px) / 5); }

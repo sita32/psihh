@@ -1,6 +1,7 @@
 /**
- * «Рядом» – чат клиента с психологом.
- * Пока данные лежат прямо в этом файле (массив DIALOGS), ответы психолога имитируются.
+ * «Рядом» – чат клиента с психологом (client-chat.html и psy-chat.html).
+ * Роль берётся из <body data-role>: у клиента – диалоги с психологами (DIALOGS),
+ * у психолога – диалоги с клиентами (PSY_DIALOGS). Ответы собеседника имитируются.
  * Позже: список диалогов и сообщения придут с сервера (API на NodeJS),
  * а новые сообщения – в реальном времени через WebSocket (например, Socket.IO).
  */
@@ -62,6 +63,86 @@ const DIALOGS = [
   },
 ];
 
+/* Диалоги психолога «Марина Волкова» с клиентами.
+   Переписка с Анной – та же, что у клиента, только глазами психолога */
+const PSY_DIALOGS = [
+  {
+    id: 11,
+    name: 'Анна',
+    role: 'Клиент · 4-я сессия',
+    photo: 'assets/img/avatars/a03.webp',
+    online: true,
+    nextSession: 'Завтра, 15:00',
+    unread: 1,
+    messages: [
+      { day: '12 октября' },
+      { from: 'me', time: '18:02', text: 'Здравствуйте, Анна! Я получила вашу анкету. Перед первой встречей можно коротко написать, что сейчас беспокоит больше всего?' },
+      { from: 'psy', time: '18:20', text: 'Здравствуйте! В последнее время сложно уснуть – постоянно прокручиваю мысли о работе.' },
+      { from: 'me', time: '18:24', text: 'Спасибо, что поделились. Обсудим это на сессии. Если до встречи станет тяжело – пишите.' },
+      { event: 'booked', text: 'Анна записалась на сессию · <b>15 октября, 12:30</b>' },
+      { day: 'Вчера' },
+      { from: 'psy', time: '10:15', text: 'Марина, можно перенести встречу на попозже? На работе совещание.' },
+      { event: 'moved', text: 'Сессия перенесена на <b>15:00</b> · причина: рабочее совещание' },
+      { from: 'me', time: '10:31', text: 'Конечно, перенесла на 15:00. Жду вас 🙂' },
+      { day: 'Сегодня' },
+      { from: 'me', time: '09:12', file: { name: 'Дневник мыслей.pdf', size: '240 КБ' } },
+      { from: 'me', time: '09:13', text: 'Если будет время – попробуйте заполнить этот дневник пару дней. Обсудим на встрече.' },
+      { from: 'psy', time: '09:40', text: 'Спасибо! Начну сегодня вечером.' },
+    ],
+  },
+  {
+    id: 12,
+    name: 'Ольга',
+    role: 'Клиент · первая встреча',
+    photo: 'assets/img/avatars/a07.webp',
+    online: false,
+    lastSeen: 'была в сети час назад',
+    nextSession: 'Пн, 10:00',
+    unread: 1,
+    messages: [
+      { day: 'Позавчера' },
+      { event: 'booked', text: 'Ольга записалась на первую сессию · <b>пн, 10:00</b>' },
+      { from: 'psy', time: '22:10', text: 'Здравствуйте. Я никогда раньше не ходила к психологу – нужно ли как-то готовиться к первой встрече?' },
+    ],
+  },
+  {
+    id: 13,
+    name: 'Павел',
+    role: 'Клиент · 3-я сессия',
+    photo: 'assets/img/avatars/a04.webp',
+    online: false,
+    lastSeen: 'был в сети вчера',
+    nextSession: 'Ср, 18:30',
+    unread: 0,
+    messages: [
+      { day: '14 октября' },
+      { event: 'done', text: 'Сессия состоялась · <b>ср, 14 октября, 18:30</b>' },
+      { from: 'psy', time: '19:30', text: 'Спасибо за встречу, стало спокойнее. Записался на следующую среду.' },
+      { from: 'me', time: '19:45', text: 'Рада слышать, Павел. До встречи!' },
+    ],
+  },
+  {
+    id: 14,
+    name: 'Поддержка «Рядом»',
+    role: 'Служба поддержки',
+    photo: null,
+    color: '#4AA597',
+    online: true,
+    unread: 0,
+    messages: [
+      { day: '10 октября' },
+      { from: 'psy', time: '12:00', text: 'Марина, ваш профиль прошёл проверку и опубликован в каталоге. Если появятся вопросы по выплатам или расписанию – пишите сюда.' },
+    ],
+  },
+];
+
+/* Ответы клиента – для демонстрации в кабинете психолога (по кругу) */
+const PSY_DEMO_REPLIES = [
+  'Спасибо, поняла!',
+  'Хорошо, обязательно попробую.',
+  'Договорились 🙂',
+];
+
 /* Ответы психолога для демонстрации (по кругу) */
 const DEMO_REPLIES = [
   'Спасибо, что написали. Давайте обсудим это подробнее на нашей встрече.',
@@ -70,6 +151,10 @@ const DEMO_REPLIES = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Кто открыл чат: клиент (по умолчанию) или психолог
+  const isPsy = document.body.dataset.role === 'psychologist';
+  const LIST = isPsy ? PSY_DIALOGS : DIALOGS;
+  const REPLIES = isPsy ? PSY_DEMO_REPLIES : DEMO_REPLIES;
   const chat = document.querySelector('[data-chat]');
   const listEl = document.querySelector('[data-dialogs]');
   const messagesEl = document.querySelector('[data-messages]');
@@ -77,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.querySelector('[data-input]');
   const sendBtn = form.querySelector('.send');
   const search = document.querySelector('[data-search]');
-  let current = DIALOGS[0];
+  let current = LIST[0];
   let replyIndex = 0;
 
   /* ---------- Помощники ---------- */
@@ -100,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---------- Список диалогов ---------- */
   const renderList = () => {
     const q = search.value.trim().toLowerCase();
-    const items = DIALOGS.filter((d) => d.name.toLowerCase().includes(q));
+    const items = LIST.filter((d) => d.name.toLowerCase().includes(q));
     listEl.innerHTML = items.length ? items.map((d) => {
       const last = lastOf(d);
       return `
@@ -150,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     profile.hidden = !d.profile;
     if (d.profile) profile.href = d.profile;
 
-    messagesEl.innerHTML = '<div class="privacy"><svg><use href="#i-lock"/></svg>Переписка видна только вам и&nbsp;специалисту</div>'
+    messagesEl.innerHTML = `<div class="privacy"><svg><use href="#i-lock"/></svg>Переписка видна только вам и&nbsp;${isPsy ? 'клиенту' : 'специалисту'}</div>`
       + d.messages.map(messageHtml).join('');
     scrollDown();
   };
@@ -168,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   listEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.dlg');
-    if (btn) open(DIALOGS.find((d) => d.id === Number(btn.dataset.id)));
+    if (btn) open(LIST.find((d) => d.id === Number(btn.dataset.id)));
   });
   document.querySelector('[data-back]').addEventListener('click', () => chat.classList.remove('is-open'));
   search.addEventListener('input', renderList);
@@ -189,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scrollDown();
       setTimeout(() => {
         document.querySelector('[data-typing]')?.remove();
-        push(d, { from: 'psy', time: now(), text: DEMO_REPLIES[replyIndex++ % DEMO_REPLIES.length] });
+        push(d, { from: 'psy', time: now(), text: REPLIES[replyIndex++ % REPLIES.length] });
       }, 1600);
     }, 700);
   };

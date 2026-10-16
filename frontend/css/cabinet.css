@@ -954,3 +954,193 @@
   .tabs-line::-webkit-scrollbar { display: none; }
   .tabs-line button { flex: 1 0 auto; justify-content: center; padding: 0 12px; }
 }
+
+
+/* =====================================================================
+   9а. Записи психолога: журнал-таблица
+   ===================================================================== */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.jr { border-radius: 20px; background: #fff; overflow: hidden; }
+.jr__top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+.jr__top .tabs-line { margin: 0; background: #F3F6FA; }
+.jr__sum { font-size: 14px; color: var(--ink-3); }
+.jr__sum b { color: var(--ink); }
+
+.jt { width: 100%; border-collapse: collapse; font-size: 14px; }
+.jt th { padding: 10px 22px; background: #F8FAFC; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; white-space: nowrap; }
+.jt td { padding: 12px 22px; border-top: 1px solid var(--line); vertical-align: middle; }
+.jt__n { width: 50px; }
+.jt__acts-h { width: 1%; }
+
+/* Строка-группа: «Ждут отметки», «Эта неделя» … */
+.jt .grp td { padding: 8px 22px; background: #F8FAFC; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+/* Строка записи */
+.jt .row { cursor: pointer; transition: background-color .15s; }
+.jt .row:hover td { background: #F7FAFD; }
+.jt .row.is-open td { background: #F3F8FB; }
+.jt .row--mark td, .jt .row--mark:hover td { background: #FFFAEB; }
+.jt .row--off .jt__who, .jt .row--off .jt__time { opacity: .55; }
+.jt__date { white-space: nowrap; }
+.jt__date::first-letter { text-transform: uppercase; }
+.jt__time { font-weight: 800; font-variant-numeric: tabular-nums; }
+.jt__who { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.jt__who .chev { width: 14px; height: 14px; margin-left: 2px; color: var(--ink-3); transition: transform .2s; }
+.jt .row.is-open .chev { transform: rotate(90deg); }
+.jt__muted { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.jt__price { white-space: nowrap; }
+.jt__acts { display: flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
+.jt__acts .icon-btn { width: 36px; height: 36px; border-radius: 0; box-shadow: inset 0 0 0 1.5px #D5DCE6; }
+.jt__acts .icon-btn svg { width: 18px; height: 18px; }
+.nth { display: inline-block; padding: 2px 8px; background: #F3F6FA; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.nth--first { background: var(--violet-soft); color: #5B47B8; }
+
+/* Раскрытые подробности под строкой */
+.jt .det td { padding: 4px 22px 18px; border-top: 0; background: #F3F8FB; }
+.det__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding-left: calc(16px + 28px); }
+.det__grid h4 { margin-bottom: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.det__grid p { font-size: 14px; color: var(--ink-2); }
+.det__grid .hist { margin-top: 2px; }
+.det__grid .hist li::before { box-shadow: 0 0 0 3px #F3F8FB; }
+.det__btns { display: flex; gap: 8px; margin-top: 14px; }
+.jt-empty td { padding: 40px 22px; text-align: center; color: var(--ink-3); }
+.jt-empty b { display: block; margin-bottom: 4px; font-size: 16px; color: var(--ink); }
+
+/* Телефон: строки таблицы превращаются в карточки */
+@media (max-width: 760px) {
+  .jr__top { padding: 14px; }
+  .jt thead { display: none; }
+  .jt, .jt tbody, .jt tr, .jt td { display: block; width: 100%; }
+  .jt .row { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .jt .row td { padding: 0; border: 0; background: none !important; }
+  .jt .row--mark { background: #FFFAEB; }
+  .jt__date { grid-column: 1; }
+  .jt__time { grid-column: 2; }
+  .jt .row .jt__n-cell { display: none; }
+  .jt__price { grid-column: 4; grid-row: 1; text-align: right; }
+  .jt .row .jt__who-cell { grid-column: 1 / -1; grid-row: 2; }
+  .jt .row .jt__acts-cell { grid-column: 1 / -1; grid-row: 3; }
+  .jt__acts { justify-content: flex-start; flex-wrap: wrap; margin-top: 6px; }
+  .jt .grp td { padding: 8px 14px; }
+  .jt .det td { padding: 0 14px 16px; }
+  .det__grid { grid-template-columns: minmax(0, 1fr); padding-left: 0; gap: 14px; }
+}
+
+
+/* =====================================================================
+   11. Расписание психолога (тот же вид, что макет на странице «Психологам»)
+   ===================================================================== */
+.sched { padding: 22px 24px 24px; border-radius: 20px; background: #fff; }
+.sched__bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.sched__nav { display: flex; align-items: center; gap: 6px; }
+.sched__arrow { width: 38px; height: 38px; }
+.sched__arrow svg { width: 18px; height: 18px; }
+.sched__arrow--prev svg { transform: scaleX(-1); }
+.sched__arrow:disabled { opacity: .3; cursor: default; background: none; }
+.sched__range { min-width: 170px; font-size: 17px; text-align: center; }
+.sched__nav .btn { margin-left: 8px; }
+.sched__sum { font-size: 14px; color: var(--ink-3); }
+.sched__sum b { color: var(--ink); }
+
+/* Сетка: колонка времени + 7 дней */
+.sched__scroll { overflow-x: auto; margin: 0 -4px; padding: 4px; }
+.sgrid { display: grid; grid-template-columns: 56px repeat(7, minmax(92px, 1fr)); gap: 6px; min-width: 760px; }
+.sgrid__day {
+  display: grid; justify-items: center; gap: 2px; padding: 6px 0 8px;
+  border: 0; border-radius: 12px; background: none; font: inherit; cursor: pointer;
+  transition: background-color .2s;
+}
+.sgrid__day:hover { background: #F3F6FA; }
+.sgrid__day small { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.sgrid__day b { font-size: 17px; }
+.sgrid__day.is-today b { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 15px; }
+.sgrid__day.is-past { opacity: .45; cursor: default; }
+.sgrid__day.is-past:hover { background: none; }
+.sgrid__t { display: grid; place-items: center start; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+
+/* Клетка-окно */
+.cell {
+  position: relative;
+  display: grid; place-items: center;
+  height: 48px; padding: 0 6px;
+  border: 0; border-radius: 10px; background: none;
+  font: inherit; font-size: 13px; font-weight: 700;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  cursor: pointer;
+  transition: box-shadow .2s, background-color .2s, transform .15s;
+}
+.cell:active { transform: scale(.97); }
+.cell--free { background: #fff; box-shadow: inset 0 0 0 1.5px #9FD3C7; color: var(--teal-dark); }
+.cell--free:hover { box-shadow: inset 0 0 0 2px var(--teal); }
+.cell--booked { background: var(--teal); color: #fff; }
+.cell--booked:hover { background: var(--teal-dark); }
+.cell--booked.is-done { opacity: .55; }   /* запись уже прошла */
+.cell--blocked { background: repeating-linear-gradient(-45deg, #F3F6FA 0 6px, #fff 6px 12px); box-shadow: inset 0 0 0 1px #E8ECF2; color: var(--ink-3); font-weight: 600; }
+.cell--empty { color: transparent; box-shadow: inset 0 0 0 1px transparent; }
+.cell--empty::after { content: "+"; font-size: 20px; font-weight: 500; color: transparent; transition: color .2s; }
+.cell--empty:hover { outline: 1.5px dashed #C5D1E2; outline-offset: -1.5px; background: #F7F9FC; }
+.cell--empty:hover::after { color: var(--teal-dark); }
+.cell.is-past { opacity: .4; cursor: default; }
+.cell--free.is-past { box-shadow: none; background: #F3F6FA; }   /* прошедшее свободное окно – просто серая клетка */
+.cell.is-past:active { transform: none; }
+.cell--empty.is-past::after { content: none; }
+.cell.is-new { animation: slotIn .35s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes slotIn { from { opacity: 0; transform: scale(.85); } }
+
+.sched__legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; font-size: 13px; color: var(--ink-3); }
+.sched__legend li { display: inline-flex; align-items: center; gap: 8px; }
+.lg { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 5px; font-style: normal; font-size: 13px; font-weight: 700; color: var(--teal-dark); }
+.lg--free { box-shadow: inset 0 0 0 1.5px #9FD3C7; }
+.lg--booked { background: var(--teal); }
+.lg--blocked { background: repeating-linear-gradient(-45deg, #E3E8EF 0 3px, #fff 3px 6px); box-shadow: inset 0 0 0 1px #E3E8EF; }
+.lg--add { box-shadow: inset 0 0 0 1.5px #C5D1E2; }
+
+/* Диалог «Добавить окна» */
+.add-times { display: flex; gap: 8px; margin-bottom: 10px; }
+.add-times .f__input { width: 140px; }
+.add-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 8px 7px 14px; border-radius: 999px;
+  background: var(--teal-soft); color: var(--teal-dark);
+  font-size: 14px; font-weight: 700;
+}
+.add-chip button { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .7); color: var(--teal-dark); cursor: pointer; }
+.add-chip button svg { width: 12px; height: 12px; }
+#add-modal .chips-group + .chips-group { margin-top: 18px; }
+[data-add-error] { min-height: 20px; color: #C9483F; font-weight: 600; }
+
+/* Диалог окна: строки сведений */
+.slot-info { display: grid; gap: 8px; }
+.slot-info div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.slot-info dt { color: var(--ink-3); }
+.slot-info dd { margin: 0; font-weight: 700; text-align: right; }
+.slot-info { margin: 0 0 8px; }
+
+@media (max-width: 640px) {
+  .sched { padding: 16px; }
+  .sched__nav { width: 100%; }
+  .sched__range { flex: 1; min-width: 0; font-size: 15px; }
+}
+
+
+/* =====================================================================
+   10а. Отзывы о психологе: ответ и жалоба
+   ===================================================================== */
+.rsum__side { display: grid; gap: 10px; align-content: center; }
+.rsum__side div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.rsum__side span { color: var(--ink-3); }
+.rsum--psy { grid-template-columns: 180px minmax(0, 1fr) 220px; }
+.rev-note { display: flex; gap: 10px; margin: -6px 0 18px; padding: 12px 16px; border-radius: 14px; background: var(--blue-soft); font-size: 14px; color: var(--navy); }
+.rev-note svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+.rev__reply-head { display: flex; justify-content: space-between; gap: 10px; }
+.rev__reply-head span { display: flex; gap: 12px; }
+.rev__link { padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 700; color: var(--teal-dark); cursor: pointer; }
+.rev__link:hover { text-decoration: underline; }
+.rev__link--muted { color: var(--ink-3); }
+.rev__form { margin-top: 12px; }
+.rev__form .f__area { min-height: 90px; }
+.rev__form-btns { display: flex; gap: 8px; margin-top: 8px; }
+.rev__flag { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #B8891A; }
+.rev__flag svg { width: 16px; height: 16px; }
+@media (max-width: 760px) {
+  .rsum--psy { grid-template-columns: minmax(0, 1fr); }
+}

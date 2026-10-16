@@ -83,6 +83,7 @@ const UI = (() => {
    */
   const askReason = ({ title, text = '', confirm = 'Подтвердить', danger = false, presets = [] }) => new Promise((resolve) => {
     const m = document.getElementById('reason-modal');
+    let settled = false;           // ответ отдаётся один раз: кнопкой «Подтвердить» или при закрытии окна
     const area = m.querySelector('textarea');
     const okBtn = m.querySelector('[data-reason-ok]');
     m.querySelector('[data-reason-title]').textContent = title;
@@ -100,16 +101,20 @@ const UI = (() => {
       const b = e.target.closest('.preset');
       if (b) { area.value = b.textContent; area.focus(); m.querySelector('.f').classList.remove('is-error'); }
     };
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      m.removeEventListener('click', onPreset);
+      okBtn.removeEventListener('click', onOk);
+      resolve(value);
+    };
     const onOk = (e) => {
       e.preventDefault();
       if (area.value.trim().length < 3) { m.querySelector('.f').classList.add('is-error'); area.focus(); return; }
+      finish(area.value.trim());     // не ждём события close – в некоторых браузерах оно приходит с задержкой
       m.close('ok');
     };
-    const onClose = () => {
-      m.removeEventListener('click', onPreset);
-      okBtn.removeEventListener('click', onOk);
-      resolve(m.returnValue === 'ok' ? area.value.trim() : null);
-    };
+    const onClose = () => finish(null);
     m.addEventListener('click', onPreset);
     okBtn.addEventListener('click', onOk);
     m.addEventListener('close', onClose, { once: true });
@@ -126,8 +131,12 @@ const UI = (() => {
     const ok = m.querySelector('[data-confirm-ok]');
     ok.textContent = confirm;
     ok.className = `btn ${danger ? 'btn--danger' : 'btn--primary'}`;
+    let settled = false;
+    const finish = (value) => { if (!settled) { settled = true; ok.removeEventListener('click', onOk); resolve(value); } };
+    const onOk = () => finish(true);  // кнопка «Да» сразу отдаёт ответ, окно закроет форма method="dialog"
+    ok.addEventListener('click', onOk);
     m.returnValue = '';
-    m.addEventListener('close', () => resolve(m.returnValue === 'ok'), { once: true });
+    m.addEventListener('close', () => finish(m.returnValue === 'ok'), { once: true });
     m.showModal();
   });
 
@@ -138,6 +147,7 @@ const UI = (() => {
   const RATE_CAPS = ['', 'Очень плохо', 'Плохо', 'Нормально', 'Хорошо', 'Отлично'];
   const askReview = ({ title = 'Отзыв о сессии', who = '', initial = null }) => new Promise((resolve) => {
     const m = document.getElementById('review-modal');
+    let settled = false;
     const area = m.querySelector('textarea');
     const field = area.closest('.f');
     const cap = m.querySelector('[data-rate-cap]');
@@ -160,18 +170,20 @@ const UI = (() => {
     sync();
 
     const onInput = () => { sync(); field.classList.remove('is-error'); };
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      m.removeEventListener('input', onInput);
+      okBtn.removeEventListener('click', onOk);
+      resolve(value);
+    };
     const onOk = () => {
       if (!rating()) { cap.textContent = 'Выберите оценку от 1 до 5'; return; }
       if (area.value.trim().length < 30) { field.classList.add('is-error'); area.focus(); return; }
+      finish({ rating: rating(), text: area.value.trim(), anon: m.querySelector('input[name="anon"]').checked });
       m.close('ok');
     };
-    const onClose = () => {
-      m.removeEventListener('input', onInput);
-      okBtn.removeEventListener('click', onOk);
-      resolve(m.returnValue === 'ok'
-        ? { rating: rating(), text: area.value.trim(), anon: m.querySelector('input[name="anon"]').checked }
-        : null);
-    };
+    const onClose = () => finish(null);
     m.addEventListener('input', onInput);
     okBtn.addEventListener('click', onOk);
     m.addEventListener('close', onClose, { once: true });
