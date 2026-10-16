@@ -1,0 +1,20 @@
+# Служебные файлы macOS
+.DS_Store
+
+# Зависимости и сборка (появятся вместе с бэкендом на Node.js)
+node_modules/
+dist/
+coverage/
+
+# Локальные переменные окружения: пароли БД, секреты JWT
+.env
+.env.*
+!.env.example
+
+# Логи и кэш Python (tools/dev-server.py)
+*.log
+__pycache__/
+
+# Редакторы
+.vscode/
+.idea/
