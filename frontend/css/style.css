@@ -15,16 +15,19 @@
   /* Текст */
   --ink: #262A33;          /* основной текст и заголовки */
   --ink-2: #5B6170;        /* второстепенный текст */
-  --ink-3: #8A90A0;        /* подписи */
+  --ink-3: #6B7180;        /* подписи (4,9:1 на белом – читается по WCAG AA) */
 
   /* Фоны */
   --bg: #FFFFFF;
   --soft: #E7EFF9;         /* мягкий голубой фон секций (как у YouTalk) */
   --line: #E3E7EE;         /* разделители */
 
-  /* Акцент – бирюзовый */
+  /* Акцент – бирюзовый.
+     --teal – для декора (тумблеры, прогресс, точки, иллюстрации): белый текст на нём не читается.
+     --teal-dark – кнопки с белым текстом и бирюзовый текст на белом (4,9:1). */
   --teal: #4AA597;
-  --teal-dark: #3A8C7F;
+  --teal-dark: #2F7D71;
+  --teal-deep: #276A60;    /* наведение на кнопку */
   --teal-soft: #DCF1EC;
 
   /* Дополнительные цвета – из иллюстрации */
@@ -138,17 +141,15 @@ svg { flex-shrink: 0; }
 .btn--lg { height: 56px; padding: 0 30px; font-size: 16px; }
 .btn--block { width: 100%; }
 
-.btn--primary { background: var(--teal); color: #fff; }
-.btn--primary:hover { background: var(--teal-dark); }
+.btn svg { width: 18px; height: 18px; }
 
-.btn--soft { background: var(--teal-soft); color: var(--teal-dark); }
-.btn--soft:hover { background: #C9E9E2; }
+/* На сайте три вида кнопок: главная (заливка), второстепенная (белая с обводкой)
+   и текстовая ссылка. Пастельные заливки – только у плашек, не у кнопок. */
+.btn--primary { background: var(--teal-dark); color: #fff; }
+.btn--primary:hover { background: var(--teal-deep); }
 
-.btn--ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--line); }
-.btn--ghost:hover { box-shadow: inset 0 0 0 2px var(--teal); color: var(--teal-dark); }
-
-.btn--dark { background: var(--ink); color: #fff; }
-.btn--dark:hover { background: #000; }
+.btn--line { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1.5px #D5DCE6; }
+.btn--line:hover { box-shadow: inset 0 0 0 1.5px var(--teal); color: var(--teal-dark); }
 
 .btn--light { background: #fff; color: var(--navy); }
 .btn--light:hover { background: var(--yellow); color: var(--ink); }
@@ -224,7 +225,7 @@ svg { flex-shrink: 0; }
   text-align: center;
   font-size: 14px; font-weight: 600;
 }
-.slots .is-active { background: var(--teal); color: #fff; box-shadow: none; }
+.slots .is-active { background: var(--teal-dark); color: #fff; box-shadow: none; }
 .slots .is-off { color: var(--ink-3); text-decoration: line-through; background: var(--grey-soft); box-shadow: none; }
 
 /* Звёзды рейтинга */
@@ -373,7 +374,7 @@ svg { flex-shrink: 0; }
   transition: background-color .2s, color .2s;
 }
 .req__link svg { width: 18px; height: 18px; }
-.req:hover .req__link { background: var(--teal); color: #fff; }
+.req:hover .req__link { background: var(--teal-dark); color: #fff; }
 /* Большое «лицо» в углу карточки – вместо иллюстраций */
 .req__face {
   position: absolute;
@@ -562,12 +563,7 @@ svg { flex-shrink: 0; }
 }
 .checks svg { width: 14px; height: 14px; }
 
-.btn--light-grey { margin-top: auto; background: #F0F3F7; color: var(--ink); font-size: 17px; font-weight: 600; height: 52px; }
-.btn--light-grey:hover { background: var(--teal); color: #fff; }
-
-.btn--outline { background: transparent; color: var(--teal-dark); box-shadow: inset 0 0 0 2px var(--teal); }
-.btn--outline:hover { background: var(--teal); color: #fff; }
-.btn--outline svg { width: 18px; height: 18px; }
+.psy__btn { margin-top: auto; }   /* «Подробнее» прижата к низу карточки */
 .btn--wide { min-width: 380px; }
 
 
@@ -816,7 +812,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 
   /* Мобильное меню */
   .burger { display: block; }
-  .header__actions .btn--soft { display: none; }
+  .header__actions .btn--primary { display: none; }
   .nav {
     position: fixed; left: 0; right: 0; top: var(--header-h);
     flex-direction: column; gap: 0;

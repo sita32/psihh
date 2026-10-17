@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- Вкладки ---------- */
   const TABS = {
-    upcoming: (s) => s.status === 'scheduled',            // вместе с «ждут отметки»
+    upcoming: (s) => s.status === 'scheduled' && !needsMark(s),   // «ждут отметки» – отдельным блоком над вкладками
     past: (s) => s.status === 'completed' || s.status === 'no_show',
     cancelled: (s) => s.status === 'cancelled',
   };
@@ -121,8 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const list = sessions.filter(TABS[tab]);
     let html = '';
     if (tab === 'upcoming') {
-      html += group('Ждут отметки', list.filter(needsMark).sort(byTime));
-      const next = list.filter((s) => !needsMark(s)).sort(byTime);
+      const next = list.sort(byTime);
       [...new Set(next.map((s) => Math.min(weekOf(s.k), 2)))].forEach((w) => {
         html += group(weekName(w), next.filter((s) => Math.min(weekOf(s.k), 2) === w));
       });
@@ -143,7 +142,15 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.keys(TABS).forEach((t) => { $(`[data-count="${t}"]`).textContent = sessions.filter(TABS[t]).length; });
   };
 
-  const render = () => { renderSum(); renderRows(); };
+  /** Блок «Ждут отметки»: прошедшие сессии без отметки – виден на любой вкладке */
+  const renderMarks = () => {
+    const list = sessions.filter(needsMark).sort(byTime);
+    $('[data-mark-wrap]').hidden = !list.length;
+    $('[data-mark-title]').textContent = `${list.length} ${plural(list.length, 'сессия ждёт', 'сессии ждут', 'сессий ждут')} отметки`;
+    $('[data-mark-rows]').innerHTML = list.map(row).join('');
+  };
+
+  const render = () => { renderSum(); renderMarks(); renderRows(); };
 
   /* ---------- Вкладки и раскрытие строк ---------- */
   const tabsEl = $('[data-tabs]');
@@ -157,14 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   });
   // Клик по строке (не по кнопке) раскрывает или сворачивает подробности
-  $('[data-rows]').addEventListener('click', (e) => {
+  const toggleRow = (e) => {
     if (e.target.closest('button, a')) return;
     const tr = e.target.closest('tr.row');
     if (!tr) return;
     const id = Number(tr.dataset.id);
     if (open.has(id)) open.delete(id); else open.add(id);
+    renderMarks();
     renderRows();
-  });
+  };
+  $('[data-rows]').addEventListener('click', toggleRow);
+  $('[data-mark-rows]').addEventListener('click', toggleRow);
 
   /* ---------- Отметка после встречи ---------- */
   const mark = (s, status) => {

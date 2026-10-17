@@ -51,12 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- Неделя ---------- */
   let week = 0;                                     // 0 – текущая неделя
+  let sel = 0;                                      // выбранный день (k) – на телефоне сетка показывает только его
   const mondayK = () => -((dateAt(0).getDay() + 6) % 7) + week * 7;
   const WEEK = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
   let fresh = null;                                 // только что добавленное окно – с анимацией
 
   const render = () => {
     const ks = Array.from({ length: 7 }, (_, i) => mondayK() + i);
+    if (sel === null || !ks.includes(sel)) sel = ks.includes(0) ? 0 : ks[0];   // по умолчанию – сегодня
     const first = dateAt(ks[0]), last = dateAt(ks[6]);
     $('[data-week-label]').textContent = first.getMonth() === last.getMonth()
       ? `${first.getDate()} – ${last.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}`
@@ -70,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let html = '<span></span>' + ks.map((k, i) => {
       const d = dateAt(k);
       const past = k < 0;
-      return `<button type="button" class="sgrid__day${k === 0 ? ' is-today' : ''}${past ? ' is-past' : ''}" data-day="${k}"
+      return `<button type="button" class="sgrid__day${k === 0 ? ' is-today' : ''}${past ? ' is-past' : ''}${k === sel ? ' is-sel' : ''}" data-day="${k}"
         ${past ? 'disabled' : 'title="Закрыть все свободные окна дня"'}><small>${WEEK[i]}</small><b>${d.getDate()}</b></button>`;
     }).join('');
     times.forEach((t) => {
@@ -80,14 +82,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const past = isPast(k, t) ? ' is-past' : '';
         const isNew = fresh && fresh.k === k && fresh.time === t ? ' is-new' : '';
         const attrs = `data-k="${k}" data-time="${t}"`;
-        if (!s) html += `<button type="button" class="cell cell--empty${past}" ${attrs} aria-label="Открыть окно ${t}"${past ? ' disabled' : ''}></button>`;
-        else if (s.status === 'free') html += `<button type="button" class="cell cell--free${past}${isNew}" ${attrs}>${past ? '' : 'свободно'}</button>`;
-        else if (s.status === 'blocked') html += `<button type="button" class="cell cell--blocked${past}" ${attrs}>закрыто</button>`;
-        else html += `<button type="button" class="cell cell--booked${past ? ' is-done' : ''}" ${attrs}>${escapeHtml(clientName(s.session.client))}</button>`;
+        const on = k === sel ? ' is-sel' : '';
+        if (!s) html += `<button type="button" class="cell cell--empty${past}${on}" ${attrs} aria-label="Открыть окно ${t}"${past ? ' disabled' : ''}></button>`;
+        else if (s.status === 'free') html += `<button type="button" class="cell cell--free${past}${isNew}${on}" ${attrs}>${past ? '' : 'свободно'}</button>`;
+        else if (s.status === 'blocked') html += `<button type="button" class="cell cell--blocked${past}${on}" ${attrs}>закрыто</button>`;
+        else html += `<button type="button" class="cell cell--booked${past ? ' is-done' : ''}${on}" ${attrs}>${escapeHtml(clientName(s.session.client))}</button>`;
       });
     });
     $('[data-grid]').innerHTML = html;
     fresh = null;
+
+    // Лента дней (видна только на телефоне)
+    $('[data-strip]').innerHTML = ks.map((k, i) => `<button type="button" class="sday__btn${k === 0 ? ' is-today' : ''}${k < 0 ? ' is-past' : ''}${k === sel ? ' is-sel' : ''}"
+      data-pick="${k}" aria-pressed="${k === sel}"><small>${WEEK[i]}</small><b>${dateAt(k).getDate()}</b></button>`).join('');
 
     // Сводка по неделе – только окна, которые ещё впереди
     const all = ks.flatMap((k) => day(k).filter((x) => !isPast(k, x.time)));
@@ -97,9 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   /* ---------- Навигация по неделям ---------- */
-  $('[data-week-prev]').addEventListener('click', () => { week -= 1; render(); });
-  $('[data-week-next]').addEventListener('click', () => { week += 1; render(); });
-  $('[data-week-today]').addEventListener('click', () => { week = 0; render(); });
+  $('[data-week-prev]').addEventListener('click', () => { week -= 1; sel = null; render(); });
+  $('[data-week-next]').addEventListener('click', () => { week += 1; sel = null; render(); });
+  $('[data-week-today]').addEventListener('click', () => { week = 0; sel = 0; render(); });
+  $('[data-strip]').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-pick]');
+    if (!btn) return;
+    sel = Number(btn.dataset.pick);
+    render();
+  });
 
   /* ---------- Диалог окна ---------- */
   const slotModal = document.getElementById('slot-modal');

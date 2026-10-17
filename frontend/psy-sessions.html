@@ -104,6 +104,12 @@
       <a href="psy-schedule.html" class="btn btn--line"><svg><use href="#i-calendar"/></svg>Расписание</a>
     </div>
 
+    <!-- Прошедшие сессии, которые ещё не отмечены, – отдельно над вкладками (рисует psy-sessions.js) -->
+    <section class="jr jr--mark" data-mark-wrap hidden>
+      <div class="jr__mark-head"><svg><use href="#i-clock"/></svg><b data-mark-title></b><span>Отметьте, состоялась ли встреча</span></div>
+      <table class="jt"><tbody data-mark-rows></tbody></table>
+    </section>
+
     <section class="jr">
       <div class="jr__top">
         <div class="tabs-line" role="tablist" data-tabs>

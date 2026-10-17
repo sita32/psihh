@@ -37,6 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let tab = 'pending';
   let current = null;            // открытая заявка
   const checked = new Set();     // отмеченные пункты проверки открытой заявки
+  /** Почему кнопка «Подтвердить» неактивна – видно и на телефоне, где нет всплывающей подсказки */
+  const hint = () => (checked.size === CHECKS.length ? ''
+    : `Отмечено ${checked.size} из ${CHECKS.length} – отметьте все пункты, чтобы подтвердить`);
 
   /* ---------- Очередь ---------- */
   const listOf = (t) => apps.filter((a) => a.status === t).sort((a, b) => (t === 'pending' ? a.sent - b.sent : b.decided - a.decided));
@@ -69,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       bottom = `
         <div class="vr-sec"><h3>Проверка модератора</h3>
           <div class="vr-check">${CHECKS.map((c, i) => `<label><input type="checkbox" data-check="${i}"${checked.has(i) ? ' checked' : ''}>${c}</label>`).join('')}</div>
+          <p class="vr-hint" data-hint>${hint()}</p>
         </div>
         <div class="vr-actions">
           <button type="button" class="btn btn--primary" data-act="approve"${ready ? '' : ' disabled title="Сначала отметьте все пункты проверки"'}><svg><use href="#i-shield"/></svg>Подтвердить статус специалиста</button>
@@ -135,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const approve = $('[data-act="approve"]');
     approve.disabled = checked.size !== CHECKS.length;
     approve.title = approve.disabled ? 'Сначала отметьте все пункты проверки' : '';
+    $('[data-hint]').textContent = hint();
   });
 
   $('[data-card]').addEventListener('click', async (e) => {

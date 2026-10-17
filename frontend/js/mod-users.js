@@ -60,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td><span class="u">${userAva(u, 36)}<span><b>${escapeHtml(u.name)}${self ? ' (вы)' : ''}</b><small>${escapeHtml(u.email)}</small></span></span></td>
         <td>${u.roles.map((r) => `<span class="role-b role-b--${r}">${ROLE_NAMES[r]}</span>`).join('')}</td>
         <td>${status}</td>
-        <td class="jt__soft">${UI.shortDate(dateAt(u.reg))}</td>
-        <td class="jt__soft">${ago(u.last)}</td>
+        <td class="jt__soft" data-label="Регистрация">${UI.shortDate(dateAt(u.reg))}</td>
+        <td class="jt__soft" data-label="Был в сети">${ago(u.last)}</td>
         <td><div class="acts">
           <button type="button" class="icon-btn" data-act="edit" aria-label="Изменить" title="Изменить профиль и роли"><svg><use href="#i-edit"/></svg></button>
           ${blockBtn}

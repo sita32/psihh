@@ -13,10 +13,6 @@
 .cat-page { background: #F2F6FB; }
 .nav a.is-current { color: var(--teal-dark); }
 
-/* Кнопка с обводкой (как в кабинете) */
-.btn--line { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1.5px #D5DCE6; }
-.btn--line:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
-.btn svg { width: 18px; height: 18px; }
 
 
 /* ---------- 1. Заголовок и поиск – в одну строку ----------------- */
@@ -53,8 +49,6 @@
 .results__count { font-size: 17px; font-weight: 700; }
 .results__count span { color: var(--ink-3); font-weight: 600; }
 
-.btn--dark { background: var(--ink); color: #fff; }
-.btn--dark:hover { background: #000; }
 .filters-btn { height: 48px; padding: 0 20px; }
 .filters-btn .count {
   display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px;
@@ -294,7 +288,7 @@
 }
 .ftime:hover span { box-shadow: inset 0 0 0 1.5px #B9C3D1; }
 .ftime:active span { transform: scale(.95); }
-.ftime input:checked + span { background: var(--teal); color: #fff; box-shadow: none; animation: pop .3s cubic-bezier(.3, 1.5, .6, 1); }
+.ftime input:checked + span { background: var(--teal-dark); color: #fff; box-shadow: none; animation: pop .3s cubic-bezier(.3, 1.5, .6, 1); }
 .ftime input:checked + span small { background: rgba(255, 255, 255, .25); color: #fff; }
 .ftime input:focus-visible + span { outline: 3px solid var(--blue); outline-offset: 2px; }
 
@@ -411,9 +405,6 @@ mark.hl-text { background: var(--yellow-soft); color: inherit; border-radius: 3p
 .pcard__when { font-size: 13px; font-weight: 600; color: var(--ink-3); }
 .pcard__when.is-soon { color: #2FA87A; }
 
-.btn--line { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1.5px #D5DCE6; }
-.btn--line:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
-.btn svg { width: 18px; height: 18px; }
 
 
 /* ---------- 5. Пусто и «Показать ещё» ------------------------------ */

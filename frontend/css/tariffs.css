@@ -26,7 +26,8 @@
 .lvl {
   position: relative; display: flex; flex-direction: column;
   padding: 28px 24px 22px; background: #fff;
-  box-shadow: 0 0 0 1.5px #DCE4EF;
+  border-radius: var(--r-lg);      /* скругления как у карточек на остальном сайте */
+  box-shadow: var(--shadow);
   transition: box-shadow .25s, transform .25s;
 }
 .lvl:hover { transform: translateY(-4px); box-shadow: 0 0 0 1.5px var(--c), 0 16px 34px rgba(46, 76, 134, .1); }
@@ -48,11 +49,11 @@
 
 /* ---------- 3. Форматы: переключатель --------------------------------- */
 .fsw { margin-top: 32px; }
-.fsw__tabs { display: inline-flex; gap: 4px; padding: 5px; background: #F3F6FA; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.fsw__tabs { display: inline-flex; gap: 4px; padding: 5px; border-radius: 14px; background: #F3F6FA; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 .fsw__tabs::-webkit-scrollbar { display: none; }
 .fsw__tab {
   display: flex; align-items: center; gap: 8px; padding: 12px 20px;
-  border: 0; background: none; font: inherit; font-size: 15px; font-weight: 700; color: var(--ink-2);
+  border: 0; border-radius: 10px; background: none; font: inherit; font-size: 15px; font-weight: 700; color: var(--ink-2);
   cursor: pointer; white-space: nowrap; transition: background-color .2s, color .2s, box-shadow .2s;
 }
 .fsw__tab svg { width: 20px; height: 20px; }
@@ -60,7 +61,7 @@
 .fsw__tab.is-on { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(38, 42, 51, .08); }
 .fsw__tab:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
-.fsw__pane { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; margin-top: 18px; padding: 32px; }
+.fsw__pane { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; margin-top: 18px; padding: 32px; border-radius: var(--r-lg); }
 .fsw__pane[hidden] { display: none; }
 .fsw__pane.is-on { animation: paneIn .45s cubic-bezier(.2, .8, .2, 1); }
 @keyframes paneIn { from { opacity: 0; transform: translateY(10px); } }
@@ -74,7 +75,7 @@
 .fsw__price small { font-size: .34em; letter-spacing: 0; color: var(--ink-2); }
 .fsw__count { font-size: 14px; color: var(--ink-2); }
 .fsw__list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.fsw__list a { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; transition: transform .2s, box-shadow .2s; }
+.fsw__list a { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: #fff; transition: transform .2s, box-shadow .2s; }
 .fsw__list a:hover { transform: translateX(4px); box-shadow: 0 6px 16px rgba(38, 42, 51, .08); }
 .fsw__list img { width: 40px; height: 40px; border-radius: 24%; }
 .fsw__list span { flex: 1; font-size: 15px; font-weight: 700; }
@@ -114,10 +115,10 @@
 
 /* ---------- 5. Бесплатно + без пакетов ------------------------------- */
 .tf-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-.tf-free, .tf-nopack { padding: 32px; }
+.tf-free, .tf-nopack { padding: 32px; border-radius: var(--r-lg); }
 .tf-free { background: var(--teal-soft); }
 .tf-free ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 22px 0 0; padding: 0; list-style: none; }
-.tf-free li { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: #fff; font-weight: 700; font-size: 15px; }
+.tf-free li { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; background: #fff; font-weight: 700; font-size: 15px; }
 .tf-free li svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--teal-dark); }
 .tf-nopack { background: var(--yellow-soft); }
 .tf-nopack p { margin: 14px 0 18px; font-size: 16px; line-height: 1.6; color: var(--ink-2); }

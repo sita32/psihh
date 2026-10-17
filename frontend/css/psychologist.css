@@ -203,7 +203,7 @@
   transition: box-shadow .2s, background-color .2s, color .2s;
 }
 .bslot:hover { box-shadow: inset 0 0 0 1.5px var(--teal); color: var(--teal-dark); }
-.bslot.is-active { background: var(--teal); color: #fff; box-shadow: none; }
+.bslot.is-active { background: var(--teal-dark); color: #fff; box-shadow: none; }
 
 .book__total {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
