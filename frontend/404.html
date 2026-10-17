@@ -35,6 +35,8 @@
   </style>
 </head>
 <body class="auth-page">
+<!-- Для клавиатуры и экранных читалок: появляется по первому Tab, ведёт сразу к содержимому -->
+<a href="#main" class="skip-link">Перейти к&nbsp;содержанию</a>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -62,7 +64,7 @@
   <a href="/index.html" class="auth__back"><svg><use href="#i-back"/></svg>На главную</a>
 </header>
 
-<main class="nf">
+<main id="main" tabindex="-1" class="nf">
   <div class="nf__code" aria-hidden="true">4<span class="nf__mark"><i></i><i></i></span>4</div>
   <h1>Такой страницы нет</h1>
   <p>Возможно, ссылка устарела или в&nbsp;адресе опечатка. Ничего страшного – вернёмся туда, где спокойно.</p>

@@ -20,6 +20,8 @@
   <link rel="stylesheet" href="css/about.css">
 </head>
 <body class="about-page">
+<!-- Для клавиатуры и экранных читалок: появляется по первому Tab, ведёт сразу к содержимому -->
+<a href="#main" class="skip-link">Перейти к&nbsp;содержанию</a>
 <script>document.documentElement.classList.add('js');</script>
 
 <!-- Иконки (те же, что на главной) -->
@@ -84,7 +86,7 @@
   </div>
 </header>
 
-<main>
+<main id="main" tabindex="-1">
   <!-- =========================== 1. ПЕРВЫЙ ЭКРАН: ЗАЧЕМ МЫ ЭТО СДЕЛАЛИ =========================== -->
   <section class="ab-hero">
     <div class="container ab-hero__grid">

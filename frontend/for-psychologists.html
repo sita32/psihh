@@ -20,6 +20,8 @@
   <link rel="stylesheet" href="css/for-psychologists.css">
 </head>
 <body class="fp-page">
+<!-- Для клавиатуры и экранных читалок: появляется по первому Tab, ведёт сразу к содержимому -->
+<a href="#main" class="skip-link">Перейти к&nbsp;содержанию</a>
 <script>document.documentElement.classList.add('js');</script>
 
 <!-- Иконки (те же, что на главной, + несколько для этой страницы) -->
@@ -88,7 +90,7 @@
   </div>
 </header>
 
-<main>
+<main id="main" tabindex="-1">
   <!-- =========================== 1. ПЕРВЫЙ ЭКРАН =========================== -->
   <section class="fp-hero">
     <div class="container fp-hero__grid">

@@ -10,6 +10,7 @@
   <link rel="manifest" href="assets/favicon/site.webmanifest">
   <meta name="theme-color" content="#4AA597">
   <title>Вход – Рядом</title>
+  <meta name="description" content="Вход и регистрация в «Рядом» – для клиентов, которые ищут психолога, и для психологов, которые хотят работать на платформе.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +22,8 @@
   <link rel="stylesheet" href="css/auth.css">
 </head>
 <body class="auth-page">
+<!-- Для клавиатуры и экранных читалок: появляется по первому Tab, ведёт сразу к содержимому -->
+<a href="#main" class="skip-link">Перейти к&nbsp;содержанию</a>
 
 <!-- Иконки страницы входа -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -67,7 +70,7 @@
 </header>
 
 <!-- =========================== КАРТОЧКА С ФОРМОЙ =========================== -->
-<main class="auth">
+<main id="main" tabindex="-1" class="auth">
   <div class="auth__card" data-active="login">
     <!-- Персонажи, выглядывающие из-за края карточки.
          Два кадра сменяют друг друга – получается покадровая анимация. -->

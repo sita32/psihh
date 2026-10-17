@@ -10,6 +10,8 @@
   <link rel="manifest" href="assets/favicon/site.webmanifest">
   <meta name="theme-color" content="#4AA597">
   <title>Заявки психологов – Рядом</title>
+  <!-- Личный кабинет закрыт логином – поисковикам здесь делать нечего -->
+  <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,6 +22,8 @@
 
 </head>
 <body class="cab-page" data-role="moderator">
+<!-- Для клавиатуры и экранных читалок: появляется по первому Tab, ведёт сразу к содержимому -->
+<a href="#main" class="skip-link">Перейти к&nbsp;содержанию</a>
 
 <!-- Иконки кабинета -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -99,7 +103,7 @@
     </nav>
 
   <!-- =========================== ЗАЯВКИ ПСИХОЛОГОВ НА ПРОВЕРКУ =========================== -->
-  <main class="cab-main">
+  <main id="main" tabindex="-1" class="cab-main">
     <div class="cab-head"><div><h1>Заявки психологов</h1></div></div>
 
     <div class="tabs-line" role="tablist" data-tabs>

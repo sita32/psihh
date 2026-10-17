@@ -10,6 +10,7 @@
   <link rel="manifest" href="assets/favicon/site.webmanifest">
   <meta name="theme-color" content="#4AA597">
   <title>Восстановление пароля – Рядом</title>
+  <meta name="description" content="Восстановление пароля в «Рядом»: пришлём на почту ссылку, по которой можно задать новый пароль.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +23,8 @@
   <link rel="stylesheet" href="css/forgot.css">
 </head>
 <body class="auth-page">
+<!-- Для клавиатуры и экранных читалок: появляется по первому Tab, ведёт сразу к содержимому -->
+<a href="#main" class="skip-link">Перейти к&nbsp;содержанию</a>
 
 <!-- Иконки -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -56,7 +59,7 @@
   <a href="login.html" class="auth__back"><svg><use href="#i-back"/></svg>Ко&nbsp;входу</a>
 </header>
 
-<main class="auth">
+<main id="main" tabindex="-1" class="auth">
   <!-- data-active="login" – выглядывает та же девушка, что на странице входа -->
   <div class="auth__card" data-active="login">
     <div class="peek" aria-hidden="true">

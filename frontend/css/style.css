@@ -906,3 +906,17 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .loader__mark i { animation: none !important; }
 }
+
+
+/* ---------- «Перейти к содержанию» -----------------------------------
+   Спрятана над экраном, выезжает по первому нажатию Tab (доступность, WCAG 2.4.1). */
+.skip-link {
+  position: fixed; left: 16px; top: 12px; z-index: 1000;
+  padding: 10px 16px;
+  background: var(--teal-dark); color: #fff;
+  font-size: 14px; font-weight: 700;
+  transform: translateY(-160%);
+  transition: transform .2s;
+}
+.skip-link:focus { transform: none; outline: 3px solid var(--blue); outline-offset: 2px; }
+#main:focus { outline: none; }   /* сам блок после перехода не обводим */

@@ -21,6 +21,8 @@
   <link rel="stylesheet" href="css/psychologist.css">
 </head>
 <body class="psy-page">
+<!-- Для клавиатуры и экранных читалок: появляется по первому Tab, ведёт сразу к содержимому -->
+<a href="#main" class="skip-link">Перейти к&nbsp;содержанию</a>
 
 <!-- Иконки -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -75,7 +77,7 @@
   </div>
 </header>
 
-<main class="container pp" data-profile>
+<main id="main" tabindex="-1" class="container pp" data-profile>
   <a href="catalog.html" class="pp__back"><svg><use href="#i-back"/></svg>Все психологи</a>
 
   <!-- =========================== ОБЛОЖКА: имя, коротко о себе, фото в арке =========================== -->
