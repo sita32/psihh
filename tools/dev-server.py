@@ -8,6 +8,7 @@
 import functools
 import http.server
 import os
+import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
@@ -24,8 +25,11 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         page = os.path.join(ROOT, '404.html')
         if code != 404 or not os.path.exists(page):
             return super().send_error(code, message, explain)
-        with open(page, 'rb') as f:
-            body = f.read()
+        with open(page, encoding='utf-8') as f:
+            html = f.read()
+        # В 404.html пути относительные; для любого адреса (/a/b/c) делаем их от корня сайта
+        html = re.sub(r'(href|src)="(?!https?:|mailto:|tel:|#|/)', r'\1="/', html)
+        body = html.encode('utf-8')
         self.send_response(404)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.send_header('Content-Length', str(len(body)))
