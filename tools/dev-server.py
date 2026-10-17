@@ -19,6 +19,20 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store, must-revalidate')
         super().end_headers()
 
+    def send_error(self, code, message=None, explain=None):
+        # Вместо стандартной страницы ошибки – своя 404.html (на сервере то же сделает nginx: error_page 404)
+        page = os.path.join(ROOT, '404.html')
+        if code != 404 or not os.path.exists(page):
+            return super().send_error(code, message, explain)
+        with open(page, 'rb') as f:
+            body = f.read()
+        self.send_response(404)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        if self.command != 'HEAD':
+            self.wfile.write(body)
+
 
 handler = functools.partial(NoCacheHandler, directory=ROOT)
 with http.server.ThreadingHTTPServer(('localhost', PORT), handler) as server:

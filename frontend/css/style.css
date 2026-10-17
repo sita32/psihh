@@ -877,3 +877,32 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   .faq__ic { width: 36px; height: 36px; }
   .footer__top { grid-template-columns: 1fr; gap: 28px; }
 }
+
+
+/* ---------- Загрузка: логотип «двое рядом» -------------------------
+   Два круга сходятся и снова расходятся. Экран загрузки страницы
+   (js/loader.js) появляется, только если страница грузится дольше 0,35 с. */
+.loader { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.loader__mark { position: relative; width: 76px; height: 44px; }
+.loader__mark i { position: absolute; top: 0; width: 44px; height: 44px; border-radius: 50%; }
+.loader__mark i:first-child { left: 0;    background: var(--teal);   animation: meetL 1.6s ease-in-out infinite; }
+.loader__mark i:last-child  { left: 32px; background: var(--yellow); mix-blend-mode: multiply; animation: meetR 1.6s ease-in-out infinite; }
+@keyframes meetL { 0%, 100% { transform: translateX(-12px); } 50% { transform: translateX(6px); } }
+@keyframes meetR { 0%, 100% { transform: translateX(12px); }  50% { transform: translateX(-6px); } }
+.loader__text { font-size: 14px; font-weight: 600; color: var(--ink-3); }
+.loader--sm .loader__mark { transform: scale(.6); }   /* для загрузки внутри блока (список, карточка) */
+
+.page-loader {
+  position: fixed; inset: 0; z-index: 999;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;   /* экран вне <body> – шрифт задаём сами */
+  display: grid; place-items: center;
+  background: #fff;
+  opacity: 0; pointer-events: none;
+  animation: loaderIn .3s ease .35s forwards;
+}
+.page-loader.is-done { animation: none; opacity: 0; transition: opacity .35s; }
+@keyframes loaderIn { to { opacity: 1; pointer-events: auto; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .loader__mark i { animation: none !important; }
+}

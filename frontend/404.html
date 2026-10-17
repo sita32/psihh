@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Пути от корня (/css/…): страница открывается вместо любого несуществующего адреса, в том числе вложенного -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/favicon/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#4AA597">
+  <meta name="robots" content="noindex">
+  <title>Страница не найдена – Рядом</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Общие стили + фон и верхняя строка со страницы входа -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/auth.css">
+  <style>
+    /* «404», где ноль – логотип: два круга разошлись, при наведении снова вместе */
+    .nf { position: relative; z-index: 2; display: grid; justify-items: center; align-content: center; min-height: calc(100vh - 110px); padding: 24px 16px 64px; text-align: center; }
+    .nf__code { display: flex; align-items: center; gap: .08em; font-size: clamp(110px, 20vw, 210px); font-weight: 800; line-height: 1; letter-spacing: -.04em; color: var(--navy); }
+    .nf__mark { position: relative; width: .78em; height: .62em; margin: 0 .12em; }
+    .nf__mark i { position: absolute; top: 0; width: .62em; height: .62em; border-radius: 50%; transition: transform .6s cubic-bezier(.34, 1.56, .64, 1); }
+    .nf__mark i:first-child { left: 0; background: var(--teal); transform: translate(-.14em, .06em); }
+    .nf__mark i:last-child  { right: 0; background: var(--yellow); mix-blend-mode: multiply; transform: translate(.14em, -.08em); }
+    .nf__code:hover .nf__mark i { transform: none; }
+    .nf h1 { margin: 18px 0 12px; font-size: clamp(26px, 3.4vw, 38px); font-weight: 800; letter-spacing: -.02em; }
+    .nf p { max-width: 480px; margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+    .nf__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 28px 0 22px; }
+    .nf__small { font-size: 14px !important; color: var(--ink-3) !important; }
+    .nf__small a { font-weight: 700; color: var(--teal-dark); }
+    @media (max-width: 760px) { .nf { align-content: start; padding-top: 48px; } .nf__actions .btn { flex: 1 1 100%; } }
+  </style>
+</head>
+<body class="auth-page">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="auth-bg" aria-hidden="true">
+  <span class="blob blob--1"></span>
+  <span class="blob blob--2"></span>
+  <span class="blob blob--3"></span>
+  <span class="float float--cloud"><img src="/assets/img/auth/cloud.webp" alt=""></span>
+  <span class="float float--tea"><img src="/assets/img/auth/tea.webp" alt=""></span>
+  <span class="float float--plant"><img src="/assets/img/auth/plant.webp" alt=""></span>
+  <span class="float float--chat"><img src="/assets/img/auth/chat.webp" alt=""></span>
+  <span class="float float--plane"><img src="/assets/img/auth/plane.webp" alt=""></span>
+  <span class="float float--heart"><img src="/assets/img/auth/heart.webp" alt=""></span>
+</div>
+
+<header class="auth__top">
+  <a href="/index.html" class="logo" aria-label="Рядом – на главную">
+    <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+    <span class="logo__text">рядом</span>
+  </a>
+  <a href="/index.html" class="auth__back"><svg><use href="#i-back"/></svg>На главную</a>
+</header>
+
+<main class="nf">
+  <div class="nf__code" aria-hidden="true">4<span class="nf__mark"><i></i><i></i></span>4</div>
+  <h1>Такой страницы нет</h1>
+  <p>Возможно, ссылка устарела или в&nbsp;адресе опечатка. Ничего страшного – вернёмся туда, где спокойно.</p>
+  <div class="nf__actions">
+    <a href="/index.html" class="btn btn--primary btn--lg">На&nbsp;главную</a>
+    <a href="/quiz.html" class="btn btn--line btn--lg">Подобрать психолога</a>
+  </div>
+  <p class="nf__small">Попали сюда по&nbsp;ссылке с&nbsp;нашего сайта? Напишите на&nbsp;<a href="mailto:sangnchr@gmail.com">sangnchr@gmail.com</a> – починим.</p>
+</main>
+
+</body>
+</html>
