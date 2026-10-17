@@ -1,0 +1,106 @@
+/* =====================================================================
+   «Рядом» – восстановление пароля (forgot.html)
+   Подключается после auth.css: карточка, фон, поля и кнопка – оттуда.
+   Здесь только то, чего нет на странице входа: экраны и мелкие детали.
+   ===================================================================== */
+
+/* Экраны внутри карточки: виден один */
+.fg-view[hidden] { display: none; }
+.fg-view.is-active { animation: fadeIn .35s ease both; }
+
+/* Заголовок – крупно, слово с жёлтым маркером, как активная вкладка «Вход» */
+.fg-title {
+  margin: 0 0 12px;
+  font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2;
+}
+.fg-title:focus { outline: none; }
+.fg-title mark {
+  color: inherit;
+  background: linear-gradient(transparent 60%, var(--yellow) 60%, var(--yellow) 90%, transparent 90%) no-repeat 0 0 / 0 100%;
+  animation: fgMarker .5s ease .25s forwards;
+}
+@keyframes fgMarker { to { background-size: 100% 100%; } }
+
+.fg-text { margin: 0 0 26px; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.fg-text b { color: var(--ink); word-break: break-all; }
+
+.fg-foot { margin: 18px 0 0; font-size: 14px; color: var(--ink-2); text-align: center; }
+
+/* Текстовая кнопка, как ссылка */
+.fg-link {
+  padding: 0; border: 0; background: none;
+  font: inherit; font-size: 14px; font-weight: 700; color: var(--teal-dark);
+  cursor: pointer;
+}
+.fg-link:hover { text-decoration: underline; }
+
+/* Кнопка-ссылка того же вида, что .auth__btn */
+.fg-btn { display: grid; place-items: center; }
+
+
+/* ---------- Письмо отправлено -------------------------------------- */
+.fg-sent { text-align: center; }
+.fg-sent .auth__note { margin: 0 0 18px; text-align: left; }
+
+/* Самолётик «улетает» с письмом и покачивается */
+.fg-plane {
+  display: block; width: 120px; height: auto; margin: -8px auto 8px;
+  animation: fly .9s cubic-bezier(.2, .8, .2, 1) both, hover 3.5s ease-in-out .9s infinite alternate;
+}
+@keyframes fly { from { opacity: 0; transform: translate(-60px, 40px) rotate(-18deg) scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes hover { to { transform: translate(6px, -6px) rotate(3deg); } }
+
+.fg-resend { margin: 0; font-size: 14px; color: var(--ink-2); }
+.fg-resend b { font-variant-numeric: tabular-nums; color: var(--ink); }
+.fg-resend [hidden] { display: none; }
+.fg-sent .fg-foot { margin-top: 10px; }
+
+/* Ссылка для демонстрации без сервера – нарочно непохожа на обычный интерфейс */
+.fg-demo {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 22px; padding: 8px 14px;
+  border: 1.5px dashed #C2CAD5; border-radius: 999px;
+  font-size: 13px; font-weight: 600; color: var(--ink-2);
+  transition: border-color .2s, color .2s;
+}
+.fg-demo small { padding: 1px 7px; border-radius: 999px; background: var(--grey-soft); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.fg-demo:hover { border-color: var(--teal); color: var(--teal-dark); }
+
+
+/* ---------- Новый пароль: требования ------------------------------- */
+.fg-rules { margin: -4px 0 22px; padding: 0; list-style: none; }
+.fg-rules li {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px;
+  font-size: 14px; color: var(--ink-3);
+  transition: color .2s;
+}
+.fg-rules svg { width: 18px; height: 18px; flex-shrink: 0; color: #C9CED8; transition: color .2s, transform .3s cubic-bezier(.34, 1.56, .64, 1); }
+.fg-rules li.is-ok { color: var(--ink); }
+.fg-rules li.is-ok svg { color: var(--teal); transform: scale(1.1); }
+/* После попытки сохранить – невыполненные требования краснеют */
+.fg-rules.is-checked li:not(.is-ok) { color: #D9534F; }
+.fg-rules.is-checked li:not(.is-ok) svg { color: #E5736F; }
+
+
+/* ---------- Готово ------------------------------------------------- */
+.fg-done { text-align: center; }
+.fg-badge {
+  display: grid; place-items: center;
+  width: 72px; height: 72px; margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--teal-soft); color: var(--teal-dark);
+  animation: badgeIn .6s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+.fg-badge svg { width: 36px; height: 36px; }
+@keyframes badgeIn { from { opacity: 0; transform: scale(.3) rotate(-30deg); } to { opacity: 1; transform: none; } }
+
+
+@media (max-width: 760px) {
+  .fg-title { font-size: 25px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-view.is-active, .fg-plane, .fg-badge { animation: none; }
+  .fg-title mark { animation: none; background-size: 100% 100%; }
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Восстановление пароля – Рядом</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Общие стили + страница входа (фон, карточка, поля) + свои мелочи -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/forgot.css">
+</head>
+<body class="auth-page">
+
+<!-- Иконки -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M4 4l16 16M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-3 3.8M6.6 7.3C4 9 2.5 12 2.5 12S6 18.5 12 18.5c1.6 0 3-.4 4.2-1M10 10.2a3 3 0 0 0 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<!-- =========================== ФОН – как на странице входа =========================== -->
+<div class="auth-bg" aria-hidden="true">
+  <span class="blob blob--1"></span>
+  <span class="blob blob--2"></span>
+  <span class="blob blob--3"></span>
+  <span class="float float--cloud"><img src="assets/img/auth/cloud.webp" alt=""></span>
+  <span class="float float--tea"><img src="assets/img/auth/tea.webp" alt=""></span>
+  <span class="float float--plant"><img src="assets/img/auth/plant.webp" alt=""></span>
+  <span class="float float--notebook"><img src="assets/img/auth/notebook.webp" alt=""></span>
+  <span class="float float--chat"><img src="assets/img/auth/chat.webp" alt=""></span>
+  <span class="float float--heart"><img src="assets/img/auth/heart.webp" alt=""></span>
+  <span class="float float--laptop"><img src="assets/img/auth/laptop.webp" alt=""></span>
+</div>
+
+<header class="auth__top">
+  <a href="index.html" class="logo" aria-label="Рядом – на главную">
+    <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+    <span class="logo__text">рядом</span>
+  </a>
+  <a href="login.html" class="auth__back"><svg><use href="#i-back"/></svg>Ко&nbsp;входу</a>
+</header>
+
+<main class="auth">
+  <!-- data-active="login" – выглядывает та же девушка, что на странице входа -->
+  <div class="auth__card" data-active="login">
+    <div class="peek" aria-hidden="true">
+      <span class="peek__char peek__char--login">
+        <img class="peek__idle is-shown" src="assets/img/auth/girl-w1.webp" alt="" width="460" height="538">
+        <img class="peek__write" src="assets/img/auth/girl-w2.webp" alt="" width="460" height="538">
+        <img class="peek__write" src="assets/img/auth/girl-w3.webp" alt="" width="460" height="538">
+      </span>
+    </div>
+
+    <!-- ---------- 1. Почта ----------
+         API: POST /api/auth/forgot { email } – сервер всегда отвечает одинаково,
+         чтобы по ответу нельзя было узнать, зарегистрирована ли почта. -->
+    <form class="fg-view is-active" data-view="email" novalidate>
+      <h1 class="fg-title">Забыли <mark>пароль?</mark></h1>
+      <p class="fg-text">Бывает. Введите почту, с&nbsp;которой регистрировались, – пришлём ссылку, по&nbsp;которой можно задать новый пароль.</p>
+
+      <label class="field">
+        <span class="field__label">Почта</span>
+        <span class="field__box">
+          <input type="email" name="email" placeholder="name@mail.com" autocomplete="email" required>
+        </span>
+        <span class="field__error">Введите почту в&nbsp;формате name@mail.com</span>
+      </label>
+
+      <button type="submit" class="auth__btn">Прислать ссылку</button>
+      <p class="fg-foot">Вспомнили пароль? <a href="login.html" class="auth__link">Войти</a></p>
+    </form>
+
+    <!-- ---------- 2. Письмо отправлено ---------- -->
+    <section class="fg-view fg-sent" data-view="sent" aria-labelledby="fg-sent" hidden>
+      <img class="fg-plane" src="assets/img/auth/plane.webp" alt="">
+      <h1 class="fg-title" id="fg-sent" tabindex="-1">Проверьте <mark>почту</mark></h1>
+      <p class="fg-text">Если адрес <b data-email></b> есть в&nbsp;«Рядом», письмо со&nbsp;ссылкой уже там. Ссылка работает 30&nbsp;минут.</p>
+      <p class="auth__note">Письма нет? Загляните в&nbsp;«Спам» и&nbsp;«Промоакции» – иногда оно попадает туда.</p>
+
+      <!-- Повторная отправка – не чаще раза в минуту -->
+      <p class="fg-resend">
+        <span data-wait>Отправить ещё раз можно через <b data-timer>0:59</b></span>
+        <button type="button" class="fg-link" data-resend hidden>Отправить ещё раз</button>
+      </p>
+      <p class="fg-foot"><button type="button" class="fg-link" data-change>Ввести другую почту</button></p>
+
+      <!-- Только для демонстрации: сервера и писем пока нет -->
+      <a class="fg-demo" href="forgot.html?token=demo">Открыть ссылку из&nbsp;письма <small>демо</small></a>
+    </section>
+
+    <!-- ---------- 3. Новый пароль (страница по ссылке из письма: forgot.html?token=…) ----------
+         API: POST /api/auth/reset { token, password } -->
+    <form class="fg-view" data-view="reset" novalidate hidden>
+      <h1 class="fg-title" tabindex="-1">Новый <mark>пароль</mark></h1>
+      <p class="fg-text">Придумайте пароль, которым вы&nbsp;ещё не&nbsp;пользовались в&nbsp;«Рядом».</p>
+
+      <label class="field">
+        <span class="field__label">Новый пароль</span>
+        <span class="field__box">
+          <input type="password" name="password" placeholder="Минимум 8 символов" autocomplete="new-password" required>
+          <button class="field__eye" type="button" aria-label="Показать пароль"><svg><use href="#i-eye"/></svg></button>
+        </span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Ещё раз</span>
+        <span class="field__box">
+          <input type="password" name="repeat" placeholder="Повторите пароль" autocomplete="new-password" required>
+          <button class="field__eye" type="button" aria-label="Показать пароль"><svg><use href="#i-eye"/></svg></button>
+        </span>
+      </label>
+
+      <!-- Требования загораются по мере ввода -->
+      <ul class="fg-rules" aria-live="polite">
+        <li data-rule="len"><svg><use href="#i-dot"/></svg>Не&nbsp;короче 8&nbsp;символов</li>
+        <li data-rule="digit"><svg><use href="#i-dot"/></svg>Есть хотя&nbsp;бы одна цифра</li>
+        <li data-rule="same"><svg><use href="#i-dot"/></svg>Пароли совпадают</li>
+      </ul>
+
+      <button type="submit" class="auth__btn">Сохранить пароль</button>
+    </form>
+
+    <!-- ---------- 4. Готово ---------- -->
+    <section class="fg-view fg-done" data-view="done" aria-labelledby="fg-done" hidden>
+      <span class="fg-badge" aria-hidden="true"><svg><use href="#i-check"/></svg></span>
+      <h1 class="fg-title" id="fg-done" tabindex="-1">Пароль <mark>обновлён</mark></h1>
+      <p class="fg-text">Теперь можно войти с&nbsp;новым паролем. На&nbsp;других устройствах мы&nbsp;на&nbsp;всякий случай вышли из&nbsp;аккаунта.</p>
+      <a href="login.html" class="auth__btn fg-btn">Войти</a>
+    </section>
+
+    <!-- ---------- Ссылка устарела (forgot.html?token=expired) ---------- -->
+    <section class="fg-view" data-view="expired" aria-labelledby="fg-expired" hidden>
+      <h1 class="fg-title" id="fg-expired" tabindex="-1">Ссылка <mark>устарела</mark></h1>
+      <p class="fg-text">Ссылка из&nbsp;письма работает 30&nbsp;минут и&nbsp;только один раз. Ничего страшного – пришлём новую.</p>
+      <a href="forgot.html" class="auth__btn fg-btn">Прислать новую ссылку</a>
+    </section>
+  </div>
+</main>
+
+<script src="js/forgot.js"></script>
+</body>
+</html>
