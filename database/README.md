@@ -17,14 +17,14 @@ docker exec -i ryadom-db psql -U postgres -d ryadom < seed.sql
 ## Модули схемы
 
 1. **Пользователи и RBAC.** `users`, `roles`, `permissions`, `role_permissions`, `user_roles`,
-   `user_permissions` (индивидуальная выдача или отзыв прав), `user_blocks` (история блокировок).
+   `user_blocks` (история блокировок).
 2. **Профили.** `client_profiles`, `psychologist_profiles`, справочники `methods`, `topics`,
    `session_formats`, связи `psychologist_methods`, `psychologist_topics`, `psychologist_services` (цена для каждого формата).
-3. **Верификация.** `educations`, `documents`, `verification_requests`.
-4. **Записи.** `schedule_slots`, `appointments`, `appointment_status_history`, `payments`.
+3. **Верификация.** `documents` (дипломы и сертификаты вместе со сведениями из них), `verification_requests`.
+4. **Записи.** `schedule_slots`, `appointments`, `appointment_status_history`.
 5. **Отзывы.** `reviews`.
 6. **Чат.** `conversations`, `messages`.
-7. **Служебное.** `notifications`, `audit_log`.
+7. **Служебное.** `audit_log`.
 
 ## Бизнес-правила на уровне БД
 
@@ -60,6 +60,7 @@ COMMIT;
 Полная логическая схема со всеми полями и ключами (PK, FK) в нотации «вороньей лапки»: [er-diagram.png](er-diagram.png) · [er-diagram.svg](er-diagram.svg) (для записки, SVG масштабируется без потери качества).
 Файл для draw.io – [er-diagram.drawio](er-diagram.drawio): открывается в draw.io, таблицы можно двигать, линии перестроятся сами.
 Все три файла собирает из `schema.sql` скрипт `tools/er-drawio.py` (команды – в начале скрипта).
+Линиями не показаны служебные ссылки «кто сделал» (`*_by`), `messages.sender_id` и `reviews.client_id/psychologist_id` – они отмечены FK в таблицах, а связь видна через диалог и запись.
 Ниже – упрощённая схема только со связями.
 
 ```mermaid
@@ -68,8 +69,6 @@ erDiagram
     roles ||--o{ user_roles : ""
     roles ||--o{ role_permissions : ""
     permissions ||--o{ role_permissions : ""
-    users ||--o{ user_permissions : overrides
-    permissions ||--o{ user_permissions : ""
     users ||--o{ user_blocks : blocked
 
     users ||--o| client_profiles : "1:1"
@@ -82,9 +81,7 @@ erDiagram
     psychologist_profiles ||--o{ psychologist_services : offers
     session_formats ||--o{ psychologist_services : ""
 
-    psychologist_profiles ||--o{ educations : ""
     psychologist_profiles ||--o{ documents : uploads
-    educations |o--o{ documents : confirms
     psychologist_profiles ||--o{ verification_requests : submits
 
     psychologist_profiles ||--o{ schedule_slots : opens
@@ -93,7 +90,6 @@ erDiagram
     client_profiles ||--o{ appointments : books
     appointments ||--o{ appointment_status_history : ""
     appointments |o--o{ appointments : rescheduled_from
-    appointments ||--o{ payments : ""
     appointments ||--o| reviews : ""
 
     client_profiles ||--o{ conversations : ""
@@ -101,6 +97,5 @@ erDiagram
     conversations ||--o{ messages : ""
     users ||--o{ messages : sends
 
-    users ||--o{ notifications : receives
     users ||--o{ audit_log : performs
 ```

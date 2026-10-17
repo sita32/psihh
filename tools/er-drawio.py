@@ -41,17 +41,21 @@ for m in re.finditer(r'CREATE TABLE (\w+) \((.*?)\n\);', SQL, re.S):
     tables[name] = {'cols': cols, 'pk': pk, 'fk': fks, 'edges': edges}
 
 # ---------- Раскладка: колонки по модулям, чтобы связи были короткими ----------
+# Связанные таблицы стоят в соседних колонках – тогда линии короткие и не сбиваются в пучки
 LAYOUT = [
-    ['roles', 'role_permissions', 'permissions', 'user_permissions', 'user_roles'],
-    ['users', 'user_blocks', 'notifications', 'audit_log'],
-    ['client_profiles', 'conversations', 'messages'],
-    ['appointments', 'appointment_status_history', 'payments', 'reviews'],
-    ['schedule_slots', 'psychologist_services', 'session_formats'],
-    ['psychologist_profiles'],
-    ['methods', 'psychologist_methods', 'topics', 'psychologist_topics'],
-    ['educations', 'documents', 'verification_requests'],
+    ['roles', 'permissions'],
+    ['role_permissions', 'user_roles', 'user_blocks', 'audit_log'],
+    ['users'],
+    ['client_profiles', 'psychologist_profiles'],
+    ['conversations', 'schedule_slots', 'psychologist_services', 'psychologist_methods', 'psychologist_topics',
+     'documents', 'verification_requests'],
+    ['messages', 'appointments', 'session_formats', 'methods', 'topics'],
+    ['appointment_status_history', 'reviews'],
 ]
-W, KEY_W, HEAD, ROW, GAP_X, GAP_Y = 230, 36, 30, 26, 120, 60
+# Эти ссылки отмечены FK в таблицах, но линиями не рисуются: они дублируют путь через другую таблицу
+# (отзыв и так связан с клиентом и психологом через запись, автор сообщения – участник диалога)
+OMIT = {('messages', 'sender_id'), ('reviews', 'client_id'), ('reviews', 'psychologist_id')}
+W, KEY_W, HEAD, ROW, GAP_X, GAP_Y = 230, 36, 30, 26, 170, 60
 
 cells = []
 pos = {}                                         # таблица -> (x, y, h, номер колонки)
@@ -107,12 +111,12 @@ for ci, column in enumerate(LAYOUT):
         y += h + GAP_Y
 
 # ---------- Связи: от первичного ключа родителя к внешнему ключу потомка ----------
-EDGE = ('edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;'
+EDGE = ('edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;jumpStyle=arc;jumpSize=10;'
         'endFill=0;startFill=0;startArrow=ERmandOne;endArrow={end};')
 for child, t in tables.items():
     for col, parent in t['edges'].items():
         # Служебные ссылки «кто сделал» (granted_by, reviewed_by…) отмечены FK, но линиями не рисуем – иначе схема нечитаема
-        if parent not in tables or col.endswith('_by'):
+        if parent not in tables or col.endswith('_by') or (child, col) in OMIT:
             continue
         parent_pk = next(iter(sorted(tables[parent]['pk'], key=tables[parent]['cols'].index)))
         # 1:1, если внешний ключ одновременно первичный (профили) или уникальный (отзыв на запись)
@@ -149,27 +153,89 @@ def svg():
             p.append(f'<circle cx="{x + d * 21}" cy="{y}" r="5" fill="#fff"/>')
         return ''.join(p)
 
-    for parent, pk, child, col, end in links:
+    lanes = {}                                   # (промежуток, родитель) -> x общего «ствола»
+
+    def trunk(gap, parent, base):
+        # Все линии от одного родителя в одном промежутке идут по одной вертикали – выходит дерево, а не пучок
+        if (gap, parent) not in lanes:
+            # первые 30px у каждой таблицы заняты значками связей (черты, кружки, лапки) – вертикали идут дальше
+            lanes[(gap, parent)] = base + 36 + 14 * sum(1 for g, _ in lanes if g == gap)
+        return lanes[(gap, parent)]
+
+    corridor = {}
+
+    def build():
+        out_edges = []                           # (родитель, точки пути, маркеры)
+        for parent, pk, child, col, end in links:
+            out_edges.append(route(parent, pk, child, col, end))
+        return out_edges
+
+    def route(parent, pk, child, col, end):
         px, _, _, pc = pos[parent]
         cx, _, _, cc = pos[child]
         sy, ty = row_y(parent, pk), row_y(child, col)
         kind = 'many' if end == 'ERzeroToMany' else 'zero-one'
-        if pc == cc:                             # в одной колонке – петля слева
-            gx = lane(('gap', pc), px - GAP_X + 30, 10)
+        if parent == child:                      # ссылка на себя (перенос записи) – петля справа
+            gx = trunk(pc + 1, 'self:' + parent, px + W)
+            pts, sx, sd, tx, td = [(px + W, sy), (gx, sy), (gx, ty), (px + W, ty)], px + W, 1, px + W, 1
+        elif pc == cc:                           # в одной колонке – петля слева
+            gx = px - trunk(pc, parent, 0) + 0
             pts, sx, sd, tx, td = [(px, sy), (gx, sy), (gx, ty), (px, ty)], px, -1, px, -1
         else:
             right = cc > pc
             sx, sd = (px + W, 1) if right else (px, -1)
             tx, td = (cx, -1) if right else (cx + W, 1)
-            g1 = lane(('gap', pc + (1 if right else 0)), (sx if right else sx - GAP_X) + 24, 9)
-            g2 = lane(('gap', cc + (0 if right else 1)), (tx - GAP_X if right else tx) + 24, 9)
+            gap1 = pc + 1 if right else pc
+            g1 = trunk(gap1, parent, sx if right else sx - GAP_X)
             if abs(cc - pc) == 1:                # соседние колонки – одна вертикаль в промежутке
                 pts = [(sx, sy), (g1, sy), (g1, ty), (tx, ty)]
             else:                                # через колонку и дальше – по коридору над таблицами
-                cy = lane('top', 34, -8)
+                cy = corridor.setdefault((parent, child, col), 34 - 10 * (len(corridor) + 1))
+                gap2 = cc if right else cc + 1
+                g2 = trunk(gap2, parent + ':in', tx - GAP_X if right else tx)
                 pts = [(sx, sy), (g1, sy), (g1, cy), (g2, cy), (g2, ty), (tx, ty)]
-        d = 'M' + 'L'.join(f'{x} {y}' for x, y in pts)
-        lines.append(f'<path d="{d}" fill="none"/>' + ends(sx, sy, sd, 'one') + ends(tx, ty, td, kind))
+        return parent, pts, ends(sx, sy, sd, 'one') + ends(tx, ty, td, kind)
+
+
+    def crossings(es):
+        vert = [(o, a[0], min(a[1], b[1]), max(a[1], b[1])) for o, pts, _ in es for a, b in zip(pts, pts[1:]) if a[0] == b[0]]
+        return sum(1 for o, pts, _ in es for (x1, y1), (x2, y2) in zip(pts, pts[1:]) if y1 == y2
+                   for vo, vx, va, vb in vert if vo != o and min(x1, x2) + 8 < vx < max(x1, x2) - 8 and va + 2 < y1 < vb - 2)
+
+    # Порядок вертикалей в каждом промежутке подбираем перестановками – так, чтобы линии пересекались как можно реже
+    edges = build()
+    best = crossings(edges)
+    improved = True
+    while improved:
+        improved = False
+        keys = list(lanes)
+        for a in range(len(keys)):
+            for b in range(a + 1, len(keys)):
+                if keys[a][0] != keys[b][0]:
+                    continue
+                lanes[keys[a]], lanes[keys[b]] = lanes[keys[b]], lanes[keys[a]]
+                score = crossings(build())
+                if score < best:
+                    best, improved = score, True
+                else:
+                    lanes[keys[a]], lanes[keys[b]] = lanes[keys[b]], lanes[keys[a]]
+    edges = build()
+
+    # «Мостики»: где горизонтальный участок пересекает чужую вертикаль, линия перепрыгивает её дугой
+    verticals = [(owner, a[0], min(a[1], b[1]), max(a[1], b[1]))
+                 for owner, pts, _ in edges for a, b in zip(pts, pts[1:]) if a[0] == b[0]]
+    for owner, pts, marks in edges:
+        d = f'M{pts[0][0]} {pts[0][1]}'
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+            if y1 == y2:
+                step = 1 if x2 > x1 else -1
+                hops = sorted({vx for o, vx, va, vb in verticals
+                               if o != owner and min(x1, x2) + 8 < vx < max(x1, x2) - 8 and va + 2 < y1 < vb - 2},
+                              key=lambda v: v * step)
+                for vx in hops:
+                    d += f'L{vx - 5 * step} {y1}A5 5 0 0 {1 if step > 0 else 0} {vx + 5 * step} {y1}'
+            d += f'L{x2} {y2}'
+        lines.append(f'<path d="{d}" fill="none"/>' + marks)
 
     for t, (x, y, h, _) in pos.items():
         pk = tables[t]['pk']
@@ -187,7 +253,7 @@ def svg():
                 out.append(f'<path d="M{x} {ry + ROW}H{x + W}"/>')
     width = max(x + W for x, *_ in pos.values()) + 40
     height = max(y + h for _, y, h, _ in pos.values()) + 40
-    top = 34 - 8 * used.get('top', 0) - 20
+    top = 34 - 10 * len(corridor) - 20
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {top} {width} {height - top}" width="{width}" height="{height - top}" '
             f'font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#000" stroke="#000" stroke-width="1">'
             f'<rect x="0" y="{top}" width="{width}" height="{height - top}" fill="#fff" stroke="none"/>'

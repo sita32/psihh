@@ -32,11 +32,9 @@ CREATE TYPE user_status         AS ENUM ('active', 'blocked', 'deleted');
 CREATE TYPE gender_type         AS ENUM ('male', 'female');
 CREATE TYPE verification_status AS ENUM ('draft', 'pending', 'verified', 'rejected');
 CREATE TYPE request_status      AS ENUM ('pending', 'approved', 'rejected');
-CREATE TYPE education_kind      AS ENUM ('higher', 'retraining', 'course', 'supervision');
 CREATE TYPE document_type       AS ENUM ('diploma', 'certificate', 'license', 'other');
 CREATE TYPE slot_status         AS ENUM ('free', 'booked', 'blocked');
 CREATE TYPE appointment_status  AS ENUM ('scheduled', 'completed', 'cancelled', 'rescheduled', 'no_show');
-CREATE TYPE payment_status      AS ENUM ('pending', 'paid', 'refunded', 'failed');
 CREATE TYPE moderation_status   AS ENUM ('pending', 'approved', 'rejected');
 
 -- ---------------------------------------------------------------------
@@ -108,17 +106,6 @@ CREATE TABLE user_roles (
     PRIMARY KEY (user_id, role_id)
 );
 
--- Индивидуальные права пользователя: поверх прав роли модератор может
--- выдать (is_granted = true) или отозвать (false) доступ к модулю
-CREATE TABLE user_permissions (
-    user_id       bigint   NOT NULL REFERENCES users(id)       ON DELETE CASCADE,
-    permission_id smallint NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
-    is_granted    boolean  NOT NULL,
-    granted_by    bigint            REFERENCES users(id) ON DELETE SET NULL,
-    granted_at    timestamptz NOT NULL DEFAULT now(),
-    PRIMARY KEY (user_id, permission_id)
-);
-
 -- История блокировок: кто, когда, за что заблокировал и разблокировал
 CREATE TABLE user_blocks (
     id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -149,20 +136,13 @@ END $$;
 CREATE TRIGGER trg_user_blocks_sync AFTER INSERT OR UPDATE OF unblocked_at ON user_blocks
     FOR EACH ROW EXECUTE FUNCTION sync_user_block_status();
 
--- Итоговые права пользователя = права ролей + выданные − отозванные
+-- Итоговые права пользователя = права всех его ролей
 CREATE VIEW v_user_effective_permissions AS
-SELECT u.id AS user_id, p.code AS permission, p.module
+SELECT DISTINCT u.id AS user_id, p.code AS permission, p.module
 FROM users u
 JOIN user_roles ur       ON ur.user_id = u.id
 JOIN role_permissions rp ON rp.role_id = ur.role_id
-JOIN permissions p       ON p.id = rp.permission_id
-WHERE NOT EXISTS (SELECT 1 FROM user_permissions up
-                  WHERE up.user_id = u.id AND up.permission_id = p.id AND NOT up.is_granted)
-UNION
-SELECT up.user_id, p.code, p.module
-FROM user_permissions up
-JOIN permissions p ON p.id = up.permission_id
-WHERE up.is_granted;
+JOIN permissions p       ON p.id = rp.permission_id;
 
 -- =====================================================================
 -- 2. ПРОФИЛИ И СПРАВОЧНИКИ
@@ -264,28 +244,18 @@ CREATE TABLE psychologist_services (
 );
 
 -- =====================================================================
--- 3. ОБРАЗОВАНИЕ, ДОКУМЕНТЫ, ВЕРИФИКАЦИЯ
+-- 3. ДОКУМЕНТЫ ОБ ОБРАЗОВАНИИ, ВЕРИФИКАЦИЯ
 -- =====================================================================
 
--- Записи об образовании психолога
-CREATE TABLE educations (
-    id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    psychologist_id bigint NOT NULL REFERENCES psychologist_profiles(user_id) ON DELETE CASCADE,
-    kind            education_kind NOT NULL,
-    institution     varchar(255)   NOT NULL,
-    specialty       varchar(255)   NOT NULL,
-    year_start      smallint CHECK (year_start BETWEEN 1950 AND 2100),
-    year_end        smallint CHECK (year_end   BETWEEN 1950 AND 2100),
-    CHECK (year_end IS NULL OR year_start IS NULL OR year_end >= year_start)
-);
-CREATE INDEX ix_educations_psych ON educations(psychologist_id);
-
--- Загруженные документы (дипломы, сертификаты); сами файлы — в объектном хранилище
+-- Документы об образовании (дипломы, сертификаты) вместе со сведениями из них;
+-- сами файлы — в объектном хранилище
 CREATE TABLE documents (
     id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     psychologist_id bigint NOT NULL REFERENCES psychologist_profiles(user_id) ON DELETE CASCADE,
-    education_id    bigint          REFERENCES educations(id) ON DELETE SET NULL,
     doc_type        document_type   NOT NULL,
+    institution     varchar(255),                   -- кто выдал: вуз, учебный центр
+    specialty       varchar(255),                   -- специальность или название программы
+    issued_year     smallint CHECK (issued_year BETWEEN 1950 AND 2100),
     file_key        text            NOT NULL UNIQUE,
     original_name   varchar(255)    NOT NULL,
     mime_type       varchar(100)    NOT NULL
@@ -465,25 +435,6 @@ END $$;
 CREATE TRIGGER trg_appointments_status AFTER INSERT OR UPDATE OF status ON appointments
     FOR EACH ROW EXECUTE FUNCTION appointment_status_change();
 
--- Оплата консультации
-CREATE TABLE payments (
-    id                  bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    appointment_id      bigint NOT NULL REFERENCES appointments(id) ON DELETE RESTRICT,
-    amount              numeric(8,2) NOT NULL CHECK (amount > 0),
-    currency            char(3)      NOT NULL DEFAULT 'BYN',
-    status              payment_status NOT NULL DEFAULT 'pending',
-    provider            varchar(32)  NOT NULL,          -- платёжный шлюз
-    provider_payment_id varchar(128) UNIQUE,            -- id транзакции у провайдера
-    paid_at             timestamptz,
-    refunded_at         timestamptz,
-    created_at          timestamptz NOT NULL DEFAULT now(),
-    CHECK (status <> 'paid'     OR paid_at     IS NOT NULL),
-    CHECK (status <> 'refunded' OR refunded_at IS NOT NULL)
-);
-CREATE INDEX ix_payments_appt ON payments(appointment_id);
--- Одна успешная оплата на запись
-CREATE UNIQUE INDEX ux_payments_paid ON payments(appointment_id) WHERE status = 'paid';
-
 -- =====================================================================
 -- 5. ОТЗЫВЫ
 -- =====================================================================
@@ -596,21 +547,8 @@ CREATE TRIGGER trg_messages_insert BEFORE INSERT ON messages
     FOR EACH ROW EXECUTE FUNCTION message_before_insert();
 
 -- =====================================================================
--- 7. УВЕДОМЛЕНИЯ И ЖУРНАЛ ДЕЙСТВИЙ
+-- 7. ЖУРНАЛ ДЕЙСТВИЙ
 -- =====================================================================
-
--- Уведомления пользователю (запись, отмена, решение модератора ...)
-CREATE TABLE notifications (
-    id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id    bigint      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    type       varchar(48) NOT NULL,        -- appointment.cancelled, review.approved ...
-    title      varchar(160) NOT NULL,
-    body       text,
-    payload    jsonb       NOT NULL DEFAULT '{}'::jsonb,   -- ссылки на сущности
-    read_at    timestamptz,
-    created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX ix_notifications_unread ON notifications(user_id, created_at DESC) WHERE read_at IS NULL;
 
 -- Журнал действий модераторов и важных событий безопасности
 CREATE TABLE audit_log (
