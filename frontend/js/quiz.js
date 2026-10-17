@@ -340,11 +340,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return t.map((x) => `<span class="tag tag--sm">${x}</span>`).join('');
   };
 
-  /** Ссылка в каталог с теми же фильтрами (каталог понимает topic и format) */
+  /** Ссылка в каталог с теми же фильтрами (каталог понимает topic, format и gender) */
   const catalogUrl = (a) => {
     const q = new URLSearchParams();
     a.topics.forEach((t) => q.append('topic', t));
     if (a.format) q.set('format', a.format);
+    if (a.gender) q.set('gender', a.gender);
     const s = q.toString();
     return `catalog.html${s ? `?${s}` : ''}`;
   };

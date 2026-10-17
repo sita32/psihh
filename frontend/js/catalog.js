@@ -480,6 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = form.querySelector(`[name="format"][value="${v}"]`);
     if (input) input.checked = true;
   });
+  // Пол психолога – для ссылки из анкеты подбора (?gender=f)
+  if (['f', 'm'].includes(params.get('gender'))) form.querySelector(`[name="gender"][value="${params.get('gender')}"]`).checked = true;
   if (params.get('q')) searchEl.value = params.get('q');
   if (params.get('sort') && SORTS[params.get('sort')]) sortEl.value = params.get('sort');
   // Опыт и максимальная цена – для ссылок со страницы «Тарифы» (?exp=10, ?price=60)

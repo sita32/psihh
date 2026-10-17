@@ -127,6 +127,13 @@
 }
 .book__price { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .book__price b { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+/* Запрос из анкеты подбора */
+.book__req { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--teal-soft); }
+.book__req[hidden] { display: none; }
+.book__req-label { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--teal-deep); }
+.book__req b { font-size: 15px; font-weight: 700; line-height: 1.4; }
+.book__req-foot { font-size: 13px; color: var(--ink-2); }
+.book__req-foot a { font-weight: 700; color: var(--teal-dark); text-decoration: underline; text-underline-offset: 3px; }
 .book__price span { font-size: 13px; color: var(--ink-3); }
 .book .btn svg { width: 20px; height: 20px; }
 

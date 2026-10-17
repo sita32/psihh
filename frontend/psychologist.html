@@ -128,6 +128,12 @@
     <!-- =========================== ПРАВАЯ КОЛОНКА: ЗАПИСЬ =========================== -->
     <aside class="book" aria-label="Запись на сессию">
       <div class="book__price"><b data-price></b><span>50&nbsp;минут, онлайн</span></div>
+      <!-- Запрос из анкеты подбора (quiz.html) – психолог получит его вместе с записью -->
+      <p class="book__req" data-quiz-req hidden>
+        <span class="book__req-label">Ваш запрос из&nbsp;анкеты</span>
+        <b data-quiz-req-text></b>
+        <span class="book__req-foot">Психолог увидит его при записи · <a href="quiz.html">изменить</a></span>
+      </p>
       <button type="button" class="btn btn--primary btn--lg btn--block" data-open-time><svg><use href="#i-calendar"/></svg>Выбрать время</button>
       <a href="client-chat.html" class="btn btn--line btn--block"><svg><use href="#i-chat"/></svg>Написать психологу</a>
       <ul class="book__notes">

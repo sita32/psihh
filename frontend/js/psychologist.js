@@ -252,3 +252,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ссылка #reviews из каталога – плавная прокрутка к отзывам
   if (location.hash === '#reviews') document.getElementById('reviews').scrollIntoView();
 });
+
+/* ---------- Запрос из анкеты подбора (quiz.html) в блоке записи ----------
+   Анкета хранит ответы в localStorage. Показываем темы и формат,
+   чтобы клиент видел: психолог получит запрос вместе с записью. */
+document.addEventListener('DOMContentLoaded', () => {
+  const box = document.querySelector('[data-quiz-req]');
+  if (!box) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem('ryadom-quiz') || 'null');
+    if (!saved) return;
+    const get = (key) => saved.answers.filter(([k, v]) => k === key && v).map(([, v]) => v);
+    const FORMATS = { 'Индивидуальная': 'для себя', 'Парная': 'для пары', 'С ребёнком': 'для ребёнка' };
+    const parts = [get('topic').map((t) => t.toLowerCase()).join(', '), FORMATS[get('format')[0]]].filter(Boolean);
+    if (!parts.length) return;
+    box.querySelector('[data-quiz-req-text]').textContent = parts.join(' · ');
+    box.hidden = false;
+  } catch { /* хранилище недоступно – блок просто не показываем */ }
+});
