@@ -1,0 +1,170 @@
+/* =====================================================================
+   «Рядом» – политика конфиденциальности (privacy.html)
+   Подключается после style.css. Сначала «Если коротко» карточками,
+   ниже – полный текст с липким оглавлением.
+   ===================================================================== */
+
+/* ---------- 1. Заголовок ------------------------------------------- */
+.pv-hero { padding: 56px 0 44px; background: #fff; }
+.pv-hero__grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 40px; align-items: center; }
+.pv-hero .eyebrow { color: var(--teal-dark); opacity: 1; }
+.pv-hero h1 { margin: 0; max-width: 760px; font-size: clamp(34px, 4.6vw, 58px); font-weight: 800; letter-spacing: -.03em; line-height: 1.06; }
+.pv-hero__lead { max-width: 640px; margin: 22px 0 0; font-size: 18px; line-height: 1.6; color: var(--ink-2); }
+.pv-hero__meta { margin: 14px 0 0; font-size: 14px; color: var(--ink-3); }
+.pv-hero__art { width: 220px; height: auto; margin-right: 24px; }
+
+
+/* ---------- 2. Если коротко ----------------------------------------- */
+.pv-short { padding: 52px 0 60px; background: var(--soft); }
+.pv-short__title { margin: 0 0 22px; font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+.pv-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.pv-card {
+  display: flex; flex-direction: column;
+  padding: 20px 18px 22px;
+  border-radius: var(--r-lg);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.pv-card svg {
+  width: 44px; height: 44px; padding: 10px; margin-bottom: 16px;
+  border-radius: 14px;
+  background: var(--c); color: var(--i);
+}
+.pv-card b { font-size: 16px; font-weight: 700; line-height: 1.3; }
+.pv-card p { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+
+
+/* ---------- 3. Полный текст ---------------------------------------- */
+.pv-doc {
+  display: grid; grid-template-columns: 240px minmax(0, 720px);
+  gap: 64px; align-items: start;
+  padding-top: 64px; padding-bottom: 96px;
+}
+
+/* Оглавление */
+.pv-toc { position: sticky; top: calc(var(--header-h) + 24px); }
+.pv-toc summary {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+  list-style: none; pointer-events: none;   /* на компьютере список всегда раскрыт */
+}
+.pv-toc summary::-webkit-details-marker { display: none; }
+.pv-toc summary svg { display: none; width: 18px; height: 18px; transition: transform .2s; }
+.pv-toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; border-left: 2px solid var(--line); }
+.pv-toc li { counter-increment: toc; }
+.pv-toc a {
+  display: flex; gap: 10px;
+  margin-left: -2px; padding: 7px 0 7px 14px;
+  border-left: 2px solid transparent;
+  font-size: 14px; line-height: 1.4; color: var(--ink-2);
+  transition: color .2s, border-color .2s;
+}
+.pv-toc a::before { content: counter(toc); min-width: 16px; font-weight: 700; color: var(--ink-3); }
+.pv-toc a:hover { color: var(--ink); }
+.pv-toc a.is-current { border-color: var(--teal); color: var(--ink); font-weight: 600; }
+.pv-toc a.is-current::before { color: var(--teal-dark); }
+
+/* Текст */
+.pv-text section { padding-bottom: 40px; margin-bottom: 40px; border-bottom: 1.5px dashed #E1E7EF; }
+.pv-text section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+.pv-text h2 {
+  display: flex; align-items: center; gap: 14px;
+  margin: 0 0 18px;
+  font-size: 26px; font-weight: 800; letter-spacing: -.015em; line-height: 1.25;
+}
+/* Номер раздела – цветная «таблетка», цвета по кругу, как теги на главной */
+.pv-text h2 span {
+  display: grid; place-items: center; flex-shrink: 0;
+  min-width: 36px; height: 36px; padding: 0 8px;
+  border-radius: 999px;
+  background: var(--yellow-soft);
+  font-size: 15px; font-weight: 800;
+}
+.pv-text section:nth-child(4n+2) h2 span { background: var(--blue-soft); color: var(--navy); }
+.pv-text section:nth-child(4n+3) h2 span { background: var(--coral-soft); }
+.pv-text section:nth-child(4n+4) h2 span { background: var(--teal-soft); }
+
+.pv-text p { margin: 0 0 14px; font-size: 16px; line-height: 1.7; color: var(--ink-2); }
+.pv-text p:last-child { margin-bottom: 0; }
+.pv-text a { font-weight: 600; color: var(--teal-dark); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Заметка на полях */
+.pv-aside { padding: 14px 16px; border-radius: 14px; background: var(--grey-soft); font-size: 14px !important; line-height: 1.55 !important; }
+
+/* Список «что собираем»: название слева, описание справа */
+.pv-list { display: grid; grid-template-columns: 170px minmax(0, 1fr); margin: 18px 0 0; }
+.pv-list dt, .pv-list dd { padding: 12px 0; border-top: 1px solid var(--line); }
+.pv-list dt { font-size: 15px; font-weight: 700; color: var(--ink); }
+.pv-list dd { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+
+/* Список с точками */
+.pv-dots { display: grid; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }
+.pv-dots li { position: relative; padding-left: 22px; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.pv-dots li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+
+/* Кто видит – четыре плитки */
+.pv-who { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.pv-who div { padding: 16px 18px; border-radius: 16px; background: #F4F6FA; }
+.pv-who b { font-size: 15px; }
+.pv-who p { margin: 6px 0 0; font-size: 14px; line-height: 1.55; }
+
+/* Сроки хранения */
+.pv-table { width: 100%; border-collapse: collapse; }
+.pv-table th, .pv-table td { padding: 13px 0; border-top: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 15px; line-height: 1.55; }
+.pv-table th { width: 40%; padding-right: 20px; font-weight: 700; color: var(--ink); }
+.pv-table td { color: var(--ink-2); }
+
+/* Контакт */
+.pv-contact {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 20px; padding: 16px 20px;
+  border-radius: 18px;
+  background: var(--teal-soft);
+  text-decoration: none !important;
+  transition: transform .2s, box-shadow .2s;
+}
+.pv-contact:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.pv-contact svg { width: 24px; height: 24px; flex-shrink: 0; color: var(--teal-dark); }
+.pv-contact span { display: flex; flex-direction: column; font-size: 15px; font-weight: 600; color: var(--teal-deep); }
+.pv-contact b { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.pv-contact__arrow { margin-left: auto; transition: transform .2s; }
+.pv-contact:hover .pv-contact__arrow { transform: translateX(4px); }
+
+
+/* ---------- Адаптив ------------------------------------------------- */
+@media (max-width: 1100px) {
+  .pv-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .pv-hero__art { width: 150px; margin: 0; }
+  .pv-doc { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 40px; }
+  /* Оглавление – раскрывающийся список над текстом */
+  .pv-toc { position: static; padding: 14px 18px; border-radius: 16px; background: #F4F6FA; }
+  .pv-toc summary { margin: 0; pointer-events: auto; cursor: pointer; }
+  .pv-toc summary svg { display: block; }
+  .pv-toc details[open] summary { margin-bottom: 10px; }
+  .pv-toc details[open] summary svg { transform: rotate(90deg); }
+}
+
+@media (max-width: 760px) {
+  .pv-hero { padding: 32px 0 32px; }
+  .pv-hero__grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .pv-hero__art { display: none; }
+  .pv-hero__lead { font-size: 16px; }
+  .pv-short { padding: 36px 0 40px; }
+  .pv-cards { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .pv-card { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 14px; padding: 16px; }
+  .pv-card svg { margin: 0; }
+  .pv-card b { flex: 1; font-size: 15px; }
+  .pv-card p { flex: 1 1 100%; }
+  .pv-text h2 { font-size: 22px; }
+  .pv-list { grid-template-columns: minmax(0, 1fr); }
+  .pv-list dt { padding-bottom: 2px; }
+  .pv-list dd { padding-top: 0; border-top: 0; }
+  .pv-who { grid-template-columns: minmax(0, 1fr); }
+  .pv-table th, .pv-table td { display: block; width: auto; padding: 0; border: 0; }
+  .pv-table tr { display: block; padding: 12px 0; border-top: 1px solid var(--line); }
+  .pv-table th { margin-bottom: 4px; }
+}

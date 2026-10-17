@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Политика конфиденциальности – Рядом</title>
+  <meta name="description" content="Какие данные собирает «Рядом», кто их видит, сколько они хранятся и как их удалить. Сначала коротко и простыми словами, ниже – полный текст.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Общие стили сайта + стили страницы политики -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/privacy.css">
+</head>
+<body class="pv-page">
+<script>document.documentElement.classList.add('js');</script>
+
+<!-- Иконки -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-login" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-browser" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 9h18" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6.5" cy="6.8" r=".9" fill="currentColor"/><circle cx="9.3" cy="6.8" r=".9" fill="currentColor"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a href="index.html" class="logo" aria-label="Рядом – на главную">
+      <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="logo__text">рядом</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <a href="catalog.html">Психологи</a>
+      <a href="tariffs.html">Тарифы</a>
+      <a href="for-psychologists.html">Психологам</a>
+      <a href="about.html">О&nbsp;нас</a>
+    </nav>
+
+    <div class="header__actions">
+      <a href="quiz.html" class="btn btn--primary btn--sm">Подобрать психолога</a>
+      <a href="login.html" class="btn btn--icon" aria-label="Войти в личный кабинет" title="Войти">
+        <svg><use href="#i-login"/></svg>
+      </a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- =========================== 1. ЗАГОЛОВОК =========================== -->
+  <section class="pv-hero">
+    <div class="container pv-hero__grid">
+      <div>
+        <span class="eyebrow">Документы</span>
+        <h1>Политика конфиденциальности</h1>
+        <p class="pv-hero__lead">Рассказывать о&nbsp;себе непросто, тем более незнакомому сервису. Здесь – что «Рядом» знает о&nbsp;вас, кто это видит и&nbsp;как всё удалить. Сначала коротко, ниже – полный текст.</p>
+        <p class="pv-hero__meta">Редакция от&nbsp;17&nbsp;октября 2026&nbsp;года · читать около 7&nbsp;минут</p>
+      </div>
+      <img class="pv-hero__art" src="assets/img/privacy/shield.webp" alt="" width="240" height="240">
+    </div>
+  </section>
+
+  <!-- =========================== 2. КОРОТКО =========================== -->
+  <section class="pv-short" aria-labelledby="pv-short">
+    <div class="container">
+      <h2 class="pv-short__title" id="pv-short">Если коротко</h2>
+      <ul class="pv-cards">
+        <li class="pv-card" style="--c:var(--teal-soft);--i:var(--teal-dark)">
+          <svg><use href="#i-heart"/></svg>
+          <b>Ваш запрос видит только ваш психолог</b>
+          <p>Другие специалисты и&nbsp;сотрудники сервиса его не&nbsp;читают.</p>
+        </li>
+        <li class="pv-card" style="--c:var(--yellow-soft);--i:#9A7410">
+          <svg><use href="#i-ban"/></svg>
+          <b>Не&nbsp;продаём данные и&nbsp;не&nbsp;показываем рекламу</b>
+          <p>Ни&nbsp;рекламным сетям, ни&nbsp;кому-либо ещё.</p>
+        </li>
+        <li class="pv-card" style="--c:var(--blue-soft);--i:var(--navy)">
+          <svg><use href="#i-lock"/></svg>
+          <b>Пароль не&nbsp;знаем даже мы</b>
+          <p>Храним только его зашифрованный «отпечаток».</p>
+        </li>
+        <li class="pv-card" style="--c:var(--violet-soft);--i:#5B47B8">
+          <svg><use href="#i-browser"/></svg>
+          <b>Анкета подбора остаётся у&nbsp;вас</b>
+          <p>Ответы хранятся в&nbsp;вашем браузере, пока вы&nbsp;не&nbsp;записались.</p>
+        </li>
+        <li class="pv-card" style="--c:var(--coral-soft);--i:#B0502F">
+          <svg><use href="#i-trash"/></svg>
+          <b>Удалить аккаунт – в&nbsp;два клика</b>
+          <p>В&nbsp;настройках профиля. Через 30&nbsp;дней не&nbsp;останется ничего.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =========================== 3. ПОЛНЫЙ ТЕКСТ =========================== -->
+  <div class="container pv-doc">
+    <!-- Оглавление: на компьютере – липкое слева, на телефоне – раскрывающийся список -->
+    <nav class="pv-toc" aria-label="Содержание">
+      <details open>
+        <summary>Содержание <svg><use href="#i-chevron"/></svg></summary>
+        <ol>
+          <li><a href="#who">Кто мы</a></li>
+          <li><a href="#what">Какие данные собираем</a></li>
+          <li><a href="#why">Зачем они нужны</a></li>
+          <li><a href="#access">Кто их видит</a></li>
+          <li><a href="#health">Данные о&nbsp;здоровье</a></li>
+          <li><a href="#safety">Как защищаем</a></li>
+          <li><a href="#terms">Сколько храним</a></li>
+          <li><a href="#rights">Ваши права</a></li>
+          <li><a href="#cookies">Cookie и&nbsp;браузер</a></li>
+          <li><a href="#kids">Дети</a></li>
+          <li><a href="#changes">Изменения и&nbsp;контакты</a></li>
+        </ol>
+      </details>
+    </nav>
+
+    <article class="pv-text">
+      <section id="who">
+        <h2><span>1</span>Кто мы</h2>
+        <p>«Рядом» – сервис для подбора психолога и&nbsp;онлайн-сессий. Мы&nbsp;соединяем клиентов с&nbsp;психологами, которые прошли проверку документов, и&nbsp;даём им&nbsp;удобные инструменты: расписание, запись, чат и&nbsp;отзывы.</p>
+        <p>Политика объясняет, как мы&nbsp;обрабатываем персональные данные в&nbsp;соответствии с&nbsp;Законом Республики Беларусь «О&nbsp;защите персональных данных». Она касается сайта и&nbsp;личных кабинетов клиентов, психологов и&nbsp;модераторов.</p>
+        <p class="pv-aside">«Рядом» – курсовой проект студента БГТУ. Реальные данные в&nbsp;нём не&nbsp;собираются: все психологи и&nbsp;клиенты на&nbsp;сайте – демонстрационные.</p>
+      </section>
+
+      <section id="what">
+        <h2><span>2</span>Какие данные собираем</h2>
+        <p>Только то, без чего сервис не&nbsp;сможет работать. Всё, что помечено «по&nbsp;желанию», можно не&nbsp;заполнять.</p>
+        <dl class="pv-list">
+          <dt>Аккаунт</dt>
+          <dd>Имя, почта, пароль (в&nbsp;зашифрованном виде), роль: клиент или психолог.</dd>
+          <dt>Профиль клиента</dt>
+          <dd>Возраст и&nbsp;фото – по&nbsp;желанию.</dd>
+          <dt>Анкета подбора</dt>
+          <dd>Самочувствие, темы, с&nbsp;которыми хочется поработать, пожелания к&nbsp;психологу. Пока вы&nbsp;не&nbsp;записались, ответы есть только в&nbsp;вашем браузере.</dd>
+          <dt>Записи</dt>
+          <dd>Дата и&nbsp;время сессий, формат, цена на&nbsp;момент записи, история переносов и&nbsp;отмен вместе с&nbsp;причинами.</dd>
+          <dt>Оплата</dt>
+          <dd>Сумма и&nbsp;статус платежа. Данные карты вводятся на&nbsp;стороне платёжного сервиса – мы&nbsp;их&nbsp;не&nbsp;видим и&nbsp;не&nbsp;храним.</dd>
+          <dt>Чат и&nbsp;отзывы</dt>
+          <dd>Сообщения с&nbsp;психологом, оценки и&nbsp;тексты отзывов.</dd>
+          <dt>Психологам</dt>
+          <dd>Образование, дипломы и&nbsp;сертификаты (сканы), опыт, методы работы, цены и&nbsp;расписание.</dd>
+          <dt>Технические</dt>
+          <dd>Файл cookie для входа, IP-адрес и&nbsp;время входа – в&nbsp;журнале безопасности.</dd>
+        </dl>
+      </section>
+
+      <section id="why">
+        <h2><span>3</span>Зачем они нужны</h2>
+        <ul class="pv-dots">
+          <li>подобрать психолога под ваш запрос и&nbsp;показать свободное время;</li>
+          <li>записать на&nbsp;сессию, напомнить о&nbsp;ней, перенести или отменить;</li>
+          <li>дать возможность переписываться с&nbsp;психологом;</li>
+          <li>проверить квалификацию психологов, прежде чем показать их&nbsp;в&nbsp;каталоге;</li>
+          <li>защищать аккаунты от&nbsp;взлома и&nbsp;разбирать жалобы;</li>
+          <li>отвечать на&nbsp;вопросы в&nbsp;поддержке.</li>
+        </ul>
+        <p>Мы&nbsp;не&nbsp;используем ваши данные для рекламы, не&nbsp;продаём их&nbsp;и&nbsp;не&nbsp;передаём третьим лицам – кроме платёжного сервиса (только сумма и&nbsp;номер заказа) и&nbsp;случаев, прямо предусмотренных законом.</p>
+      </section>
+
+      <section id="access">
+        <h2><span>4</span>Кто их&nbsp;видит</h2>
+        <div class="pv-who">
+          <div><b>Вы</b><p>Всё, что связано с&nbsp;вашим аккаунтом.</p></div>
+          <div><b>Ваш психолог</b><p>Имя, возраст, запрос из&nbsp;анкеты, ваши сессии с&nbsp;ним и&nbsp;переписку. Психолог соблюдает профессиональную тайну.</p></div>
+          <div><b>Модератор</b><p>Только то, что нужно для проверки жалобы, отзыва или документов психолога. Каждое такое действие записывается в&nbsp;журнал.</p></div>
+          <div><b>Другие пользователи</b><p>Видят только ваш отзыв – с&nbsp;именем, но&nbsp;без фамилии и&nbsp;фото.</p></div>
+        </div>
+        <p>Другие психологи сервиса не&nbsp;видят ни&nbsp;ваш запрос, ни&nbsp;ваши сессии.</p>
+      </section>
+
+      <section id="health">
+        <h2><span>5</span>Данные о&nbsp;здоровье</h2>
+        <p>Самочувствие, темы запроса и&nbsp;переписка с&nbsp;психологом могут рассказать о&nbsp;вашем здоровье. Закон относит такие сведения к&nbsp;особой категории, поэтому при первой записи мы&nbsp;попросим отдельное согласие на&nbsp;их&nbsp;обработку – без галочки «по&nbsp;умолчанию».</p>
+        <p>Согласие можно отозвать в&nbsp;настройках профиля. Сессии, которые уже назначены, тогда придётся отменить: без запроса психолог не&nbsp;сможет работать.</p>
+      </section>
+
+      <section id="safety">
+        <h2><span>6</span>Как защищаем</h2>
+        <ul class="pv-dots">
+          <li>сайт работает только по&nbsp;защищённому соединению (HTTPS);</li>
+          <li>пароли хранятся в&nbsp;виде хеша – восстановить их&nbsp;из&nbsp;базы нельзя;</li>
+          <li>у&nbsp;каждой роли – свои права: психолог не&nbsp;откроет чужую сессию, модератор не&nbsp;увидит переписку без жалобы;</li>
+          <li>вход, смена пароля и&nbsp;действия модераторов записываются в&nbsp;журнал;</li>
+          <li>после смены пароля мы&nbsp;выходим из&nbsp;аккаунта на&nbsp;всех других устройствах.</li>
+        </ul>
+      </section>
+
+      <section id="terms">
+        <h2><span>7</span>Сколько храним</h2>
+        <table class="pv-table">
+          <tbody>
+            <tr><th scope="row">Аккаунт, профиль, записи, чат</th><td>Пока вы&nbsp;пользуетесь сервисом. После удаления аккаунта – ещё 30&nbsp;дней, на&nbsp;случай если передумаете, затем удаляем.</td></tr>
+            <tr><th scope="row">Анкета подбора</th><td>В&nbsp;вашем браузере, пока вы&nbsp;её&nbsp;не&nbsp;очистите (кнопка «Пройти заново»).</td></tr>
+            <tr><th scope="row">Документы психологов</th><td>Пока психолог работает на&nbsp;платформе, и&nbsp;30&nbsp;дней после ухода.</td></tr>
+            <tr><th scope="row">Отзывы</th><td>Пока не&nbsp;удалите их&nbsp;сами или не&nbsp;удалите аккаунт.</td></tr>
+            <tr><th scope="row">Журнал безопасности</th><td>1&nbsp;год.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="rights">
+        <h2><span>8</span>Ваши права</h2>
+        <p>В&nbsp;любой момент вы&nbsp;можете:</p>
+        <ul class="pv-dots">
+          <li>узнать, какие данные о&nbsp;вас у&nbsp;нас есть, и&nbsp;получить их&nbsp;копию;</li>
+          <li>исправить неточные данные – большую часть можно поменять в&nbsp;профиле самостоятельно;</li>
+          <li>удалить аккаунт и&nbsp;все данные;</li>
+          <li>отозвать согласие на&nbsp;обработку;</li>
+          <li>пожаловаться в&nbsp;Национальный центр защиты персональных данных, если считаете, что мы&nbsp;нарушаем ваши права.</li>
+        </ul>
+        <p>Напишите нам на&nbsp;<a href="mailto:support@ryadom.by">support@ryadom.by</a> – ответим в&nbsp;течение 15&nbsp;дней, обычно быстрее.</p>
+      </section>
+
+      <section id="cookies">
+        <h2><span>9</span>Cookie и&nbsp;браузер</h2>
+        <p>Мы&nbsp;используем только необходимые cookie: чтобы вы&nbsp;оставались в&nbsp;аккаунте и&nbsp;сайт помнил настройки. Рекламных и&nbsp;сторонних счётчиков нет, поэтому и&nbsp;баннера «Мы&nbsp;используем cookie» тоже нет.</p>
+        <p>Ответы анкеты подбора хранятся в&nbsp;памяти браузера (localStorage) на&nbsp;вашем устройстве. Если пользуетесь чужим компьютером, нажмите «Пройти заново» в&nbsp;конце анкеты – ответы сотрутся.</p>
+      </section>
+
+      <section id="kids">
+        <h2><span>10</span>Дети</h2>
+        <p>Аккаунт может создать только взрослый. Консультации для ребёнка проходят в&nbsp;формате «С&nbsp;ребёнком»: записывает и&nbsp;присутствует родитель или другой законный представитель, он&nbsp;же даёт согласие на&nbsp;обработку данных ребёнка.</p>
+      </section>
+
+      <section id="changes">
+        <h2><span>11</span>Изменения и&nbsp;контакты</h2>
+        <p>Если мы&nbsp;поменяем политику, напишем на&nbsp;почту за&nbsp;10&nbsp;дней до&nbsp;того, как изменения начнут действовать. Предыдущие редакции можно запросить в&nbsp;поддержке.</p>
+        <a class="pv-contact" href="mailto:support@ryadom.by">
+          <svg><use href="#i-mail"/></svg>
+          <span><b>Вопросы о&nbsp;данных</b>support@ryadom.by</span>
+          <svg class="pv-contact__arrow"><use href="#i-arrow"/></svg>
+        </a>
+      </section>
+    </article>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="index.html" class="logo logo--light">
+          <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="logo__text">рядом</span>
+        </a>
+        <p>Сервис для поиска психологов и&nbsp;записи на&nbsp;онлайн-сессии.</p>
+      </div>
+      <nav class="footer__col" aria-label="Клиентам">
+        <b>Клиентам</b>
+        <a href="quiz.html">Подобрать психолога</a>
+        <a href="catalog.html">Каталог специалистов</a>
+        <a href="tariffs.html">Тарифы и&nbsp;оплата</a>
+        <a href="index.html#faq">Частые вопросы</a>
+        <a href="about.html">О&nbsp;сервисе</a>
+      </nav>
+      <nav class="footer__col" aria-label="Психологам">
+        <b>Психологам</b>
+        <a href="login.html#register-psychologist">Подать заявку</a>
+        <a href="for-psychologists.html">Условия работы</a>
+        <a href="index.html#check">Требования к&nbsp;специалистам</a>
+      </nav>
+      <nav class="footer__col" aria-label="Аккаунт">
+        <b>Аккаунт</b>
+        <a href="login.html">Войти</a>
+        <a href="login.html#register">Регистрация</a>
+        <a href="mailto:support@ryadom.by">Поддержка</a>
+      </nav>
+    </div>
+
+    <!-- Важно для сервиса психологической помощи: не заменяет экстренную помощь -->
+    <div class="footer__sos">
+      <b>Сервис не&nbsp;оказывает экстренную помощь.</b>
+      Если вам или кому-то рядом угрожает опасность – звоните <a href="tel:103">103</a> или <a href="tel:112">112</a>.
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 «Рядом». Курсовой проект, БГТУ</span>
+      <a href="privacy.html" aria-current="page">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/privacy.js"></script>
+</body>
+</html>
