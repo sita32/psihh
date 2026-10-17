@@ -57,8 +57,9 @@ COMMIT;
 
 ## ER-диаграмма
 
-Полная логическая схема со всеми полями и ключами (PK, FK, UK): [er-diagram.png](er-diagram.png) · [er-diagram.svg](er-diagram.svg) (для записки, масштабируется без потери качества).
-Исходник – [er-diagram.mmd](er-diagram.mmd), собирается из `schema.sql` скриптом `tools/er-diagram.py`; открыть и поправить можно на mermaid.live.
+Полная логическая схема со всеми полями и ключами (PK, FK) в нотации «вороньей лапки»: [er-diagram.png](er-diagram.png) · [er-diagram.svg](er-diagram.svg) (для записки, SVG масштабируется без потери качества).
+Файл для draw.io – [er-diagram.drawio](er-diagram.drawio): открывается в draw.io, таблицы можно двигать, линии перестроятся сами.
+Все три файла собирает из `schema.sql` скрипт `tools/er-drawio.py` (команды – в начале скрипта).
 Ниже – упрощённая схема только со связями.
 
 ```mermaid
