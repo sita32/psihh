@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Иконка сайта: знак «Рядом» (вкладка браузера, закладки, экран телефона) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
+  <meta name="theme-color" content="#4AA597">
+  <title>Подбор психолога – Рядом</title>
+  <meta name="description" content="Шесть коротких вопросов о вашем запросе – и «Рядом» покажет психологов, которые подходят по теме, формату и времени.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Общие стили + фон и верхняя строка со страницы входа + стили анкеты -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/quiz.css">
+</head>
+<body class="auth-page quiz-page">
+
+<!-- Иконки и лица (лица – те же, что в блоке «С чем можно прийти» на главной) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.6 3.5h2.6l1.4 4.2-2 1.4a11 11 0 0 0 6.3 6.3l1.4-2 4.2 1.4v2.6a2.1 2.1 0 0 1-2.3 2.1A16.5 16.5 0 0 1 4.5 5.8a2.1 2.1 0 0 1 2.1-2.3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="face-calm" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 44q8-8 16 0M57 44q8-8 16 0"/><path d="M38 64q12 10 24 0"/></g></symbol>
+    <symbol id="face-worried" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 34l12-5M72 34l-12-5"/><path d="M34 70q4-5 8 0t8 0 8 0 8 0"/></g><circle cx="36" cy="46" r="4.5" fill="#262A33"/><circle cx="64" cy="46" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-sad" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M28 40q8 6 16 0M56 40q8 6 16 0"/><path d="M38 72q12-10 24 0"/></g></symbol>
+    <symbol id="face-tired" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 45h16M57 45h16M42 68h16"/></g></symbol>
+    <symbol id="face-neutral" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M40 68q10-3 20 2"/></g><circle cx="36" cy="45" r="4.5" fill="#262A33"/><circle cx="64" cy="45" r="4.5" fill="#262A33"/></symbol>
+    <symbol id="face-happy" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/><g fill="none" stroke="#262A33" stroke-width="4.5" stroke-linecap="round"><path d="M27 46q8-9 16 0M57 46q8-9 16 0"/></g><path d="M35 60h30q-3 14-15 14t-15-14z" fill="#262A33"/></symbol>
+  </defs>
+</svg>
+
+<!-- =========================== ФОН ===========================
+     Тот же, что на странице входа: цветные пятна и рисованные предметы по краям. -->
+<div class="auth-bg" aria-hidden="true">
+  <span class="blob blob--1"></span>
+  <span class="blob blob--2"></span>
+  <span class="blob blob--3"></span>
+  <span class="float float--cloud"><img src="assets/img/auth/cloud.webp" alt=""></span>
+  <span class="float float--tea"><img src="assets/img/auth/tea.webp" alt=""></span>
+  <span class="float float--plant"><img src="assets/img/auth/plant.webp" alt=""></span>
+  <span class="float float--chat"><img src="assets/img/auth/chat.webp" alt=""></span>
+  <span class="float float--heart"><img src="assets/img/auth/heart.webp" alt=""></span>
+  <span class="float float--plane"><img src="assets/img/auth/plane.webp" alt=""></span>
+</div>
+
+<!-- Верхняя строка: логотип и возврат на главную -->
+<header class="auth__top">
+  <a href="index.html" class="logo" aria-label="Рядом – на главную">
+    <span class="logo__mark" aria-hidden="true"><i></i><i></i></span>
+    <span class="logo__text">рядом</span>
+  </a>
+  <a href="index.html" class="auth__back"><svg><use href="#i-back"/></svg>На главную</a>
+</header>
+
+<main class="quiz">
+
+  <!-- =========================== СТАРТ =========================== -->
+  <section class="qcard qstart" data-screen="start">
+    <img class="qstart__img" src="assets/img/quiz/start.webp" width="640" height="640" alt="">
+    <div class="qstart__body">
+      <span class="eyebrow">Подбор психолога</span>
+      <h1 class="qstart__title">Расскажите, что&nbsp;происходит, – <mark>подберём специалиста</mark></h1>
+      <p class="qstart__lead">Шесть коротких вопросов: для кого ищем, самочувствие, немного о&nbsp;вас, запрос, каким должен быть психолог и&nbsp;когда удобно. Если в&nbsp;чём-то не&nbsp;уверены – просто пропустите.</p>
+      <ul class="qstart__facts">
+        <li><svg><use href="#i-clock"/></svg>Около 2&nbsp;минут</li>
+        <li><svg><use href="#i-check"/></svg>Без регистрации</li>
+      </ul>
+      <div class="qstart__actions">
+        <button type="button" class="btn btn--primary btn--lg" data-start>Начать</button>
+        <button type="button" class="qlink" data-last hidden>Вернуться к&nbsp;прошлому подбору</button>
+      </div>
+      <p class="qstart__note"><svg><use href="#i-lock"/></svg>Ответы остаются в&nbsp;вашем браузере и&nbsp;нужны только для подбора.</p>
+    </div>
+  </section>
+
+  <!-- =========================== ВОПРОСЫ ===========================
+     Один вопрос на экране (шесть шагов). quiz.js показывает нужный шаг, считает подходящих
+     психологов после каждого ответа и запоминает ответы в localStorage. -->
+  <form class="qcard qsteps" data-screen="steps" hidden novalidate>
+    <div class="qbar">
+      <button type="button" class="qbar__back" data-back><svg><use href="#i-back"/></svg>Назад</button>
+      <ol class="qbar__dots" aria-label="Прогресс">
+        <li></li><li></li><li></li><li></li><li></li><li></li>
+      </ol>
+    </div>
+
+    <!-- 1. Для кого – от этого зависят формулировки следующих вопросов -->
+    <fieldset class="qstep" data-step="format" aria-labelledby="q-format">
+      <h2 class="qstep__title" id="q-format" tabindex="-1">Для кого ищем психолога?</h2>
+      <p class="qstep__hint">Все сессии проходят онлайн, по&nbsp;видеосвязи.</p>
+      <div class="formats">
+        <label class="fmt"><input type="radio" name="format" value="Индивидуальная"><span class="fmt__box"><img src="assets/img/formats/individual.webp" width="780" height="781" alt=""><span class="fmt__text"><b>Для себя</b><small>вы и&nbsp;психолог</small></span></span></label>
+        <label class="fmt"><input type="radio" name="format" value="Парная"><span class="fmt__box"><img src="assets/img/formats/couple.webp" width="780" height="781" alt=""><span class="fmt__text"><b>Для пары</b><small>вместе с&nbsp;партнёром</small></span></span></label>
+        <label class="fmt"><input type="radio" name="format" value="С ребёнком"><span class="fmt__box"><img src="assets/img/formats/child.webp" width="780" height="781" alt=""><span class="fmt__text"><b>Для ребёнка</b><small>ребёнок и&nbsp;родитель</small></span></span></label>
+      </div>
+    </fieldset>
+
+    <!-- 2. Самочувствие – как в примере анкеты на главной (текст вопроса меняется под формат, см. quiz.js) -->
+    <fieldset class="qstep" data-step="mood" aria-labelledby="q-mood" hidden>
+      <h2 class="qstep__title" id="q-mood" tabindex="-1">Как вы&nbsp;себя чувствуете последнее время?</h2>
+      <p class="qstep__hint">Здесь нет правильного ответа. Это поможет психологу понять, с&nbsp;чего начать.</p>
+      <div class="moods">
+        <label class="mood"><input type="radio" name="mood" value="good"><span class="mood__box"><svg style="color:var(--yellow)"><use href="#face-happy"/></svg>Хорошо</span></label>
+        <label class="mood"><input type="radio" name="mood" value="ok"><span class="mood__box"><svg style="color:var(--yellow-soft)"><use href="#face-neutral"/></svg>Нормально</span></label>
+        <label class="mood"><input type="radio" name="mood" value="hard"><span class="mood__box"><svg style="color:var(--blue-soft)"><use href="#face-sad"/></svg>Сложно</span></label>
+        <label class="mood"><input type="radio" name="mood" value="crisis"><span class="mood__box"><svg style="color:var(--coral-soft)"><use href="#face-worried"/></svg>Тяжело</span></label>
+      </div>
+    </fieldset>
+
+    <!-- 2а. Если «тяжело» – бережная пауза с телефонами экстренной помощи -->
+    <section class="qstep qsos" data-step="sos" aria-labelledby="q-sos" hidden>
+      <div class="qsos__hands" aria-hidden="true">
+        <img src="assets/img/about/hands-left.webp" alt="" width="1300" height="694">
+        <img src="assets/img/about/hands-right.webp" alt="" width="1300" height="694">
+        <img class="qsos__heart" src="assets/img/about/hands-heart.webp" alt="" width="1300" height="694">
+      </div>
+      <h2 class="qstep__title" id="q-sos" tabindex="-1">Спасибо, что сказали честно</h2>
+      <p class="qstep__hint">Психолог поможет разобраться в&nbsp;том, что происходит. Но&nbsp;если прямо сейчас кажется, что вы&nbsp;не&nbsp;справитесь, или есть мысли причинить себе вред – позвоните, там помогут сразу.</p>
+      <div class="qsos__calls">
+        <a href="tel:103" class="qsos__call"><svg><use href="#i-phone"/></svg><b>103</b><span>скорая помощь</span></a>
+        <a href="tel:112" class="qsos__call"><svg><use href="#i-phone"/></svg><b>112</b><span>служба спасения</span></a>
+      </div>
+      <p class="qsos__more">Если опасности нет – продолжим подбор. Покажем тех, кто свободен ближе всего.</p>
+    </section>
+
+    <!-- 3. Немного о вас. Имя потом подставится в форму регистрации (auth.js),
+         возраст психолог увидит вместе с запросом. Оба поля можно пропустить. -->
+    <div class="qstep" data-step="about" role="group" aria-labelledby="q-about" hidden>
+      <h2 class="qstep__title" id="q-about" tabindex="-1">Немного о&nbsp;вас</h2>
+      <p class="qstep__hint">Имя и&nbsp;возраст увидит только психолог, к&nbsp;которому вы&nbsp;запишетесь. Не&nbsp;хотите – пропустите.</p>
+      <div class="qfields">
+        <label class="field">
+          <span class="field__label">Как к&nbsp;вам обращаться</span>
+          <span class="field__box"><input type="text" name="name" placeholder="Например, Аня" autocomplete="given-name" maxlength="40"></span>
+        </label>
+        <label class="field" data-age-field>
+          <span class="field__label" data-age-label>Ваш возраст</span>
+          <span class="field__box"><input type="text" name="myage" inputmode="numeric" placeholder="лет" autocomplete="off" maxlength="2"></span>
+          <span class="field__error" data-age-error></span>
+        </label>
+      </div>
+      <!-- Подсказка про возраст (например, если вам нет 18) -->
+      <p class="qnote" data-age-note aria-live="polite"></p>
+    </div>
+
+    <!-- 4. Запрос – темы, как в карточках на главной -->
+    <fieldset class="qstep" data-step="topics" aria-labelledby="q-topics" hidden>
+      <h2 class="qstep__title" id="q-topics" tabindex="-1">С&nbsp;чем хочется разобраться?</h2>
+      <p class="qstep__hint">Можно выбрать несколько.</p>
+      <div class="qtopics">
+        <label class="qtopic"><input type="checkbox" name="topic" value="Тревожность"><span><svg style="color:var(--yellow)"><use href="#face-worried"/></svg>Тревожность</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Стресс"><span><svg style="color:var(--blue)"><use href="#face-worried"/></svg>Стресс</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Отношения"><span><svg style="color:var(--coral)"><use href="#face-sad"/></svg>Отношения</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Выгорание"><span><svg style="color:var(--yellow)"><use href="#face-tired"/></svg>Выгорание</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Самооценка"><span><svg style="color:var(--violet)"><use href="#face-sad"/></svg>Самооценка</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Апатия"><span><svg style="color:#C9CED8"><use href="#face-neutral"/></svg>Апатия</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Прокрастинация"><span><svg style="color:var(--blue)"><use href="#face-tired"/></svg>Прокрастинация</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Панические атаки"><span><svg style="color:var(--coral)"><use href="#face-worried"/></svg>Панические атаки</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Кризис"><span><svg style="color:var(--violet)"><use href="#face-worried"/></svg>Кризис</span></label>
+        <label class="qtopic"><input type="checkbox" name="topic" value="Утрата"><span><svg style="color:var(--coral)"><use href="#face-sad"/></svg>Утрата</span></label>
+        <!-- «Пока не знаю» снимает остальные темы -->
+        <label class="qtopic qtopic--none"><input type="checkbox" name="topic" value="" data-none><span><svg style="color:#C9CED8"><use href="#face-neutral"/></svg>Пока не&nbsp;знаю, просто плохо</span></label>
+      </div>
+    </fieldset>
+
+    <!-- 5. Каким должен быть специалист -->
+    <div class="qstep" data-step="who" role="group" aria-labelledby="q-who" hidden>
+      <h2 class="qstep__title" id="q-who" tabindex="-1">Важно ли&nbsp;вам, какой будет психолог?</h2>
+      <p class="qstep__hint">Если не&nbsp;важно – оставьте как есть.</p>
+
+      <fieldset class="qgroup">
+        <legend class="qgroup__label">Пол</legend>
+        <div class="seg">
+          <label><input type="radio" name="gender" value="" checked><span>Не&nbsp;важно</span></label>
+          <label><input type="radio" name="gender" value="f"><span>Женщина</span></label>
+          <label><input type="radio" name="gender" value="m"><span>Мужчина</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="qgroup">
+        <legend class="qgroup__label">Возраст</legend>
+        <div class="seg">
+          <label><input type="radio" name="age" value="" checked><span>Не&nbsp;важно</span></label>
+          <label><input type="radio" name="age" value="young"><span>До&nbsp;35</span></label>
+          <label><input type="radio" name="age" value="older"><span>Старше 35</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="qgroup">
+        <legend class="qgroup__label">Подход</legend>
+        <div class="seg seg--wrap">
+          <label><input type="radio" name="method" value="" checked><span>Не&nbsp;знаю, подберите</span></label>
+          <label><input type="radio" name="method" value="КПТ"><span>КПТ</span></label>
+          <label><input type="radio" name="method" value="Гештальт"><span>Гештальт</span></label>
+          <label><input type="radio" name="method" value="ACT"><span>ACT</span></label>
+          <label><input type="radio" name="method" value="Психоанализ"><span>Психоанализ</span></label>
+          <label><input type="radio" name="method" value="Схема-терапия"><span>Схема-терапия</span></label>
+          <label><input type="radio" name="method" value="Системная семейная"><span>Семейная</span></label>
+          <label><input type="radio" name="method" value="EMDR"><span>EMDR</span></label>
+        </div>
+        <!-- Пояснение к выбранному подходу простыми словами (текст – в quiz.js) -->
+        <p class="qmethod" data-method-note aria-live="polite"></p>
+      </fieldset>
+    </div>
+
+    <!-- 6. Время – о деньгах не спрашиваем, цена видна в карточке психолога -->
+    <div class="qstep" data-step="when" role="group" aria-labelledby="q-when" hidden>
+      <h2 class="qstep__title" id="q-when" tabindex="-1">Когда вам удобно?</h2>
+      <p class="qstep__hint">Сессия длится 50&nbsp;минут. Покажем тех, у&nbsp;кого есть свободные окна в&nbsp;это время.</p>
+
+      <fieldset class="qgroup">
+        <legend class="qgroup__label">Время дня <small>можно несколько</small></legend>
+        <div class="seg">
+          <label><input type="checkbox" name="time" value="morning"><span>Утро <small>до&nbsp;12</small></span></label>
+          <label><input type="checkbox" name="time" value="day"><span>День <small>12–17</small></span></label>
+          <label><input type="checkbox" name="time" value="evening"><span>Вечер <small>после 17</small></span></label>
+        </div>
+      </fieldset>
+
+      <label class="qswitch">
+        <input type="checkbox" name="soon">
+        <span class="qswitch__track" aria-hidden="true"></span>
+        Хочу начать в&nbsp;ближайшие 2&nbsp;дня
+      </label>
+    </div>
+
+    <!-- Низ карточки: сколько психологов подходит сейчас + кнопка -->
+    <div class="qfoot">
+      <p class="qcount" aria-live="polite" hidden>
+        <span class="qcount__faces"></span>
+        <span class="qcount__text"></span>
+      </p>
+      <button type="button" class="btn btn--primary qfoot__next" data-next>Пропустить</button>
+    </div>
+  </form>
+
+  <!-- =========================== РЕЗУЛЬТАТ ===========================
+     Заполняется в quiz.js: до трёх психологов и объяснение, почему они подходят. -->
+  <section class="qres" data-screen="result" aria-labelledby="q-res" hidden></section>
+
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/quiz.js"></script>
+</body>
+</html>

@@ -15,6 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     register: document.getElementById('form-register'),
   };
 
+  /** Имя из анкеты подбора (quiz.html) – сразу в форму регистрации, чтобы не вводить дважды */
+  try {
+    const quiz = JSON.parse(localStorage.getItem('ryadom-quiz') || 'null');
+    const name = quiz && (quiz.answers.find(([key]) => key === 'name') || [])[1];
+    const input = forms.register.querySelector('[name="name"]');
+    if (name && !input.value) input.value = name;
+  } catch { /* хранилище недоступно – просто пустое поле */ }
+
   /** Параллакс фона: предметы слегка сдвигаются вслед за мышью */
   const bg = document.querySelector('.auth-bg');
   const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
