@@ -11,6 +11,7 @@ const v = require('./validation');
 const { HttpError } = require('../errors');
 
 const GENDERS = ['female', 'male'];
+const AVATAR_PRESET_RE = /^a(0[1-9]|1[0-2])$/; // готовые аватары frontend/assets/img/avatars
 
 // Роль, для которой ведётся профиль (у модератора профиля нет)
 function profileRole(user) {
@@ -141,8 +142,19 @@ async function updateClient(user, body) {
     about: v.optionalText(body.about, 'about', 2000, fields),
   };
   if (data.birthDate === today) fields.birthDate = 'Проверьте дату рождения';
+  // Готовый аватар из набора на сайте: 'a01'…'a12', null – без фото
+  let preset;
+  if (body.avatar !== undefined) {
+    if (body.avatar === null) preset = null;
+    else if (AVATAR_PRESET_RE.test(body.avatar)) preset = `assets/img/avatars/${body.avatar}.webp`;
+    else fields.avatar = 'Один из готовых аватаров a01–a12 или null';
+  }
   v.throwIfInvalid(fields);
   await userRepository.updateClientProfile(user.id, data);
+  if (preset !== undefined) {
+    const current = await userRepository.findClientProfile(user.id);
+    await replaceAvatar(user, 'client', current && current.avatar_key, preset);
+  }
 }
 
 async function updatePsychologist(user, body) {
