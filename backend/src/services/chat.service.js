@@ -6,6 +6,7 @@ const chatRepository = require('../repositories/chat.repository');
 const presence = require('../repositories/presence.repository');
 const rateLimit = require('../repositories/rate-limit.repository');
 const psychologistRepository = require('../repositories/psychologist.repository');
+const fileRepository = require('../repositories/file.repository');
 const realtime = require('../realtime');
 const v = require('./validation');
 const { HttpError } = require('../errors');
@@ -132,16 +133,23 @@ async function getMessages(user, conversationId, query) {
   return result;
 }
 
-async function sendMessage(user, conversationId, rawBody) {
+async function sendMessage(user, conversationId, rawBody, file = null) {
   const conv = await findOwn(user, conversationId);
-  const body = v.text(rawBody);
-  if (!body) throw new HttpError(422, 'Пустое сообщение', { fields: { body: 'Напишите сообщение' } });
-  if (body.length > MAX_BODY) throw new HttpError(422, `Сообщение длиннее ${MAX_BODY} символов`, { fields: { body: 'Слишком длинное' } });
+  const body = v.text(rawBody) || null;
+  if (!body && !file) throw new HttpError(422, 'Пустое сообщение', { fields: { body: 'Напишите сообщение' } });
+  if (body && body.length > MAX_BODY) throw new HttpError(422, `Сообщение длиннее ${MAX_BODY} символов`, { fields: { body: 'Слишком длинное' } });
   if ((await rateLimit.hit('message', user.id, MESSAGE_LIMIT.windowSec)) > MESSAGE_LIMIT.max) {
     throw new HttpError(429, 'Слишком много сообщений подряд – подождите минуту', { code: 'TOO_MANY_MESSAGES' });
   }
 
-  const message = messageView(await chatRepository.createMessage(conv.id, user.id, body));
+  let attachmentKey = null;
+  if (file) {
+    const type = fileRepository.detectType(file.buffer);
+    if (!type) throw new HttpError(422, 'Неподходящий формат файла', { fields: { file: 'Подходят PDF, JPG, PNG или WEBP' } });
+    // Исходное имя сохраняется в ключе: chat/{uuid}/Дневник мыслей.pdf
+    attachmentKey = await fileRepository.save('chat', file.buffer, type.ext, file.originalname);
+  }
+  const message = messageView(await chatRepository.createMessage(conv.id, user.id, body, attachmentKey));
   const recipientId = partnerOf(conv, user.id);
   await Promise.all([
     presence.incrementUnread(recipientId, conv.id),
@@ -151,6 +159,15 @@ async function sendMessage(user, conversationId, rawBody) {
   // Обоим участникам: собеседнику – новое сообщение, отправителю – в другие его вкладки
   realtime.emit('notify', { userIds: [conv.client_id, conv.psychologist_id], event: 'message:new', payload: message });
   return message;
+}
+
+// Файл из сообщения – только участникам диалога
+async function getAttachment(user, conversationId, messageId) {
+  const conv = await findOwn(user, conversationId);
+  const msg = Number.isSafeInteger(messageId) ? await chatRepository.findMessage(conv.id, messageId) : null;
+  if (!msg || !msg.attachment_key) throw new HttpError(404, 'Файл не найден');
+  if (!(await fileRepository.exists(msg.attachment_key))) throw new HttpError(404, 'Файл недоступен');
+  return { path: fileRepository.resolve(msg.attachment_key), name: msg.attachment_key.split('/').pop() };
 }
 
 // Собеседник прочитал: отмечаем его входящие и сообщаем отправителю (галочки «прочитано»)
@@ -211,6 +228,6 @@ async function setPresence(userId, online) {
 }
 
 module.exports = {
-  listConversations, openConversation, getMessages, sendMessage, markRead, getUnread, typing, setPresence,
+  listConversations, openConversation, getMessages, sendMessage, getAttachment, markRead, getUnread, typing, setPresence,
   touch: (userId) => presence.touch(userId),
 };

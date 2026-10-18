@@ -10,6 +10,8 @@ function int(name, fallback) {
   return n;
 }
 
+const path = require('node:path');
+
 const config = {
   env: process.env.NODE_ENV || 'development',
   port: int('API_PORT', 3000),
@@ -29,6 +31,11 @@ const config = {
     port: int('REDIS_PORT', 6379),
     password: process.env.REDIS_PASSWORD || undefined,
     keyPrefix: 'ryadom:', // все ключи с префиксом, см. database/redis.md
+  },
+
+  uploads: {
+    // Загруженные файлы: в Docker – том uploads, без Docker – backend/uploads
+    dir: process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads'),
   },
 
   auth: {

@@ -76,13 +76,21 @@ async function findMessages(conversationId, { before, limit }, db = pool) {
   return { rows: rows.slice(0, limit).reverse(), hasMore: rows.length > limit };
 }
 
-async function createMessage(conversationId, senderId, body, db = pool) {
+async function createMessage(conversationId, senderId, body, attachmentKey = null, db = pool) {
   const { rows } = await db.query(
-    `INSERT INTO messages (conversation_id, sender_id, body) VALUES ($1, $2, $3)
+    `INSERT INTO messages (conversation_id, sender_id, body, attachment_key) VALUES ($1, $2, $3, $4)
      RETURNING id, conversation_id, sender_id, body, attachment_key, created_at, read_at`,
-    [conversationId, senderId, body],
+    [conversationId, senderId, body, attachmentKey],
   );
   return rows[0];
+}
+
+async function findMessage(conversationId, messageId, db = pool) {
+  const { rows } = await db.query(
+    'SELECT id, sender_id, attachment_key FROM messages WHERE id = $1 AND conversation_id = $2 AND deleted_at IS NULL',
+    [messageId, conversationId],
+  );
+  return rows[0] || null;
 }
 
 // Отметить прочитанными сообщения собеседника; возвращает id отмеченных
@@ -136,6 +144,6 @@ async function haveAppointments(clientId, psychologistId, db = pool) {
 }
 
 module.exports = {
-  findForUser, findById, findOrCreate, findPartnerIds, findMessages, createMessage, markRead,
+  findForUser, findById, findOrCreate, findPartnerIds, findMessages, createMessage, findMessage, markRead,
   countUnread, findAppointmentEvents, haveAppointments,
 };

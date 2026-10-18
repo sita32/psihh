@@ -452,9 +452,12 @@ CREATE TABLE reviews (
     moderated_by       bigint   REFERENCES users(id) ON DELETE SET NULL,
     moderated_at       timestamptz,
     moderation_comment text,
+    reply              text CHECK (reply IS NULL OR length(reply) <= 2000), -- ответ психолога, виден в профиле
+    replied_at         timestamptz,
     created_at         timestamptz NOT NULL DEFAULT now(),
     updated_at         timestamptz NOT NULL DEFAULT now(),
-    CHECK (status <> 'rejected' OR moderation_comment IS NOT NULL)
+    CHECK (status <> 'rejected' OR moderation_comment IS NOT NULL),
+    CHECK ((reply IS NULL) = (replied_at IS NULL))
 );
 CREATE INDEX ix_reviews_psych ON reviews(psychologist_id, created_at DESC) WHERE status = 'approved';
 CREATE INDEX ix_reviews_pending ON reviews(created_at) WHERE status = 'pending';
@@ -497,6 +500,39 @@ BEGIN
 END $$;
 CREATE TRIGGER trg_reviews_rating AFTER INSERT OR DELETE OR UPDATE OF status, rating ON reviews
     FOR EACH ROW EXECUTE FUNCTION review_recalc_rating();
+
+-- Жалоба психолога на опубликованный отзыв о нём. Модератор принимает жалобу (отзыв снимается
+-- с публикации) или отклоняет её (отзыв остаётся); решение без комментария не принимается
+CREATE TABLE review_reports (
+    id                 bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    review_id          bigint NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+    reporter_id        bigint NOT NULL REFERENCES psychologist_profiles(user_id) ON DELETE CASCADE,
+    reason             text   NOT NULL CHECK (length(trim(reason)) > 0 AND length(reason) <= 1000),
+    status             moderation_status NOT NULL DEFAULT 'pending', -- approved – жалоба принята, отзыв скрыт
+    resolved_by        bigint REFERENCES users(id) ON DELETE SET NULL,
+    resolved_at        timestamptz,
+    resolution_comment text,
+    created_at         timestamptz NOT NULL DEFAULT now(),
+    CHECK ((status = 'pending') = (resolved_at IS NULL)),
+    CHECK (status = 'pending' OR resolution_comment IS NOT NULL)
+);
+-- По одному отзыву рассматривается одна жалоба
+CREATE UNIQUE INDEX ux_review_reports_pending ON review_reports(review_id) WHERE status = 'pending';
+
+-- Жаловаться можно только на опубликованный отзыв о себе
+CREATE FUNCTION review_report_check() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM 1 FROM reviews
+     WHERE id = NEW.review_id AND psychologist_id = NEW.reporter_id AND status = 'approved';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Жалоба возможна только на опубликованный отзыв о себе'
+            USING ERRCODE = 'check_violation';
+    END IF;
+    RETURN NEW;
+END $$;
+CREATE TRIGGER trg_review_reports_check BEFORE INSERT ON review_reports
+    FOR EACH ROW EXECUTE FUNCTION review_report_check();
 
 -- =====================================================================
 -- 6. ЧАТ

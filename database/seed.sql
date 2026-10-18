@@ -32,6 +32,7 @@ INSERT INTO permissions (code, module, description) VALUES
     ('chat.use',                'chat',         'Использование встроенного чата'),
     -- отзывы
     ('reviews.create',          'reviews',      'Публикация отзывов о психологе'),
+    ('reviews.reply',           'reviews',      'Ответ на отзывы о себе и жалоба модератору'),
     -- модерация
     ('users.view',              'moderation',   'Просмотр пользователей'),
     ('users.edit',              'moderation',   'Редактирование профилей пользователей'),
@@ -53,7 +54,7 @@ JOIN permissions p ON p.code = ANY (CASE r.code
         'appointments.manage_own', 'chat.use', 'reviews.create']
     WHEN 'psychologist' THEN ARRAY[
         'profile.edit_own', 'catalog.view', 'appointments.manage_own',
-        'schedule.manage', 'documents.upload', 'chat.use']
+        'schedule.manage', 'documents.upload', 'chat.use', 'reviews.reply']
     WHEN 'moderator' THEN ARRAY[
         'catalog.view', 'users.view', 'users.edit', 'users.block', 'roles.assign',
         'psychologists.verify', 'reviews.moderate', 'audit.view']

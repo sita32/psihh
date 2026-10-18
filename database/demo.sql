@@ -350,6 +350,211 @@ JOIN conversations cv ON cv.client_id = c.id AND cv.psychologist_id = p.id
 CROSS JOIN LATERAL (SELECT least(pg_temp.demo_ts(m.k, m.hhmm), now() - interval '1 minute') AS at) x
 ORDER BY x.at;
 
+-- ---------------------------------------------------------------------
+-- Отзывы (REVIEWS, CLIENT_REVIEWS, MOD_REVIEWS из data.js). Отзыв требует проведённой консультации,
+-- поэтому для каждого создаётся завершённая запись (appt_k, appt_hhmm), если её ещё нет.
+-- Рейтинг психологов пересчитывает триггер по одобренным отзывам
+-- ---------------------------------------------------------------------
+CREATE TEMP TABLE demo_review (client citext, first_name text, psy citext, k int, rating int, body text, anonymous boolean,
+    status moderation_status, reply text, mod_comment text, appt_k int, appt_hhmm text) ON COMMIT DROP;
+INSERT INTO demo_review VALUES
+    ('anna@mail.com', 'Анна', 'marina@ryadom.by', -16, 5, 'Марина помогла разобраться с тревогой перед сменой работы. Спокойно, по делу, с понятными упражнениями между встречами.', false, 'approved', NULL, NULL, -17, '06:00'),
+    ('review1@demo.ryadom.by', 'Ксения', 'marina@ryadom.by', -30, 5, 'Нравится, что можно прийти с любым состоянием и не чувствовать себя странно. Стала лучше спать.', false, 'approved', 'Ксения, спасибо! Рада, что сон наладился – это большой шаг.', NULL, -31, '06:00'),
+    ('review2@demo.ryadom.by', 'Евгения', 'marina@ryadom.by', -49, 4, 'Хороший специалист, но мне не всегда подходило время вечерних сессий.', true, 'approved', NULL, NULL, -50, '06:00'),
+    ('review3@demo.ryadom.by', 'Виктория', 'marina@ryadom.by', -67, 5, 'Работали над выгоранием почти три месяца. Вернулась к работе без ощущения, что меня выжали. Спасибо за терпение и честность.', false, 'approved', 'Виктория, спасибо за доверие и вашу работу – изменения целиком ваша заслуга.', NULL, -68, '06:00'),
+    ('review4@demo.ryadom.by', 'Игорь', 'marina@ryadom.by', -82, 3, 'Мне показалось, что подход слишком структурированный – много заданий. Возможно, просто не мой формат.', true, 'approved', NULL, NULL, -83, '06:00'),
+    ('review5@demo.ryadom.by', 'Елена', 'marina@ryadom.by', -105, 5, 'Панические атаки стали редкими и уже не пугают. Очень понятные объяснения, что происходит с телом.', false, 'approved', NULL, NULL, -106, '06:00'),
+    ('pavel.m@gmail.com', 'Павел', 'a.lukashevich@ryadom.by', -23, 5, 'Андрей помог пережить развод. Без советов «как надо», зато с вопросами, после которых многое встало на свои места.', false, 'approved', NULL, NULL, -24, '06:00'),
+    ('review6@demo.ryadom.by', 'Марта', 'a.lukashevich@ryadom.by', -44, 4, 'Глубокая работа. Первые встречи давались тяжело, но это того стоило.', true, 'approved', NULL, NULL, -45, '06:00'),
+    ('review7@demo.ryadom.by', 'Ирина и Олег', 'o.ermak@ryadom.by', -13, 5, 'Пришли парой на грани расставания. Ольга помогла нам снова слышать друг друга.', false, 'approved', NULL, NULL, -14, '06:00'),
+    ('review8@demo.ryadom.by', 'Татьяна', 'o.ermak@ryadom.by', -36, 5, 'Ходили с сыном-подростком. Стало намного меньше ссор дома.', false, 'approved', NULL, NULL, -37, '06:00'),
+    ('review9@demo.ryadom.by', 'Максим', 'i.kovalchuk@ryadom.by', -10, 5, 'Наконец-то перестал откладывать диплом. Илья даёт очень практичные инструменты.', false, 'approved', NULL, NULL, -11, '06:00'),
+    ('review10@demo.ryadom.by', 'Роман', 'i.kovalchuk@ryadom.by', -28, 4, 'Понятно и без лишней теории. Иногда хотелось больше времени на разговор.', true, 'approved', NULL, NULL, -29, '06:00'),
+    ('review11@demo.ryadom.by', 'Алёна', 'd.mironova@ryadom.by', -19, 5, 'Очень бережно. Впервые получилось говорить о себе без стыда.', false, 'approved', NULL, NULL, -20, '06:00'),
+    ('review12@demo.ryadom.by', 'Сергей', 'd.sokolov@ryadom.by', -33, 5, 'Дмитрий помог прожить потерю отца. Благодарен за терпение.', false, 'approved', NULL, NULL, -34, '06:00'),
+    ('review13@demo.ryadom.by', 'Виктория', 'a.kovaleva@ryadom.by', -17, 5, 'Вернулся интерес к работе и хобби. Алина очень тёплая и внимательная.', false, 'approved', NULL, NULL, -18, '06:00'),
+    ('review14@demo.ryadom.by', 'Денис', 'n.belov@ryadom.by', -21, 5, 'Панические атаки почти ушли. EMDR сначала казался странным, но работает.', false, 'approved', NULL, NULL, -22, '06:00'),
+    ('review15@demo.ryadom.by', 'Лилия', 'n.belov@ryadom.by', -46, 4, 'Хорошо объясняет, что происходит с телом при тревоге.', true, 'approved', NULL, NULL, -47, '06:00'),
+    ('review16@demo.ryadom.by', 'Наталья', 'v.zhuk@ryadom.by', -15, 5, 'Дочь сама попросила продолжить встречи – это лучший отзыв.', false, 'approved', NULL, NULL, -16, '06:00'),
+    ('review17@demo.ryadom.by', 'Егор', 'a.savitsky@ryadom.by', -26, 5, 'Помог пережить сессию в университете без нервных срывов.', false, 'approved', NULL, NULL, -27, '06:00'),
+    ('review18@demo.ryadom.by', 'Вадим', 'e.novik@ryadom.by', -38, 5, 'Работаем больше полугода. Екатерина – очень опытный и глубокий специалист.', true, 'approved', NULL, NULL, -39, '06:00'),
+    ('review19@demo.ryadom.by', 'Олег', 'p.gordeeva@ryadom.by', -18, 5, 'Помогла понять, что выгорание – не слабость. Стал больше отдыхать без чувства вины.', false, 'approved', NULL, NULL, -19, '06:00'),
+    -- Анна: на проверке, опубликован с ответом, отклонён
+    ('anna@mail.com', 'Анна', 'marina@ryadom.by', -12, 5,
+     'Марина помогает разобраться, откуда берётся тревога. После каждой встречи уношу с собой понятные упражнения.',
+     false, 'pending', NULL, NULL, -13, '12:30'),
+    ('anna@mail.com', 'Анна', 'd.sokolov@ryadom.by', -16, 4,
+     'Спокойная и бережная встреча. Решила пока продолжить с другим специалистом, но впечатления хорошие.',
+     false, 'approved', 'Анна, спасибо за отзыв! Буду рад помочь, если решите вернуться.', NULL, -17, '19:00'),
+    ('anna@mail.com', 'Анна', 'n.belov@ryadom.by', -30, 2, 'Ужасно, деньги на ветер!!! Не советую никому.', true, 'rejected', NULL,
+     'Отзыв должен описывать опыт работы со специалистом. Пожалуйста, расскажите подробнее, что не понравилось, без оскорбительных оценок.',
+     -31, '06:00'),
+    -- новые отзывы на модерации
+    ('kirill.sh@gmail.com', 'Кирилл', 'i.kovalchuk@ryadom.by', -1, 2,
+     'Психолог опоздал на 10 минут, связь постоянно прерывалась. Содержательно – нормально, но осадок остался.',
+     false, 'pending', NULL, NULL, -2, '06:00'),
+    ('olga.s@mail.ru', 'Ольга', 'o.ermak@ryadom.by', 0, 5,
+     'Пришли с мужем на грани развода. За одну встречу Ольга помогла нам впервые за месяц спокойно поговорить. Мой телефон +375 29 123-45-67, если кто-то захочет спросить подробнее.',
+     false, 'pending', NULL, NULL, -1, '06:00'),
+    -- опубликованный отзыв, на который психолог пожаловался
+    ('review90@demo.ryadom.by', 'Глеб', 'a.lukashevich@ryadom.by', -5, 1, 'Шарлатан!!! Не ходите к нему, только деньги тянет.',
+     true, 'approved', NULL, NULL, -6, '06:00');
+
+-- Клиенты-авторы, которых ещё нет
+INSERT INTO users (email, password_hash, created_at, last_login_at)
+SELECT DISTINCT ON (client) client, '$2b$12$5FQ8S1KbR9Cr1bmLwuf1J.5kp.4Y/NhUVAO13bcf2g3.U35SX8ZGy', pg_temp.demo_ts(appt_k - 7, '12:00'), pg_temp.demo_ts(k, '12:00')
+FROM demo_review ORDER BY client, appt_k
+ON CONFLICT (email) DO NOTHING;
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id FROM (SELECT DISTINCT client FROM demo_review) d JOIN users u ON u.email = d.client JOIN roles r ON r.code = 'client'
+ON CONFLICT DO NOTHING;
+INSERT INTO client_profiles (user_id, first_name)
+SELECT DISTINCT ON (u.id) u.id, d.first_name FROM demo_review d JOIN users u ON u.email = d.client
+ON CONFLICT DO NOTHING;
+
+ALTER TABLE appointments DISABLE TRIGGER trg_appointments_book;
+ALTER TABLE appointments DISABLE TRIGGER trg_appointments_status;
+
+-- Проведённые консультации, по которым написаны отзывы (если такой ещё нет)
+INSERT INTO schedule_slots (psychologist_id, starts_at, ends_at, status)
+SELECT p.id, pg_temp.demo_ts(d.appt_k, d.appt_hhmm), pg_temp.demo_ts(d.appt_k, d.appt_hhmm) + interval '50 minutes', 'booked'
+FROM demo_review d JOIN users p ON p.email = d.psy
+ON CONFLICT DO NOTHING;
+
+INSERT INTO appointments (client_id, psychologist_id, slot_id, service_id, status, price_at_booking, created_at)
+SELECT c.id, p.id, sl.id, s.id, 'completed', s.price, pg_temp.demo_ts(d.appt_k - 3, '12:00')
+FROM demo_review d
+JOIN users c ON c.email = d.client
+JOIN users p ON p.email = d.psy
+JOIN schedule_slots sl ON sl.psychologist_id = p.id AND sl.starts_at = pg_temp.demo_ts(d.appt_k, d.appt_hhmm)
+JOIN psychologist_services s ON s.psychologist_id = p.id AND s.format_id = (SELECT id FROM session_formats WHERE code = 'individual')
+WHERE NOT EXISTS (SELECT 1 FROM appointments a WHERE a.slot_id = sl.id);
+
+INSERT INTO appointment_status_history (appointment_id, old_status, new_status, changed_by, changed_at)
+SELECT a.id, h.old_status, h.new_status, h.by_id, h.at
+FROM appointments a
+JOIN schedule_slots sl ON sl.id = a.slot_id
+CROSS JOIN LATERAL (VALUES (NULL::appointment_status, 'scheduled'::appointment_status, a.client_id, a.created_at),
+                           ('scheduled', 'completed', a.psychologist_id, sl.ends_at)) AS h(old_status, new_status, by_id, at)
+WHERE NOT EXISTS (SELECT 1 FROM appointment_status_history x WHERE x.appointment_id = a.id);
+
+ALTER TABLE appointments ENABLE TRIGGER trg_appointments_book;
+ALTER TABLE appointments ENABLE TRIGGER trg_appointments_status;
+
+INSERT INTO reviews (appointment_id, client_id, psychologist_id, rating, body, is_anonymous, status,
+                     moderated_by, moderated_at, moderation_comment, reply, replied_at, created_at, updated_at)
+SELECT a.id, c.id, p.id, d.rating, d.body, d.anonymous, d.status,
+       CASE WHEN d.status <> 'pending' THEN m.id END,
+       CASE WHEN d.status <> 'pending' THEN least(pg_temp.demo_ts(d.k + 1, '10:00'), now()) END,
+       d.mod_comment, d.reply,
+       CASE WHEN d.reply IS NOT NULL THEN least(pg_temp.demo_ts(d.k + 2, '19:00'), now()) END,
+       least(pg_temp.demo_ts(d.k, '12:00'), now()), least(pg_temp.demo_ts(d.k, '12:00'), now())
+FROM demo_review d
+JOIN users c ON c.email = d.client
+JOIN users p ON p.email = d.psy
+JOIN users m ON m.email = 'moderator@ryadom.by'
+JOIN schedule_slots sl ON sl.psychologist_id = p.id AND sl.starts_at = pg_temp.demo_ts(d.appt_k, d.appt_hhmm)
+JOIN appointments a ON a.slot_id = sl.id AND a.client_id = c.id AND a.status = 'completed'
+ORDER BY d.k;
+
+-- Жалобы психологов на опубликованные отзывы
+INSERT INTO review_reports (review_id, reporter_id, reason, created_at)
+SELECT r.id, r.psychologist_id, v.reason, least(pg_temp.demo_ts(v.k, '11:00'), now())
+FROM (VALUES ('marina@ryadom.by', 'Мне показалось, что подход%', 0,
+              'Клиент был только на двух сессиях и прервал работу – оценка кажется несправедливой'),
+             ('a.lukashevich@ryadom.by', 'Шарлатан%', -1, 'Оскорбления')) AS v(psy, body_like, k, reason)
+JOIN users p ON p.email = v.psy
+JOIN reviews r ON r.psychologist_id = p.id AND r.body LIKE v.body_like;
+
+-- ---------------------------------------------------------------------
+-- Заявки психологов на подтверждение статуса (MOD_APPLICATIONS из data.js):
+-- три ждут проверки, одна отклонена; у Никиты Белова – одобренная заявка в истории
+-- ---------------------------------------------------------------------
+CREATE TEMP TABLE demo_applicant (email citext, first_name text, last_name text, gender gender_type, exp int, reg int,
+    headline text, bio text, methods text[], topics text[], price numeric) ON COMMIT DROP;
+INSERT INTO demo_applicant VALUES
+    ('grin.sv@mail.ru', 'Светлана', 'Гринь', 'female', 6, 2, 'Психолог-консультант',
+     'Работаю со взрослыми: тревога, отношения, поиск себя. Личная терапия более 300 часов, регулярная супервизия.',
+     '{"Гештальт"}', '{"Тревожность","Отношения"}', 60),
+    ('t.aliev@gmail.com', 'Тимур', 'Алиев', 'male', 2, 4, 'Психолог',
+     'Помогаю студентам и молодым специалистам справиться со стрессом и прокрастинацией.',
+     '{"КПТ"}', '{"Стресс","Прокрастинация"}', 45),
+    ('yulia.kov@ryadom.by', 'Юлия', 'Ковалёва', 'female', 9, 1, 'Клинический психолог',
+     'Клинический психолог, 9 лет практики. Работаю с тревожными и депрессивными состояниями, расстройствами личности.',
+     '{"Схема-терапия","КПТ"}', '{"Тревожность","Кризис"}', 85),
+    ('viktor.n@mail.ru', 'Виктор', 'Н.', 'male', 1, 16, 'Коуч', 'Помогу достичь целей за 3 сессии.', '{}', '{}', 40);
+
+INSERT INTO users (email, password_hash, created_at, last_login_at)
+SELECT email, '$2b$12$5FQ8S1KbR9Cr1bmLwuf1J.5kp.4Y/NhUVAO13bcf2g3.U35SX8ZGy', now() - make_interval(days => reg), now() - make_interval(days => least(reg, 1)) FROM demo_applicant;
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id FROM demo_applicant d JOIN users u ON u.email = d.email JOIN roles r ON r.code = 'psychologist';
+INSERT INTO psychologist_profiles (user_id, first_name, last_name, gender, headline, bio, practice_since)
+SELECT u.id, d.first_name, d.last_name, d.gender, d.headline, d.bio, CURRENT_DATE - make_interval(years => d.exp, months => 2)
+FROM demo_applicant d JOIN users u ON u.email = d.email;
+INSERT INTO psychologist_methods (psychologist_id, method_id)
+SELECT u.id, m.id FROM demo_applicant d JOIN users u ON u.email = d.email JOIN methods m ON m.name = ANY (d.methods);
+INSERT INTO psychologist_topics (psychologist_id, topic_id)
+SELECT u.id, t.id FROM demo_applicant d JOIN users u ON u.email = d.email JOIN topics t ON t.name = ANY (d.topics);
+INSERT INTO psychologist_services (psychologist_id, format_id, price)
+SELECT u.id, (SELECT id FROM session_formats WHERE code = 'individual'), d.price FROM demo_applicant d JOIN users u ON u.email = d.email;
+
+-- Документы: файлов нет, вместо них API отдаёт образец из backend/demo-files по расширению
+INSERT INTO documents (psychologist_id, doc_type, institution, specialty, issued_year, file_key, original_name, mime_type,
+                       size_bytes, status, review_comment, reviewed_by, reviewed_at, uploaded_at)
+SELECT u.id, v.doc_type, v.institution, v.specialty, v.year,
+       'demo/documents/' || split_part(u.email::text, '@', 1) || '-' || v.n || v.ext, v.name,
+       CASE v.ext WHEN '.pdf' THEN 'application/pdf' WHEN '.jpg' THEN 'image/jpeg' ELSE 'image/png' END,
+       v.size, v.status, v.comment,
+       CASE WHEN v.status <> 'pending' THEN m.id END,
+       CASE WHEN v.status <> 'pending' THEN now() - interval '13 days' END,
+       now() - make_interval(days => v.uploaded)
+FROM (VALUES
+    ('grin.sv@mail.ru', 1, 'diploma'::document_type, 'БГУ', 'психология', 2018, 'Диплом БГУ.pdf', '.pdf', 1258291, 'pending'::request_status, NULL, 2),
+    ('grin.sv@mail.ru', 2, 'certificate', 'Московский гештальт-институт', 'Программа «Гештальт-терапия»', 2022, 'Сертификат МГИ.jpg', '.jpg', 860160, 'pending', NULL, 2),
+    ('t.aliev@gmail.com', 1, 'diploma', 'ГрГУ им. Купалы', 'психология', 2023, 'diplom_scan.png', '.png', 3565158, 'pending', NULL, 4),
+    ('yulia.kov@ryadom.by', 1, 'diploma', 'БГУ', 'клиническая психология', 2015, 'Диплом магистра.pdf', '.pdf', 2202009, 'pending', NULL, 1),
+    ('yulia.kov@ryadom.by', 2, 'certificate', 'Институт практической психологии', 'Повышение квалификации по схема-терапии', 2020,
+     'Схема-терапия сертификат.pdf', '.pdf', 655360, 'pending', NULL, 1),
+    ('yulia.kov@ryadom.by', 3, 'other', 'Супервизор с опытом 15+ лет', 'Справка о прохождении супервизии', 2024,
+     'Супервизия справка.pdf', '.pdf', 215040, 'pending', NULL, 1),
+    ('viktor.n@mail.ru', 1, 'certificate', 'Онлайн-школа', 'Онлайн-курс «Коучинг за 30 дней»', 2025, 'certificate.jpg', '.jpg', 307200,
+     'rejected', 'Нет высшего психологического образования. Онлайн-курс не подтверждает квалификацию психолога.', 16)
+) AS v(email, n, doc_type, institution, specialty, year, name, ext, size, status, comment, uploaded)
+JOIN users u ON u.email = v.email
+JOIN users m ON m.email = 'moderator@ryadom.by';
+
+-- Заявки (статус анкеты выставит триггер apply_verification_request)
+INSERT INTO verification_requests (psychologist_id, status, submitted_at, reviewed_by, reviewed_at, comment)
+SELECT u.id, v.status, now() - make_interval(days => v.sent, hours => 3),
+       CASE WHEN v.status <> 'pending' THEN m.id END,
+       CASE WHEN v.status <> 'pending' THEN now() - make_interval(days => v.decided) END,
+       v.comment
+FROM (VALUES ('grin.sv@mail.ru', 'pending'::request_status, 1, NULL::int, NULL),
+             ('t.aliev@gmail.com', 'pending', 3, NULL, NULL),
+             ('yulia.kov@ryadom.by', 'pending', 0, NULL, NULL),
+             ('viktor.n@mail.ru', 'rejected', 15, 13,
+              'Нет высшего психологического образования. Онлайн-курс не подтверждает квалификацию психолога.'),
+             ('n.belov@ryadom.by', 'approved', 95, 92, NULL)) AS v(email, status, sent, decided, comment)
+JOIN users u ON u.email = v.email
+JOIN users m ON m.email = 'moderator@ryadom.by';
+
+-- ---------------------------------------------------------------------
+-- Журнал действий модератора (MOD_AUDIT из data.js)
+-- ---------------------------------------------------------------------
+INSERT INTO audit_log (actor_id, action, entity_type, entity_id, details, created_at)
+SELECT m.id, v.action, v.entity_type, u.id, v.details::jsonb, pg_temp.demo_ts(v.k, v.hhmm)
+FROM (VALUES
+    (-92, '18:40', 'verification.approve', 'psychologist', 'n.belov@ryadom.by', '{"psychologist": "Никита Белов", "comment": null}'),
+    (-20, '10:00', 'role.grant', 'user', 'yulia.kov@ryadom.by', '{"user": "Юлия Ковалёва", "role": "psychologist"}'),
+    (-13, '14:17', 'verification.reject', 'psychologist', 'viktor.n@mail.ru',
+     '{"psychologist": "Виктор Н.", "comment": "Нет высшего психологического образования. Онлайн-курс не подтверждает квалификацию психолога."}'),
+    (-12, '20:31', 'user.block', 'user', 'dk_1990@yandex.by', '{"user": "Дмитрий К.", "reason": "Оскорбления психолога в чате после сессии"}'),
+    (-29, '09:12', 'review.reject', 'review', NULL, '{"psychologist": "Никита Белов", "rating": 2, "comment": "Оскорбительные оценки"}'),
+    (-15, '11:05', 'review.approve', 'review', NULL, '{"psychologist": "Дмитрий Соколов", "rating": 4, "comment": null}')
+) AS v(k, hhmm, action, entity_type, email, details)
+JOIN users m ON m.email = 'moderator@ryadom.by'
+LEFT JOIN users u ON u.email = v.email;
+
 -- Заблокированный клиент – для проверки входа с блокировкой
 INSERT INTO user_blocks (user_id, blocked_by, reason, blocked_at)
 SELECT c.id, m.id, 'Оскорбления психолога в чате после сессии', now() - interval '12 days'

@@ -96,6 +96,10 @@ async function updateClientProfile(userId, data, db = pool) {
   );
 }
 
+async function setClientAvatar(userId, key, db = pool) {
+  await db.query('UPDATE client_profiles SET avatar_key = $2 WHERE user_id = $1', [userId, key]);
+}
+
 async function touchLastLogin(id, db = pool) {
   await db.query('UPDATE users SET last_login_at = now() WHERE id = $1', [id]);
 }
@@ -132,6 +136,7 @@ module.exports = {
   createPsychologistProfile,
   findClientProfile,
   updateClientProfile,
+  setClientAvatar,
   touchLastLogin,
   findActiveBlock,
   liftBlock,

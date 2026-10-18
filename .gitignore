@@ -5,6 +5,7 @@
 node_modules/
 dist/
 coverage/
+backend/uploads/
 
 # Локальные переменные окружения: пароли БД, секреты JWT
 .env

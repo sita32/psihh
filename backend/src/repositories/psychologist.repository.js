@@ -192,6 +192,10 @@ async function updateProfile(userId, data, db = pool) {
   );
 }
 
+async function setAvatar(userId, key, db = pool) {
+  await db.query('UPDATE psychologist_profiles SET avatar_key = $2 WHERE user_id = $1', [userId, key]);
+}
+
 // Заменить набор методов; возвращает число неизвестных кодов
 async function replaceMethods(userId, codes, db = pool) {
   await db.query('DELETE FROM psychologist_methods WHERE psychologist_id = $1', [userId]);
@@ -256,6 +260,7 @@ module.exports = {
   findOwnProfile,
   createProfile,
   updateProfile,
+  setAvatar,
   replaceMethods,
   replaceTopics,
   replaceServices,

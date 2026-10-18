@@ -49,7 +49,20 @@ async function dropCachedPermissions(userId) {
   await redis.del(`perms:${userId}`);
 }
 
+// Сбросить кэш прав всех пользователей – после изменения прав роли.
+// SCAN не добавляет keyPrefix сам, а DEL добавляет – поэтому префикс у найденных ключей убираем
+async function dropAllCachedPermissions() {
+  const prefix = redis.options.keyPrefix || '';
+  let cursor = '0';
+  do {
+    const [next, keys] = await redis.scan(cursor, 'MATCH', `${prefix}perms:*`, 'COUNT', 500);
+    if (keys.length) await redis.del(...keys.map((k) => k.slice(prefix.length)));
+    cursor = next;
+  } while (cursor !== '0');
+}
+
 module.exports = {
+  dropAllCachedPermissions,
   findUserPermissions,
   findRolesWithPermissions,
   findAllPermissions,

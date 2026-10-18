@@ -81,6 +81,11 @@ function attachSocket(httpServer) {
     io.to(userIds.map((id) => `user:${id}`)).emit(event, payload);
   });
 
+  // Пользователя заблокировали или сменили роли – закрываем его соединения на всех экземплярах
+  realtime.on('disconnect-user', ({ userId }) => {
+    io.in(`user:${userId}`).disconnectSockets(true);
+  });
+
   // Пока сокет подключён, пользователь «в сети»: обновляем время активности
   const heartbeat = setInterval(() => {
     const ids = new Set([...io.of('/').sockets.values()].map((s) => s.data.user.id));

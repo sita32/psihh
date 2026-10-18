@@ -9,6 +9,10 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY src ./src
+COPY demo-files ./demo-files
+
+# Папка для загруженных файлов (в docker-compose сюда подключается том uploads)
+RUN mkdir -p /app/uploads && chown node:node /app/uploads
 
 # Не от root
 USER node

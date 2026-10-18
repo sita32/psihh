@@ -5,6 +5,7 @@ const { transaction } = require('../db/postgres');
 const userRepository = require('../repositories/user.repository');
 const psychologistRepository = require('../repositories/psychologist.repository');
 const catalogCache = require('../repositories/catalog-cache.repository');
+const fileRepository = require('../repositories/file.repository');
 const referenceService = require('./reference.service');
 const v = require('./validation');
 const { HttpError } = require('../errors');
@@ -223,4 +224,37 @@ async function deleteOwn(user) {
   await catalogCache.invalidate();
 }
 
-module.exports = { getOwn, updateOwn, deleteOwn };
+// ---------- Фото профиля ----------
+
+// Фото лежит в томе uploads/avatars и отдаётся nginx по адресу /uploads/avatars/… без входа
+async function setAvatar(user, file) {
+  const role = profileRole(user);
+  const current = role === 'client' ? await userRepository.findClientProfile(user.id) : await psychologistRepository.findOwnProfile(user.id);
+  if (!current) throw new HttpError(409, 'Сначала заполните профиль', { code: 'NO_PROFILE' });
+  if (!file) throw new HttpError(422, 'Прикрепите фото', { fields: { file: 'JPG, PNG или WEBP' } });
+  const type = fileRepository.detectType(file.buffer);
+  if (!type || type.mime === 'application/pdf') throw new HttpError(422, 'Неподходящий формат фото', { fields: { file: 'JPG, PNG или WEBP' } });
+
+  const key = await fileRepository.save('avatars', file.buffer, type.ext);
+  await replaceAvatar(user, role, current.avatar_key, `uploads/${key}`);
+  return getOwn(user);
+}
+
+async function deleteAvatar(user) {
+  const role = profileRole(user);
+  const current = role === 'client' ? await userRepository.findClientProfile(user.id) : await psychologistRepository.findOwnProfile(user.id);
+  if (current && current.avatar_key) await replaceAvatar(user, role, current.avatar_key, null);
+  return getOwn(user);
+}
+
+// Записать новый ключ и удалить старый файл (фото из assets/ демо-данных не трогаем)
+async function replaceAvatar(user, role, oldKey, newKey) {
+  if (role === 'client') await userRepository.setClientAvatar(user.id, newKey);
+  else {
+    await psychologistRepository.setAvatar(user.id, newKey);
+    await catalogCache.invalidate();
+  }
+  if (oldKey && oldKey.startsWith('uploads/')) await fileRepository.remove(oldKey.slice('uploads/'.length));
+}
+
+module.exports = { getOwn, updateOwn, deleteOwn, setAvatar, deleteAvatar };

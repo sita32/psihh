@@ -12,8 +12,8 @@
 | Часть | Готовность |
 |---|---|
 | Интерфейс (`frontend/`) | готов: 25 страниц, статичный HTML/CSS/JS с демо-данными |
-| База данных (`database/`) | спроектирована: PostgreSQL 16, 23 таблицы, триггеры бизнес-правил; Redis – сессии и временные данные (redis.md) |
-| Сервер на Node.js (`backend/`), Docker | в работе: каркас по слоям, PostgreSQL и Redis, вход и роли, каталог, профили, подбор, расписание, записи, чат – см. [API](#api) |
+| База данных (`database/`) | спроектирована: PostgreSQL 16, 24 таблицы, триггеры бизнес-правил; Redis – сессии и временные данные (redis.md) |
+| Сервер на Node.js (`backend/`), Docker | готов по API (страницы ещё на демо-данных): вход и роли, каталог, профили, подбор, расписание, записи, чат, отзывы, модерация – см. [API](#api) |
 
 ## Запуск в Docker
 
@@ -37,7 +37,7 @@ docker compose up --build
 ```
 
 Затем откройте <http://localhost> – сайт, <http://localhost/api/health> – состояние сервера:
-`"status": "ok"`, у `postgres` – `"tables": 23`, у `redis` – `"status": "ok"`. Если БД или Redis недоступны,
+`"status": "ok"`, у `postgres` – `"tables": 24`, у `redis` – `"status": "ok"`. Если БД или Redis недоступны,
 ответ – `503` и `"status": "degraded"` с текстом ошибки.
 
 Полезные команды:
@@ -68,7 +68,6 @@ SQL-файлы из `database/` применяются только к пуст�
 | `POST /api/auth/refresh` | новая пара токенов, когда access-токен истёк (`401 TOKEN_EXPIRED`) | по cookie сессии |
 | `POST /api/auth/logout` | выход на этом устройстве | по cookie сессии |
 | `GET /api/auth/me` | кто вошёл: роли, права, имя | вошедшие |
-| `GET /api/roles` | роли и права | право `roles.assign` (модератор) |
 | `GET /api/references` | справочники: методы, темы, форматы (коды и названия) | все |
 | `GET /api/psychologists` | каталог: `q`, `topic`, `method`, `format` (коды через запятую), `gender`, `expMin`, `expMax`, `priceMax`, `date`, `time`, `part` (`morning`/`day`/`evening`), `sort` (`rating`/`soon`/`cheap`/`expensive`/`exp`), `page`, `limit` | все |
 | `GET /api/psychologists/:id` | страница психолога: анкета, услуги с ценами, образование, ближайшее окно | все |
@@ -93,6 +92,33 @@ SQL-файлы из `database/` применяются только к пуст�
 | `GET /api/conversations/:id/messages` | сообщения страницами (`before`, `limit`) и события записей пары | участники диалога |
 | `POST /api/conversations/:id/messages` | отправить сообщение: `body` | участники диалога |
 | `POST /api/conversations/:id/read` | отметить входящие прочитанными | участники диалога |
+| `POST /api/conversations/:id/attachments` | сообщение с файлом (multipart: `file`, `body`), до 10 МБ | участники диалога |
+| `GET /api/conversations/:id/messages/:messageId/attachment` | скачать файл из сообщения | участники диалога |
+| `POST /api/profile/avatar` | фото профиля (multipart: `file`, JPG/PNG/WEBP до 5 МБ); `DELETE` – убрать | право `profile.edit_own` |
+| `POST /api/profile/documents` | диплом или сертификат (multipart: `file`, `type`, `institution`, `specialty`, `year`), до 20 МБ | право `documents.upload` (психолог) |
+| `DELETE /api/profile/documents/:id`, `GET …/:id/file` | удалить непроверенный документ, открыть свой скан | право `documents.upload` |
+| `GET /api/profile/verification` | статус проверки, документы, история заявок | право `documents.upload` |
+| `POST /api/profile/verification` | отправить анкету на проверку (нужны подпись, описание, методы, темы, цена и документ) | право `documents.upload` |
+| `GET /api/reviews` | мои отзывы со статусом проверки и комментарием модератора | право `reviews.create` (клиент) |
+| `POST /api/reviews` | отзыв по своей проведённой консультации: `appointmentId`, `rating`, `body`, `anonymous` | право `reviews.create` |
+| `PATCH /api/reviews/:id`, `DELETE` | изменить (снова на проверку) или удалить свой отзыв | право `reviews.create` |
+| `GET /api/psychologists/:id/reviews` | опубликованные отзывы и сводка по оценкам | все |
+| `GET /api/psychologists/me/reviews` | отзывы о себе с ответами и жалобами | право `reviews.reply` (психолог) |
+| `PUT /api/reviews/:id/reply`, `DELETE` | ответ психолога на отзыв о себе (`text`) | право `reviews.reply` |
+| `POST /api/reviews/:id/report` | жалоба модератору на отзыв о себе: `reason` | право `reviews.reply` |
+| `GET /api/admin/users` | пользователи: `q`, `role`, `status`, `page` | право `users.view` (модератор) |
+| `GET /api/admin/users/:id` | карточка: профиль, записи, история блокировок | право `users.view` |
+| `PATCH /api/admin/users/:id` | правка профиля пользователя (почта не меняется) | право `users.edit` |
+| `POST /api/admin/users/:id/block`, `…/unblock` | блокировка с причиной и сроком `until` (сессии и чат обрываются сразу), разблокировка | право `users.block` |
+| `PUT /api/admin/users/:id/roles` | роли пользователя: `client`, `psychologist` | право `roles.assign` |
+| `GET /api/admin/roles` | роли с правами и список всех прав | право `roles.assign` |
+| `PUT /api/admin/roles/:code/permissions` | права роли: `permissions` (у модератора нельзя убрать `roles.assign`) | право `roles.assign` |
+| `GET /api/admin/verification-requests` | заявки психологов (`status`) с анкетой и документами | право `psychologists.verify` |
+| `PATCH /api/admin/verification-requests/:id` | решение: `approved` или `rejected` с комментарием | право `psychologists.verify` |
+| `GET /api/admin/documents/:id/file` | скан документа | право `psychologists.verify` |
+| `GET /api/admin/reviews`, `PATCH …/:id` | отзывы на проверке; публикация или отклонение с комментарием | право `reviews.moderate` |
+| `GET /api/admin/review-reports`, `PATCH …/:id` | жалобы психологов; решение `hide` (снять отзыв) или `keep` с комментарием | право `reviews.moderate` |
+| `GET /api/admin/audit` | журнал действий модераторов: `action` (`user.` – все по началу), `actorId`, `q`, `page` | право `audit.view` |
 
 Каталог показывает только психологов с проверенными документами и опубликованной анкетой; выдача кэшируется в Redis
 на 5 минут и сбрасывается, когда психолог меняет анкету. Опубликовать анкету можно только после проверки модератором.
@@ -108,6 +134,11 @@ SQL-файлы из `database/` применяются только к пуст�
 Сообщения хранятся в PostgreSQL, «в сети», «печатает…» и счётчики непрочитанных – в Redis. Несколько экземпляров
 сервера связаны Redis-адаптером: проверено с `docker compose up -d --scale api=2` (клиенту нужен транспорт `websocket`).
 
+Файлы лежат в томе Docker `uploads`: фото профилей nginx отдаёт по адресу `/uploads/avatars/…`, а документы психологов
+и файлы из чата – только API после проверки прав. Тип файла определяется по содержимому, а не по расширению.
+Отзыв публикуется после проверки модератором; рейтинг психолога по опубликованным отзывам пересчитывает триггер БД.
+Каждое действие модератора записывается в журнал (`audit_log`).
+
 Вход: access-токен (JWT, 15 минут) и refresh-токен (30 дней, без «Запомнить меня» – сутки) лежат в httpOnly-cookie,
 сессии – в Redis (`database/redis.md`). Права проверяются по таблице `role_permissions`. Вход – не больше 10 неудачных
 попыток за 15 минут с одного адреса.
@@ -120,11 +151,13 @@ SQL-файлы из `database/` применяются только к пуст�
 | `marina@ryadom.by` | психолог Марина Волкова, документы проверены |
 | `a.lukashevich@ryadom.by`, `o.ermak@ryadom.by` … | остальные 11 психологов каталога (почты – в `database/demo.sql`) |
 | `moderator@ryadom.by` | модератор |
+| `grin.sv@mail.ru`, `t.aliev@gmail.com`, `yulia.kov@ryadom.by` | психологи, чьи заявки ждут проверки |
 | `dk_1990@yandex.by` | заблокированный клиент – вход отклоняется с причиной блокировки |
 
 В `demo.sql` – 12 психологов из `js/data.js` с методами, темами, ценами и дипломами, свободные окна на 4 недели вперёд
 от дня создания базы, записи Анны и клиентов Марины Волковой (предстоящие, прошедшие, отменённые, перенесённая)
-и переписка из демо-чата. Чтобы окна снова начинались с сегодняшнего дня – `docker compose down -v && docker compose up -d`.
+переписка из демо-чата, отзывы (опубликованные, на проверке, отклонённый, с ответом, с жалобами), заявки трёх
+новых психологов с документами и журнал действий модератора. Сканы демо-документов – образцы из `backend/demo-files`. Чтобы окна снова начинались с сегодняшнего дня – `docker compose down -v && docker compose up -d`.
 
 Пример проверки из терминала (cookie сохраняются в файл):
 

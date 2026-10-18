@@ -23,7 +23,7 @@ docker exec -i ryadom-db psql -U postgres -d ryadom < seed.sql
    `session_formats`, связи `psychologist_methods`, `psychologist_topics`, `psychologist_services` (цена для каждого формата).
 3. **Верификация.** `documents` (дипломы и сертификаты вместе со сведениями из них), `verification_requests`.
 4. **Записи.** `schedule_slots`, `appointments`, `appointment_status_history`.
-5. **Отзывы.** `reviews`.
+5. **Отзывы.** `reviews` (с ответом психолога), `review_reports` (жалобы психологов на отзывы).
 6. **Чат.** `conversations`, `messages`.
 7. **Служебное.** `audit_log`.
 
@@ -41,6 +41,8 @@ docker exec -i ryadom-db psql -U postgres -d ryadom < seed.sql
 | Цена в истории не меняется при смене прайса | `appointments.price_at_booking` |
 | Отзыв — только по своей завершённой консультации, один на консультацию | `reviews.appointment_id UNIQUE` + триггер `review_check_appointment` |
 | Рейтинг психолога всегда актуален | триггер `review_recalc_rating` (считает только одобренные отзывы) |
+| Жалоба – только на опубликованный отзыв о себе, одна на рассмотрении | триггер `review_report_check` + частичный уникальный индекс `ux_review_reports_pending` |
+| Решение по жалобе – с комментарием | `CHECK` в `review_reports` |
 | Опубликовать можно только подтверждённую анкету | `CHECK` в `psychologist_profiles` |
 | Решение модератора меняет статус специалиста | триггер `apply_verification_request` |
 | Писать в чат могут только участники диалога | триггер `message_before_insert` |

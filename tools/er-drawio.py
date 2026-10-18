@@ -50,11 +50,12 @@ LAYOUT = [
     ['conversations', 'schedule_slots', 'psychologist_services', 'psychologist_methods', 'psychologist_topics',
      'documents', 'verification_requests'],
     ['messages', 'appointments', 'session_formats', 'methods', 'topics'],
-    ['appointment_status_history', 'reviews'],
+    ['appointment_status_history', 'reviews', 'review_reports'],
 ]
 # Эти ссылки отмечены FK в таблицах, но линиями не рисуются: они дублируют путь через другую таблицу
-# (отзыв и так связан с клиентом и психологом через запись, автор сообщения – участник диалога)
-OMIT = {('messages', 'sender_id'), ('reviews', 'client_id'), ('reviews', 'psychologist_id')}
+# (отзыв и так связан с клиентом и психологом через запись, автор сообщения – участник диалога,
+#  автор жалобы – психолог из отзыва)
+OMIT = {('messages', 'sender_id'), ('reviews', 'client_id'), ('reviews', 'psychologist_id'), ('review_reports', 'reporter_id')}
 W, KEY_W, HEAD, ROW, GAP_X, GAP_Y = 230, 36, 30, 26, 170, 60
 
 cells = []
