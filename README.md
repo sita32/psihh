@@ -69,7 +69,7 @@ SQL-файлы из `database/` применяются только к пуст�
 | `POST /api/auth/logout` | выход на этом устройстве | по cookie сессии |
 | `GET /api/auth/me` | кто вошёл: роли, права, имя | вошедшие |
 | `GET /api/references` | справочники: методы, темы, форматы (коды и названия) | все |
-| `GET /api/psychologists` | каталог: `q`, `topic`, `method`, `format` (коды через запятую), `gender`, `expMin`, `expMax`, `priceMax`, `date`, `time`, `part` (`morning`/`day`/`evening`), `sort` (`rating`/`soon`/`cheap`/`expensive`/`exp`), `page`, `limit` | все |
+| `GET /api/psychologists` | каталог: `q`, `topic`, `method`, `format` (коды через запятую), `gender`, `expMin`, `expMax`, `priceMax`, `date`, `time`, `part` (`morning`/`day`/`evening`), `sort` (`rating`/`soon`/`cheap`/`expensive`/`exp`), `page`, `limit`; в ответе `facets` – сколько психологов по методам, форматам, дням и времени | все |
 | `GET /api/psychologists/:id` | страница психолога: анкета, услуги с ценами, образование, ближайшее окно | все |
 | `POST /api/matching` | подбор по анкете: `format`, `topics`, `gender`, `age` (`young`/`older`), `method`, `parts`, `soon` → три лучших с причинами | все |
 | `GET /api/profile` | свой профиль: клиента – личные данные, психолога – анкета, методы, темы, услуги, документы | вошедшие |
@@ -195,8 +195,8 @@ python3 tools/dev-server.py
 | `moderator@ryadom.by` | модератор – панель модерации |
 | любая другая | клиент Анна – кабинет клиента |
 
-Перевод страниц на API идёт частями: общий слой и вход готовы; каталог, кабинеты и панель модератора пока
-показывают демо-данные из `js/data.js` и скриптов страниц.
+Перевод страниц на API идёт частями: общий слой, вход, каталог, страница психолога с записью и анкета подбора
+готовы; кабинеты и панель модератора пока показывают демо-данные из `js/data.js` и скриптов страниц.
 
 ## Страницы
 

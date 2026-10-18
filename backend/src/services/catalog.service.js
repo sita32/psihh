@@ -8,6 +8,7 @@ const { text, list, isIsoDate, todayIn, intParam, throwIfInvalid } = require('./
 const { HttpError } = require('../errors');
 
 const CACHE_TTL_SEC = 5 * 60;
+const FACET_DAYS = 14;   // лента «Когда удобно» – две недели
 const SORTS = ['rating', 'soon', 'cheap', 'expensive', 'exp'];
 const PARTS = ['morning', 'day', 'evening'];
 const GENDERS = { female: 'female', male: 'male', f: 'female', m: 'male' };
@@ -64,13 +65,17 @@ async function search(query) {
   const cached = await catalogCache.get(hash);
   if (cached.value) return cached.value;
 
-  const { rows, total } = await psychologistRepository.search(filters);
+  const [{ rows, total }, facets] = await Promise.all([
+    psychologistRepository.search(filters),
+    psychologistRepository.facets(filters, { from: todayIn(config.timezone), days: FACET_DAYS }),
+  ]);
   const result = {
     items: rows.map(toCard),
     total,
     page: filters.page,
     limit: filters.limit,
     pages: Math.ceil(total / filters.limit),
+    facets, // подсказки к фильтрам: сколько психологов по методам, форматам, дням и времени
   };
   await catalogCache.set(cached.version, hash, result, CACHE_TTL_SEC);
   return result;

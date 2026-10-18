@@ -101,11 +101,12 @@ async function match(body) {
   const closest = candidates
     .filter((p) => p.miss.length && !p.miss.includes('format') && !p.miss.includes('topics'))
     .sort((x, y) => x.miss.length - y.miss.length || y.score - x.score);
-  const shown = exact.length ? exact : closest;
+  // Точные совпадения первыми; если их меньше трёх – добавляем близкие варианты
+  const shown = [...exact.slice(0, RESULTS), ...closest].slice(0, RESULTS);
 
   return {
     total: exact.length,        // сколько подходит полностью («Подходят 5 психологов»)
-    exact: exact.length > 0,    // false – показаны близкие варианты
+    exact: exact.length > 0,    // false – точных нет, показаны только близкие варианты
     results: shown.slice(0, RESULTS).map((p) => ({
       ...toCard(p.row),
       nextSlot: (p.free || p.anyFree || {}).slot || null,

@@ -1,8 +1,9 @@
 /**
  * «Рядом» – каталог психологов.
- * Демо-список психологов (PSYCHOLOGISTS) лежит в data.js, поиск и фильтры работают в браузере.
- * Позже: GET /api/psychologists?topic=…&method=…&priceMax=…&sort=… (NodeJS),
- * а фильтрация и сортировка переедут на сервер.
+ * Поиск, фильтры и сортировка – на сервере: GET /api/psychologists?topic=…&method=…&priceMax=…&sort=…
+ * В ответе – карточки и подсказки к фильтрам (facets): сколько психологов по методам, форматам,
+ * дням и времени. Страница только собирает фильтры и рисует ответ.
+ * В фильтрах – названия («Тревожность»), в запросе – коды из /api/references («anxiety»).
  */
 
 /* Ссылки с главной: catalog.html?topic=anxiety → «Тревожность» */
@@ -11,16 +12,13 @@ const TOPIC_KEYS = {
   burnout: 'Выгорание', selfesteem: 'Самооценка', motivation: 'Прокрастинация', loss: 'Утрата',
 };
 const PAGE_SIZE = 6;
-const DAYS_AHEAD = 14;   // сколько дней показывать в ленте «Когда удобно»
-/* days – через сколько дней у психолога появляются свободные окна, work – рабочие дни недели (0 – воскресенье),
-   slots – время приёма в рабочий день. Часть окон уже занята (для демо – по формуле в slotsOn).
-   API: GET /api/psychologists/:id/slots?from=…&to=… вернёт точные свободные окна. */
+const DAYS_AHEAD = 14;   // сколько дней показывать в ленте «Когда удобно» (столько же считает сервер)
 const PARTS = [
   { label: 'Утро', icon: 'i-sunrise', test: (m) => m < 12 * 60 },
   { label: 'День', icon: 'i-sun', test: (m) => m >= 12 * 60 && m < 17 * 60 },
   { label: 'Вечер', icon: 'i-moon', test: (m) => m >= 17 * 60 },
 ];
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const form = document.querySelector('[data-filters]');
   const listEl = document.querySelector('[data-list]');
   const countEl = document.querySelector('[data-results-count]');
@@ -55,16 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
   const nowMins = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 
-  /** Свободное время психолога через k дней: только рабочие дни, часть окон занята,
-      сегодня – не раньше чем через полчаса */
-  const slotsOn = (p, k) => {
-    if (k < p.days || !p.work.includes(dateAt(k).getDay())) return [];
-    return p.slots.filter((t, i) => (p.id * 7 + k * 3 + i) % 5 !== 0 && (k > 0 || mins(t) > nowMins() + 30));
-  };
-  /** Ближайшее свободное окно: { k – через сколько дней, time } */
-  const nextFree = (p) => {
-    for (let k = 0; k < 30; k += 1) { const free = slotsOn(p, k); if (free.length) return { k, time: free[0] }; }
-    return { k: 99, time: '' };
+  const pad = (n) => String(n).padStart(2, '0');
+  const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  /** Окно из ответа API → { k – через сколько дней, time – «17:00» } */
+  const slotWhen = (iso) => {
+    const d = new Date(iso);
+    const day = new Date(d); day.setHours(0, 0, 0, 0);
+    return { k: Math.round((day - today) / 86400000), time: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
   };
 
   /** «сегодня», «завтра», «18 окт» */
@@ -97,51 +92,30 @@ document.addEventListener('DOMContentLoaded', () => {
     sort: sortEl.value,
   });
 
-  /** Подходит ли психолог под фильтры */
-  const matches = (p, s) => {
-    if (s.q) {
-      const hay = [p.name, p.role, ...p.methods, ...p.topics, p.about].join(' ').toLowerCase();
-      // «тревога» должна находить «Тревожность»: сравниваем по началу слова (первые 5 букв)
-      const stem = s.q.length > 5 ? s.q.slice(0, 5) : s.q;
-      if (!hay.includes(stem)) return false;
-    }
-    if (s.topics.length && !s.topics.some((t) => p.topics.includes(t))) return false;
-    if (s.methods.length && !s.methods.some((m) => p.methods.includes(m))) return false;
-    if (s.formats.length && !s.formats.every((f) => p.formats.includes(f))) return false;
-    if (s.gender !== 'any' && p.gender !== s.gender) return false;
-    if (p.exp < s.exp) return false;
-    if (s.expMax !== null && p.exp > s.expMax) return false;
-    if (p.price > s.price) return false;
-    if (s.day !== null) {
-      const free = slotsOn(p, s.day);
-      if (!free.length) return false;
-      if (s.times.length && !s.times.some((t) => free.includes(t))) return false;
-    }
-    return true;
-  };
+  /* ---------- Названия ↔ коды справочников ---------- */
+  let refs = { methods: [], topics: [], formats: [] };
+  const codeOf = (kind, name) => (refs[kind].find((x) => x.name === name) || {}).code;
 
-  const SORTS = {
-    rating: (a, b) => b.rating - a.rating || b.reviews - a.reviews,
-    soon: (a, b) => {
-      const x = nextFree(a), y = nextFree(b);
-      return x.k - y.k || mins(x.time) - mins(y.time) || b.rating - a.rating;
-    },
-    cheap: (a, b) => a.price - b.price,
-    expensive: (a, b) => b.price - a.price,
-    exp: (a, b) => b.exp - a.exp,
-  };
+  /** Фильтры страницы → параметры GET /api/psychologists */
+  const toQuery = (s, limit) => ({
+    q: s.q,
+    topic: s.topics.map((n) => codeOf('topics', n)),
+    method: s.methods.map((n) => codeOf('methods', n)),
+    format: s.formats.map((n) => codeOf('formats', n)),
+    gender: s.gender === 'any' ? null : s.gender,
+    expMin: s.exp || null,
+    expMax: s.expMax,
+    priceMax: s.price < Number(priceRange.max) ? s.price : null,
+    date: s.day === null ? null : isoDate(dateAt(s.day)),
+    time: s.times,
+    sort: s.sort,
+    limit,
+  });
 
-  /** Точное ближайшее время: «Свободно завтра в 17:00».
-      Если в фильтре выбран день (и время) – первое подходящее окно в этот день */
-  const when = (p, s) => {
-    let k, time;
-    if (s.day !== null) {
-      k = s.day;
-      const free = slotsOn(p, k);
-      time = (s.times.length ? free.filter((t) => s.times.includes(t)) : free)[0];
-    } else {
-      ({ k, time } = nextFree(p));
-    }
+  /** «Свободно завтра в 17:00» – ближайшее окно, подходящее под выбранный день и время (считает сервер) */
+  const when = (p) => {
+    if (!p.nextSlot) return '<span class="pcard__when">Окна – в&nbsp;профиле</span>';
+    const { k, time } = slotWhen(p.nextSlot);
     return `<span class="pcard__when${k <= 1 ? ' is-soon' : ''}">Свободно ${dayText(k)} в&nbsp;${time}</span>`;
   };
 
@@ -151,24 +125,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const card = (p, s, i) => {
     const q = s.q.length > 5 ? s.q.slice(0, 5) : s.q;
     // выбранные в фильтре запросы – первыми; показываем два
-    const topics = [...p.topics].sort((a, b) => s.topics.includes(b) - s.topics.includes(a)).slice(0, 2);
+    const names = p.topics.map((t) => t.name);
+    const topics = names.sort((a, b) => s.topics.includes(b) - s.topics.includes(a)).slice(0, 2);
     const url = `psychologist.html?id=${p.id}`;
     return `
       <a href="${url}" class="pcard" style="animation-delay:${Math.min(i, 6) * 40}ms">
         <span class="pcard__photo">
-          <img src="assets/img/psychologists/${p.photo}.webp" alt="" loading="lazy">
-          ${p.online ? '<span class="pcard__online">в сети</span>' : ''}
+          ${p.avatarUrl ? `<img src="${escapeHtml(p.avatarUrl)}" alt="" loading="lazy">` : ''}
         </span>
         <span class="pcard__body">
           <span class="pcard__top">
             <span class="pcard__name">${highlight(p.name, q)}</span>
             <span class="rating"><svg><use href="#i-star"/></svg>${rating(p.rating)}</span>
           </span>
-          <span class="pcard__meta">${highlight(p.role, q)} · опыт ${p.exp} ${plural(p.exp, 'год', 'года', 'лет')}</span>
+          <span class="pcard__meta">${highlight(p.headline || 'Психолог', q)} · опыт ${p.experienceYears} ${plural(p.experienceYears, 'год', 'года', 'лет')}</span>
           <span class="pcard__tags">${topics.map((t) => `<span class="tag tag--sm ${s.topics.includes(t) ? 'tag--yellow' : 'tag--grey'}">${highlight(t, q)}</span>`).join('')}</span>
           <span class="pcard__foot">
-            <span class="pcard__price">${p.price} BYN <small>/ 50 мин</small></span>
-            ${when(p, s)}
+            <span class="pcard__price">${p.priceFrom} BYN <small>/ 50 мин</small></span>
+            ${when(p)}
           </span>
         </span>
       </a>`;
@@ -221,12 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('[data-month]').textContent = m1 === m2 ? m1 : `${m1} – ${m2}`;
 
   /** Точка под днём – у кого-то есть свободное время (с учётом остальных фильтров) */
-  const renderDays = (s) => {
-    const base = { ...s, day: null, times: [] };
-    const pool = PSYCHOLOGISTS.filter((p) => matches(p, base));
+  const renderDays = (facetDays) => {
     daysEl.querySelectorAll('.fday').forEach((el) => {
-      const k = Number(el.querySelector('input').value);
-      const n = pool.filter((p) => slotsOn(p, k).length).length;
+      const n = facetDays[isoDate(dateAt(Number(el.querySelector('input').value)))] || 0;
       el.classList.toggle('is-empty', !n);
       el.title = n ? `Свободно: ${n} ${plural(n, 'психолог', 'психолога', 'психологов')}` : 'Нет свободного времени';
     });
@@ -234,6 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Выбрать можно только один день – время показываем для него
   daysEl.addEventListener('input', (e) => {
+    // Время выбирается заново для нового дня
+    timesEl.querySelectorAll('input:checked').forEach((i) => { i.checked = false; });
     if (!e.target.checked) return;
     daysEl.querySelectorAll('input:checked').forEach((i) => { if (i !== e.target) i.checked = false; });
   });
@@ -243,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
      Цифра на кнопке – сколько психологов свободны в это время. */
   const timesEl = document.querySelector('[data-times]');
   let timesKey = '';
-  const renderTimes = (s) => {
+  const renderTimes = (s, counts) => {
     if (s.day === null) {
       if (timesKey !== 'none') {
         timesEl.innerHTML = '<p class="ftimes__hint"><svg><use href="#i-clock"/></svg>Выберите день – покажем, во&nbsp;сколько точно свободны психологи</p>';
@@ -251,11 +224,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return;
     }
-    const pool = PSYCHOLOGISTS.filter((p) => matches(p, { ...s, times: [] }));
-    const counts = {};
-    pool.forEach((p) => slotsOn(p, s.day).forEach((t) => { counts[t] = (counts[t] || 0) + 1; }));
+    counts = counts || {};
     const all = Object.keys(counts).sort((a, b) => mins(a) - mins(b));
-    const key = `${s.day}|${all.map((t) => t + counts[t]).join(',')}`;
+    const key = `${s.day}|${all.map((t) => t + counts[t]).join(',')}|${s.times.join(',')}`;
     if (key === timesKey) return;               // ничего не поменялось – не перерисовываем
     timesKey = key;
 
@@ -318,21 +289,40 @@ document.addEventListener('DOMContentLoaded', () => {
     tween = requestAnimationFrame(step);
   };
 
-  /* ---------- Главная функция: отфильтровать, отсортировать, нарисовать ---------- */
-  const update = (resetPage = true) => {
+  /* ---------- Главная функция: спросить сервер и нарисовать ответ ---------- */
+  let requestNo = 0;   // ответ на устаревший запрос (фильтры уже поменялись) не рисуем
+  const update = async (resetPage = true) => {
     if (resetPage) shown = PAGE_SIZE;
-    renderTimes(state());            // сначала – сетка времени выбранного дня,
-    const s = state();               // потом состояние уже с актуальным выбором времени
+    const s = state();
     priceOut.textContent = s.price;
     clearBtn.hidden = !s.q;
-
-    const found = PSYCHOLOGISTS.filter((p) => matches(p, s)).sort(SORTS[s.sort]);
-    countEl.innerHTML = `Найдено ${found.length} <span>${plural(found.length, 'психолог', 'психолога', 'психологов')}</span>`;
-    setShowBtn(found.length);
     renderPrice(s);
-    renderDays(s);
+    renderActive(s);
+    saveToUrl(s);
 
-    if (!found.length) {
+    const no = ++requestNo;
+    listEl.setAttribute('aria-busy', 'true');
+    let data;
+    try {
+      data = await API.get('/psychologists', toQuery(s, shown));
+    } catch (err) {
+      if (no !== requestNo) return;
+      listEl.removeAttribute('aria-busy');
+      listEl.innerHTML = `<div class="empty"><b>Не удалось загрузить психологов</b><p>${escapeHtml(err.message)}</p>
+        <button type="button" class="btn btn--primary" data-retry>Повторить</button></div>`;
+      listEl.querySelector('[data-retry]').addEventListener('click', () => update(false));
+      return;
+    }
+    if (no !== requestNo) return;
+    listEl.removeAttribute('aria-busy');
+
+    const { items, total, facets } = data;
+    countEl.innerHTML = `Найдено ${total} <span>${plural(total, 'психолог', 'психолога', 'психологов')}</span>`;
+    setShowBtn(total);
+    renderDays(facets.days);
+    renderTimes(s, facets.times);
+
+    if (!total) {
       listEl.innerHTML = `
         <div class="empty">
           <img src="assets/img/formats/individual.webp" alt="">
@@ -342,20 +332,20 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
       listEl.querySelector('[data-reset-all]').addEventListener('click', resetAll);
     } else {
-      listEl.innerHTML = found.slice(0, shown).map((p, i) => card(p, s, i)).join('');
+      listEl.innerHTML = items.map((p, i) => card(p, s, i)).join('');
     }
-    moreEl.hidden = found.length <= shown;
-    renderActive(s);
+    moreEl.hidden = total <= shown;
 
     // Количество психологов у каждого метода/формата в окне – с учётом остальных фильтров
     form.querySelectorAll('[data-count]').forEach((el) => {
       const [name, value] = el.dataset.count.split(':');
-      const key = name === 'method' ? 'methods' : 'formats';
-      const n = PSYCHOLOGISTS.filter((p) => matches(p, { ...s, [key]: [] }) && p[key].includes(value)).length;
-      el.textContent = n || '';
+      const kind = name === 'method' ? 'methods' : 'formats';
+      el.textContent = facets[kind][codeOf(kind, value)] || '';
     });
+  };
 
-    // Запоминаем фильтры в адресе страницы – ссылкой можно поделиться
+  /** Фильтры – в адресе страницы, ссылкой можно поделиться */
+  const saveToUrl = (s) => {
     const params = new URLSearchParams();
     if (s.q) params.set('q', searchEl.value.trim());
     s.topics.forEach((t) => params.append('topic', t));
@@ -483,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Пол психолога – для ссылки из анкеты подбора (?gender=f)
   if (['f', 'm'].includes(params.get('gender'))) form.querySelector(`[name="gender"][value="${params.get('gender')}"]`).checked = true;
   if (params.get('q')) searchEl.value = params.get('q');
-  if (params.get('sort') && SORTS[params.get('sort')]) sortEl.value = params.get('sort');
+  if (params.get('sort') && [...sortEl.options].some((o) => o.value === params.get('sort'))) sortEl.value = params.get('sort');
   // Опыт и максимальная цена – для ссылок со страницы «Тарифы» (?exp=10, ?price=60)
   const expParam = form.querySelector(`[name="exp"][value="${params.get('exp')}"]`);
   if (expParam) expParam.checked = true;
@@ -491,5 +481,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const priceParam = Number(params.get('price'));
   if (priceParam >= Number(priceRange.min) && priceParam <= Number(priceRange.max)) priceRange.value = priceParam;
   syncSort();
+  try {
+    refs = await API.get('/references');
+  } catch { /* без справочников фильтры по темам и методам не сработают, но список покажется */ }
   update();
 });

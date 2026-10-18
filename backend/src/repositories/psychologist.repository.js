@@ -19,14 +19,16 @@ const REFERENCES_SQL = `
 const likeEscape = (s) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 /**
- * Поиск по каталогу.
+ * Подзапрос «психологи каталога, подходящие под фильтры» – общий для выдачи и подсказок.
  * f: { q, topics[], methods[], formats[], gender, expMin, expMax, priceMax,
- *      date ('ГГГГ-ММ-ДД'), times ['10:00'], parts ['morning'|'day'|'evening'], sort, limit, offset, timezone }
- * next_slot – ближайшее свободное окно, подходящее под фильтр по дню и времени.
+ *      date ('ГГГГ-ММ-ДД'), times ['10:00'], parts ['morning'|'day'|'evening'], timezone }
+ * omit – какие фильтры не учитывать (для подсказок: сколько было бы при другом методе, дне…).
+ * Возвращает SQL (id, next_slot – ближайшее подходящее свободное окно) и функцию param для своих параметров.
  */
-async function search(f, db = pool) {
+function matchSql(f, omit = []) {
   const params = [];
   const param = (value) => `$${params.push(value)}`;
+  const use = (name) => !omit.includes(name);
   const where = [];
   const slotWhere = [];
 
@@ -39,11 +41,11 @@ async function search(f, db = pool) {
     where.push(`EXISTS (SELECT 1 FROM psychologist_topics pt JOIN topics t ON t.id = pt.topic_id
                          WHERE pt.psychologist_id = c.psychologist_id AND t.code = ANY (${param(f.topics)}))`);
   }
-  if (f.methods.length) {
+  if (use('methods') && f.methods.length) {
     where.push(`EXISTS (SELECT 1 FROM psychologist_methods pm JOIN methods m ON m.id = pm.method_id
                          WHERE pm.psychologist_id = c.psychologist_id AND m.code = ANY (${param(f.methods)}))`);
   }
-  if (f.formats.length) {
+  if (use('formats') && f.formats.length) {
     // Все выбранные форматы сразу (например, и индивидуальная, и парная)
     const codes = param(f.formats);
     where.push(`(SELECT count(DISTINCT sf.code) FROM psychologist_services s JOIN session_formats sf ON sf.id = s.format_id
@@ -59,42 +61,95 @@ async function search(f, db = pool) {
   let tz;
   const local = () => `(sl.starts_at AT TIME ZONE ${(tz ??= param(f.timezone))})`;
   const minutes = () => `(extract(hour FROM ${local()}) * 60 + extract(minute FROM ${local()}))`;
-  if (f.date) slotWhere.push(`${local()}::date = ${param(f.date)}::date`);
-  if (f.times.length) slotWhere.push(`to_char(${local()}, 'HH24:MI') = ANY (${param(f.times)})`);
+  if (use('date') && f.date) slotWhere.push(`${local()}::date = ${param(f.date)}::date`);
+  if (use('times') && f.times.length) slotWhere.push(`to_char(${local()}, 'HH24:MI') = ANY (${param(f.times)})`);
   if (f.parts.length) {
     const RANGES = { morning: [0, 720], day: [720, 1020], evening: [1020, 1440] };
     slotWhere.push(`(${f.parts.map((part) => `${minutes()} >= ${RANGES[part][0]} AND ${minutes()} < ${RANGES[part][1]}`).join(' OR ')})`);
   }
   if (slotWhere.length) where.push('ns.starts_at IS NOT NULL');
 
+  const sql = `
+    SELECT c.psychologist_id AS id, ns.starts_at AS next_slot
+      FROM v_psychologist_catalog c
+      JOIN psychologist_profiles p ON p.user_id = c.psychologist_id
+      LEFT JOIN LATERAL (
+           SELECT sl.starts_at FROM schedule_slots sl
+            WHERE sl.psychologist_id = c.psychologist_id AND sl.status = 'free' AND sl.starts_at > now()
+                  ${slotWhere.map((w) => `AND ${w}`).join(' ')}
+            ORDER BY sl.starts_at LIMIT 1) ns ON true
+     ${where.length ? `WHERE ${where.join('\n       AND ')}` : ''}`;
+  return { sql, params, param };
+}
+
+/** Выдача каталога: страница карточек, отсортированная по f.sort; f.limit, f.offset */
+async function search(f, db = pool) {
+  const { sql, params, param } = matchSql(f);
   const ORDER = {
     rating: 'c.rating_avg DESC, c.reviews_count DESC',
-    soon: 'ns.starts_at ASC NULLS LAST, c.rating_avg DESC',
+    soon: 'mt.next_slot ASC NULLS LAST, c.rating_avg DESC',
     cheap: 'c.price_from ASC',
     expensive: 'c.price_from DESC',
     exp: 'c.experience_years DESC',
   };
-
   const { rows } = await db.query(
-    `SELECT c.psychologist_id AS id, c.first_name, c.last_name, c.gender, c.avatar_key, c.headline,
+    `WITH matched AS (${sql})
+     SELECT c.psychologist_id AS id, c.first_name, c.last_name, c.gender, c.avatar_key, c.headline,
             c.experience_years, c.rating_avg, c.reviews_count, c.price_from,
             EXTRACT(YEAR FROM age(p.birth_date))::int AS age,
-            ns.starts_at AS next_slot,
+            mt.next_slot,
             ${REFERENCES_SQL},
             count(*) OVER () AS total
-       FROM v_psychologist_catalog c
-       JOIN psychologist_profiles p ON p.user_id = c.psychologist_id
-       LEFT JOIN LATERAL (
-            SELECT sl.starts_at FROM schedule_slots sl
-             WHERE sl.psychologist_id = c.psychologist_id AND sl.status = 'free' AND sl.starts_at > now()
-                   ${slotWhere.map((w) => `AND ${w}`).join(' ')}
-             ORDER BY sl.starts_at LIMIT 1) ns ON true
-      ${where.length ? `WHERE ${where.join('\n        AND ')}` : ''}
+       FROM matched mt
+       JOIN v_psychologist_catalog c  ON c.psychologist_id = mt.id
+       JOIN psychologist_profiles p   ON p.user_id = mt.id
       ORDER BY ${ORDER[f.sort]}, c.psychologist_id
       LIMIT ${param(f.limit)} OFFSET ${param(f.offset)}`,
     params,
   );
   return { rows, total: rows.length ? Number(rows[0].total) : 0 };
+}
+
+/**
+ * Подсказки к фильтрам – как изменится выдача:
+ *   methods / formats – сколько психологов с каждым методом / форматом (без учёта выбора в этом же фильтре);
+ *   days – сколько психологов свободны в каждый из дней [from, from + days) (без учёта дня и времени);
+ *   times – сколько свободны в каждое время выбранного дня (без учёта выбранного времени).
+ */
+async function facets(f, { from, days }, db = pool) {
+  const count = async (omit, tail) => {
+    const { sql, params, param } = matchSql(f, omit);
+    const { rows } = await db.query(`WITH matched AS (${sql}) ${tail(param)}`, params);
+    return Object.fromEntries(rows.map((r) => [r.key, r.n]));
+  };
+  const slotsOf = (param, extra) => `
+    SELECT KEY_SQL AS key, count(DISTINCT mt.id)::int AS n
+      FROM matched mt JOIN schedule_slots sl ON sl.psychologist_id = mt.id
+     WHERE sl.status = 'free' AND sl.starts_at > now() ${extra}
+     GROUP BY 1`;
+  const local = (param) => `(sl.starts_at AT TIME ZONE ${param(f.timezone)})`;
+
+  const [methods, formats, daysCount, times] = await Promise.all([
+    count(['methods'], () => `
+      SELECT m.code AS key, count(*)::int AS n FROM matched mt
+        JOIN psychologist_methods pm ON pm.psychologist_id = mt.id JOIN methods m ON m.id = pm.method_id
+       GROUP BY m.code`),
+    count(['formats'], () => `
+      SELECT sf.code AS key, count(DISTINCT mt.id)::int AS n FROM matched mt
+        JOIN psychologist_services s ON s.psychologist_id = mt.id AND s.is_active
+        JOIN session_formats sf ON sf.id = s.format_id
+       GROUP BY sf.code`),
+    count(['date', 'times'], (param) => {
+      const loc = local(param);
+      return slotsOf(param, `AND ${loc}::date >= ${param(from)}::date AND ${loc}::date < ${param(from)}::date + ${param(days)}::int`)
+        .replace('KEY_SQL', `to_char(${loc}, 'YYYY-MM-DD')`);
+    }),
+    f.date ? count(['times'], (param) => {
+      const loc = local(param);
+      return slotsOf(param, `AND ${loc}::date = ${param(f.date)}::date`).replace('KEY_SQL', `to_char(${loc}, 'HH24:MI')`);
+    }) : Promise.resolve(null),
+  ]);
+  return { methods, formats, days: daysCount, times };
 }
 
 // Психолог из каталога (подтверждён, опубликован, не заблокирован) – для страницы профиля
@@ -254,6 +309,7 @@ async function deleteProfile(userId, db = pool) {
 
 module.exports = {
   search,
+  facets,
   findPublicById,
   findForMatching,
   findFreeSlots,

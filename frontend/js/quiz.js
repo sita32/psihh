@@ -4,8 +4,9 @@
  * запрос, каким должен быть психолог, время. О деньгах не спрашиваем.
  * После каждого ответа считаем, сколько психологов подходит, в конце показываем
  * трёх лучших и объясняем почему. Имя из анкеты подставляется в регистрацию (auth.js).
- * Данные – демо из data.js. Позже подбор будет делать сервер (NodeJS):
- *   POST /api/matching  { format, mood, name, myage, topics, gender, age, method, time, soon }
+ * Подбор делает сервер: POST /api/matching { format, topics, gender, age, method, parts, soon } –
+ * сколько психологов подходит полностью и три лучших с тем, в чём совпали и чем отличаются.
+ * В форме – названия («Тревожность»), в запрос уходят коды из /api/references.
  */
 const QUIZ_KEY = 'ryadom-quiz';   // ответы сохраняются только в браузере пользователя
 const STEPS = ['format', 'mood', 'about', 'topics', 'who', 'when'];
@@ -29,10 +30,8 @@ const MOOD_TITLES = {
   'Парная': 'Как вы&nbsp;себя чувствуете в&nbsp;отношениях последнее время?',
   'С ребёнком': 'Как ребёнок себя чувствует последнее время?',
 };
-/* Время дня: с какой по какую минуту суток */
-const TIME_RANGES = { morning: [0, 720], day: [720, 1020], evening: [1020, 1440] };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const screens = {
     start: document.querySelector('[data-screen="start"]'),
     steps: document.querySelector('[data-screen="steps"]'),
@@ -64,12 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
     return many;
   };
-  const dayText = (k) => (k === 0 ? 'сегодня' : k === 1 ? 'завтра'
-    : demoDateAt(k).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }));
-  const inTimes = (t, times) => !times.length || times.some((r) => {
-    const m = demoMins(t);
-    return m >= TIME_RANGES[r][0] && m < TIME_RANGES[r][1];
-  });
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const pad = (n) => String(n).padStart(2, '0');
+  const dayText = (k) => {
+    if (k === 0) return 'сегодня';
+    if (k === 1) return 'завтра';
+    const d = new Date(today); d.setDate(d.getDate() + k);
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  };
+  /** Окно из ответа API → { k – через сколько дней, time – «17:00» } */
+  const slotWhen = (iso) => {
+    const d = new Date(iso);
+    const day = new Date(d); day.setHours(0, 0, 0, 0);
+    return { k: Math.round((day - today) / 86400000), time: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
+  };
+  /** Маленькое фото: у демо-фото психологов есть квадратная версия -sq */
+  const thumb = (url) => (url && url.includes('/img/psychologists/') ? url.replace(/(\.\w+)$/, '-sq$1') : url);
   const lower = (list) => list.map((t) => t.toLowerCase()).join(', ');
   /** Имя вводит пользователь – экранируем, прежде чем вставлять в HTML */
   const esc = (str) => str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -92,53 +101,32 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   /* ---------- Подбор ---------- */
-  /** Ближайшее свободное окно с учётом выбранного времени дня: { k – через сколько дней, time } */
-  const nextFree = (p, times) => {
-    for (let k = 0; k < 30; k += 1) {
-      const free = demoSlotsOn(p, k).filter((t) => inTimes(t, times));
-      if (free.length) return { k, time: free[0] };
-    }
-    return { k: 99, time: '' };
-  };
+  let refs = { methods: [], topics: [], formats: [] };
+  const codeOf = (kind, name) => (refs[kind].find((x) => x.name === name) || {}).code;
 
-  /** Какие условия психолог НЕ выполняет (пустой список – подходит полностью) */
-  const misses = (p, a) => {
-    const out = [];
-    if (a.format && !p.formats.includes(a.format)) out.push('format');
-    if (a.topics.length && !p.topics.some((t) => a.topics.includes(t))) out.push('topics');
-    if (a.gender && p.gender !== a.gender) out.push('gender');
-    if (a.age === 'young' && p.age >= 35) out.push('age');
-    if (a.age === 'older' && p.age < 35) out.push('age');
-    if (a.method && !p.methods.includes(a.method)) out.push('method');
-    if (a.time.length && !p.slots.some((t) => inTimes(t, a.time))) out.push('time');
-    if (a.soon && nextFree(p, a.time).k > 2) out.push('soon');
-    return out;
-  };
-
-  /** Насколько хорошо подходит: совпавшие темы важнее всего, потом подход, рейтинг и близость окна */
-  const score = (p, a) => {
-    const hits = p.topics.filter((t) => a.topics.includes(t)).length;
-    const soon = Math.max(0, 4 - nextFree(p, a.time).k);
-    return hits * 10 + (a.method && p.methods.includes(a.method) ? 4 : 0) + p.rating + soon * 0.5;
-  };
-
-  const matches = (a) => PSYCHOLOGISTS.filter((p) => !misses(p, a).length)
-    .sort((x, y) => score(y, a) - score(x, a));
-
-  /** Если точных совпадений нет – ближайшие: формат и тема обязательны, остальное можно уступить */
-  const closest = (a) => PSYCHOLOGISTS
-    .map((p) => ({ p, miss: misses(p, a) }))
-    .filter(({ miss }) => !miss.includes('format') && !miss.includes('topics'))
-    .sort((x, y) => x.miss.length - y.miss.length || score(y.p, a) - score(x.p, a));
+  /** Ответы анкеты → POST /api/matching */
+  const match = (a) => API.post('/matching', {
+    format: codeOf('formats', a.format),
+    topics: a.topics.map((t) => codeOf('topics', t)).filter(Boolean),
+    gender: { f: 'female', m: 'male' }[a.gender] || '',
+    age: a.age,
+    method: codeOf('methods', a.method) || '',
+    parts: a.time,
+    soon: a.soon,
+  });
 
   /* ---------- Счётчик «Подходят N психологов» ---------- */
-  const renderCount = () => {
-    const list = matches(answers());
-    const n = list.length;
-    const ids = list.slice(0, 3).map((p) => p.id).join(',');
+  let countNo = 0;   // ответ на устаревший запрос не рисуем
+  const renderCount = async () => {
+    const no = ++countNo;
+    let data;
+    try { data = await match(answers()); } catch { return; }   // счётчик – подсказка, без него можно идти дальше
+    if (no !== countNo) return;
+    const n = data.total;
+    const top = data.results.filter((p) => !p.match.misses.length);
+    const ids = top.map((p) => p.id).join(',');
     if (ids !== lastIds) {
-      countFaces.innerHTML = list.slice(0, 3)
-        .map((p) => `<img src="assets/img/psychologists/${p.photo}-sq.webp" alt="">`).join('');
+      countFaces.innerHTML = top.map((p) => (p.avatarUrl ? `<img src="${thumb(p.avatarUrl)}" alt="">` : '')).join('');
       lastIds = ids;
     }
     count.classList.toggle('is-zero', n === 0);
@@ -289,43 +277,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const ok = (html) => out.push(`<li><svg><use href="#i-check"/></svg><span>${html}</span></li>`);
     const warn = (html) => out.push(`<li class="is-warn"><svg><use href="#i-clock"/></svg><span>${html}</span></li>`);
 
-    const hits = p.topics.filter((t) => a.topics.includes(t));
+    const hits = p.match.topics.map((t) => t.name);
     if (hits.length) ok(`Работает с&nbsp;темами: <b>${lower(hits)}</b>`);
-    else ok(`Чаще всего помогает: ${lower(p.topics.slice(0, 2))}`);
+    else ok(`Чаще всего помогает: ${lower(p.topics.slice(0, 2).map((t) => t.name))}`);
 
-    if (a.method && !miss.includes('method')) ok(`Подход – <b>${a.method}</b>, как вы&nbsp;хотели`);
-    else ok(`Подход: ${p.methods.join(', ')}`);
+    if (a.method && p.match.method) ok(`Подход – <b>${esc(a.method)}</b>, как вы&nbsp;хотели`);
+    else ok(`Подход: ${p.methods.map((m) => m.name).join(', ')}`);
 
     if (a.format === 'Парная') ok('Работает с&nbsp;парами');
     if (a.format === 'С ребёнком') ok('Работает с&nbsp;детьми и&nbsp;родителями');
 
-    const free = nextFree(p, miss.includes('time') ? [] : a.time);
-    if (miss.includes('soon') || miss.includes('time')) warn(`Ближайшее окно – ${dayText(free.k)} в&nbsp;${free.time}`);
-    else ok(`Свободное окно – <b>${dayText(free.k)} в&nbsp;${free.time}</b>`);
+    if (p.nextSlot) {
+      const free = slotWhen(p.nextSlot);
+      if (miss.includes('soon') || miss.includes('time')) warn(`Ближайшее окно – ${dayText(free.k)} в&nbsp;${free.time}`);
+      else ok(`Свободное окно – <b>${dayText(free.k)} в&nbsp;${free.time}</b>`);
+    }
 
-    if (miss.includes('gender') || miss.includes('age')) warn(`${p.gender === 'f' ? 'Женщина' : 'Мужчина'}, ${p.age}&nbsp;${plural(p.age, 'год', 'года', 'лет')}`);
-    else if (out.length < 4) ok('Диплом и&nbsp;документы проверены модератором');
+    if (miss.includes('gender') || miss.includes('age')) {
+      warn(`${p.gender === 'female' ? 'Женщина' : 'Мужчина'}${p.age ? `, ${p.age}&nbsp;${plural(p.age, 'год', 'года', 'лет')}` : ''}`);
+    } else if (out.length < 4) ok('Диплом и&nbsp;документы проверены модератором');
     return out.slice(0, 4).join('');
   };
 
-  const card = (p, a, miss, i) => `
+  const card = (p, a, i) => {
+    const miss = p.match.misses;
+    return `
     <article class="qpsy" style="animation-delay:${i * 90}ms">
       ${miss.length ? '<span class="qpsy__best qpsy__best--near">Близкий вариант</span>'
         : i === 0 ? '<span class="qpsy__best">Лучше всего подходит</span>' : ''}
       <div class="qpsy__top">
-        <img src="assets/img/psychologists/${p.photo}-sq.webp" alt="">
+        ${p.avatarUrl ? `<img src="${thumb(p.avatarUrl)}" alt="">` : ''}
         <div>
-          <span class="qpsy__name">${p.name}</span>
-          <span class="qpsy__meta">${p.role} · опыт ${p.exp}&nbsp;${plural(p.exp, 'год', 'года', 'лет')}</span>
+          <span class="qpsy__name">${esc(p.name)}</span>
+          <span class="qpsy__meta">${esc(p.headline || 'Психолог')} · опыт ${p.experienceYears}&nbsp;${plural(p.experienceYears, 'год', 'года', 'лет')}</span>
         </div>
-        <span class="qpsy__rating"><svg><use href="#i-star"/></svg>${p.rating.toFixed(1).replace('.', ',')}</span>
+        <span class="qpsy__rating"><svg><use href="#i-star"/></svg>${(p.rating || 0).toFixed(1).replace('.', ',')}</span>
       </div>
       <ul class="qpsy__why">${reasons(p, a, miss)}</ul>
       <div class="qpsy__foot">
-        <span class="qpsy__price">${p.price}&nbsp;BYN <small>/ 50&nbsp;мин</small></span>
+        <span class="qpsy__price">${p.priceFrom}&nbsp;BYN <small>/ 50&nbsp;мин</small></span>
         <a href="psychologist.html?id=${p.id}" class="btn btn--primary btn--sm">Профиль и&nbsp;запись</a>
       </div>
     </article>`;
+  };
 
   /** Ваш запрос – коротко, «таблетками» */
   const requestTags = (a) => {
@@ -350,18 +344,22 @@ document.addEventListener('DOMContentLoaded', () => {
     return `catalog.html${s ? `?${s}` : ''}`;
   };
 
-  const showResult = () => {
+  const showResult = async () => {
     const a = answers();
-    const exact = matches(a);
-    // Точные совпадения первыми; если их меньше трёх – добавляем близкие варианты
-    const list = [
-      ...exact.slice(0, 3).map((p) => ({ p, miss: [] })),
-      ...closest(a).filter(({ miss }) => miss.length),
-    ].slice(0, 3);
-    const n = exact.length;
-    const near = list.some(({ miss }) => miss.length);
+    let data;
+    try {
+      data = await match(a);
+    } catch (err) {
+      countText.textContent = err.message;
+      count.hidden = false;
+      return;
+    }
+    const list = data.results;   // точные совпадения первыми, дальше – близкие варианты
+    const n = data.total;
+    const near = list.some((p) => p.match.misses.length);
+    const exact = n > 0;
 
-    const head = exact.length
+    const head = exact
       ? `<h1 class="qres__title" id="q-res" tabindex="-1">${a.name ? `${esc(a.name)}, вот` : 'Вот'} с&nbsp;кем можно начать</h1>
          <p class="qres__lead">${n > 3 ? `Подошли ${n}&nbsp;${plural(n, 'психолог', 'психолога', 'психологов')} – здесь трое, кто совпал с&nbsp;вашим запросом лучше всего.`
            : near ? `По&nbsp;всем ответам ${n === 1 ? 'подошёл один психолог' : `подошли ${n}&nbsp;психолога`}. Рядом – близкие варианты, чем они отличаются, отмечено жёлтым.`
@@ -381,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <button type="button" class="qlink" data-restart><svg><use href="#i-redo"/></svg>Пройти заново</button>
         </div>
       </div>
-      ${list.length ? `<div class="qres__grid">${list.map(({ p, miss }, i) => card(p, a, miss, i)).join('')}</div>`
+      ${list.length ? `<div class="qres__grid">${list.map((p, i) => card(p, a, i)).join('')}</div>`
         : `<div class="qres__empty"><svg style="color:#C9CED8"><use href="#face-neutral"/></svg>
              <p><b>Пока некого показать.</b> Попробуйте убрать часть тем или выбрать другой формат – или посмотрите весь каталог.</p></div>`}
       <div class="qres__more">
@@ -439,6 +437,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch { /* повреждённые данные – просто начинаем с чистого листа */ }
   };
   restore();
+  try {
+    refs = await API.get('/references');
+  } catch { /* без справочников подбор вернёт всех – анкета всё равно дойдёт до результата */ }
 
   /* ---------- Параллакс фона, как на странице входа ---------- */
   const bg = document.querySelector('.auth-bg');
