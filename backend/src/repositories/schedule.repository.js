@@ -12,7 +12,7 @@ const slotColumns = (tz) => `
 async function findOwnSlots(psychologistId, from, to, timezone, db = pool) {
   const { rows } = await db.query(
     `SELECT ${slotColumns('$4')},
-            a.id AS appointment_id, a.status AS appointment_status, a.client_note,
+            a.id AS appointment_id, a.status AS appointment_status, a.client_note, a.price_at_booking,
             a.client_id, cp.first_name AS client_first_name, cp.last_name AS client_last_name,
             f.code AS format_code, f.name AS format_name
        FROM schedule_slots sl

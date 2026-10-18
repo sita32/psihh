@@ -49,6 +49,7 @@ function slotView(row) {
       status: row.appointment_status,
       client: { id: row.client_id, name: [row.client_first_name, row.client_last_name].filter(Boolean).join(' ') },
       format: { code: row.format_code, name: row.format_name },
+      price: Number(row.price_at_booking),
       note: row.client_note,
     };
   }

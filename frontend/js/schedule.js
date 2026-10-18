@@ -1,12 +1,12 @@
 /**
  * «Рядом» – расписание психолога (psy-schedule.html).
  * Неделя в виде сетки «время × дни»: свободные окна, записи клиентов, закрытое время.
- * Данные пока из data.js (PSY_TEMPLATE, PSY_SESSIONS, PSY_CLIENTS).
- * Позже:
- *   GET    /api/schedule/slots?from=…&to=…
- *   POST   /api/schedule/slots          { startsAt }          – новое окно
- *   PATCH  /api/schedule/slots/:id      { status: 'blocked' | 'free' }
+ * Данные – из API (неделя загружается при переходе на неё):
+ *   GET    /api/schedule/slots?from=…&to=…          – окна недели с записанными клиентами
+ *   POST   /api/schedule/slots { slots: [{ date, time }] } – новые окна (одно или пачкой)
+ *   PATCH  /api/schedule/slots/:id { status: 'blocked' | 'free' }
  *   DELETE /api/schedule/slots/:id
+ *   POST   /api/schedule/block-day { date }         – закрыть все свободные окна дня
  * Проверяются только свои окна психолога: две его сессии не могут идти одновременно.
  * Окна других психологов не учитываются – это же правило в базе
  * (ограничение ex_slots_no_overlap в таблице schedule_slots, по psychologist_id).
@@ -20,34 +20,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const $ = (sel) => document.querySelector(sel);
   UI.initModals();
 
+  const pad = (n) => String(n).padStart(2, '0');
+  const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const dateOf = (k) => isoDate(dateAt(k));
   const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
   const startOf = (k, time) => { const d = dateAt(k); d.setHours(...time.split(':').map(Number)); return d; };
   const isPast = (k, time) => startOf(k, time) < new Date();
-  const clientName = (id) => PSY_CLIENTS.find((c) => c.id === id)?.name || 'Клиент';
 
-  /* ---------- Хранилище окон: k (день от сегодня) → [{ time, status, session }] ---------- */
+  /* ---------- Окна с сервера: дата → [окно API], по загруженным неделям ---------- */
   const slots = {};
-  /** Окна дня: при первом обращении собираются из шаблона недели и записей клиентов */
-  const day = (k) => {
-    if (slots[k]) return slots[k];
-    const list = [];
-    if (PSY_TEMPLATE.days.includes(dateAt(k).getDay())) {
-      PSY_TEMPLATE.times.forEach((time, i) => {
-        // для демо часть окон закрыта (личное время)
-        const blocked = (k + 21 + i * 2) % 11 === 0;
-        list.push({ time, status: blocked ? 'blocked' : 'free' });
-      });
-    }
-    PSY_SESSIONS.filter((s) => s.k === k && s.status !== 'cancelled').forEach((s) => {
-      const slot = list.find((x) => x.time === s.time);
-      if (slot) Object.assign(slot, { status: 'booked', session: s });
-      else list.push({ time: s.time, status: 'booked', session: s });
-    });
-    slots[k] = list.sort((a, b) => mins(a.time) - mins(b.time));
-    return slots[k];
-  };
+  const loaded = new Set();                         // номера недель, которые уже пришли с сервера
+  const day = (k) => slots[dateOf(k)] || [];
   /** Окно, с которым пересекается новое время (сессии по 50 минут) */
   const overlap = (k, time) => day(k).find((x) => Math.abs(mins(x.time) - mins(time)) < SESSION_MIN);
+
+  /** Загрузить неделю (w – от текущей); force – заново, после изменений */
+  const loadWeek = async (w, force = false) => {
+    if (loaded.has(w) && !force) return;
+    const monday = -((dateAt(0).getDay() + 6) % 7) + w * 7;
+    const from = dateOf(monday), to = dateOf(monday + 6);
+    const res = await API.get('/schedule/slots', { from, to });
+    for (let i = 0; i < 7; i += 1) delete slots[dateOf(monday + i)];
+    res.slots.forEach((x) => { (slots[x.date] ||= []).push(x); });
+    loaded.add(w);
+  };
+  /** Показать неделю: загрузить (если нужно) и нарисовать; ошибки – во всплывающем сообщении */
+  const show = async (force = false) => {
+    try {
+      await loadWeek(week, force);
+    } catch (err) {
+      toast(`Не удалось загрузить расписание: ${err.message}`, true);
+    }
+    render();
+  };
+  /** После изменений на сервере: прочие недели – загрузятся заново при переходе */
+  const refresh = () => { loaded.clear(); return show(true); };
 
   /* ---------- Неделя ---------- */
   let week = 0;                                     // 0 – текущая неделя
@@ -86,7 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!s) html += `<button type="button" class="cell cell--empty${past}${on}" ${attrs} aria-label="Открыть окно ${t}"${past ? ' disabled' : ''}></button>`;
         else if (s.status === 'free') html += `<button type="button" class="cell cell--free${past}${isNew}${on}" ${attrs}>${past ? '' : 'свободно'}</button>`;
         else if (s.status === 'blocked') html += `<button type="button" class="cell cell--blocked${past}${on}" ${attrs}>закрыто</button>`;
-        else html += `<button type="button" class="cell cell--booked${past ? ' is-done' : ''}${on}" ${attrs}>${escapeHtml(clientName(s.session.client))}</button>`;
+        else {
+          // В клетке – только имя (фамилия не помещается), полностью – в подсказке
+          const name = s.appointment ? s.appointment.client.name : 'Запись';
+          html += `<button type="button" class="cell cell--booked${past ? ' is-done' : ''}${on}" ${attrs} title="${escapeHtml(name)}">${escapeHtml(name.split(' ')[0])}</button>`;
+        }
       });
     });
     $('[data-grid]').innerHTML = html;
@@ -104,9 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   /* ---------- Навигация по неделям ---------- */
-  $('[data-week-prev]').addEventListener('click', () => { week -= 1; sel = null; render(); });
-  $('[data-week-next]').addEventListener('click', () => { week += 1; sel = null; render(); });
-  $('[data-week-today]').addEventListener('click', () => { week = 0; sel = 0; render(); });
+  $('[data-week-prev]').addEventListener('click', () => { week -= 1; sel = null; show(); });
+  $('[data-week-next]').addEventListener('click', () => { week += 1; sel = null; show(); });
+  $('[data-week-today]').addEventListener('click', () => { week = 0; sel = 0; show(); });
   $('[data-strip]').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-pick]');
     if (!btn) return;
@@ -125,15 +136,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const body = slotModal.querySelector('[data-slot-body]');
     const foot = slotModal.querySelector('[data-slot-foot]');
     if (slot.status === 'booked') {
-      const s = slot.session;
+      const a = slot.appointment || { client: { name: 'Клиент' }, format: { name: '–' } };
+      const len = Math.round((new Date(slot.endsAt) - new Date(slot.startsAt)) / 60000);
       title.textContent = 'Запись клиента';
       body.innerHTML = `<dl class="slot-info">
-          <div><dt>Клиент</dt><dd>${escapeHtml(clientName(s.client))}</dd></div>
+          <div><dt>Клиент</dt><dd>${escapeHtml(a.client.name)}</dd></div>
           <div><dt>Когда</dt><dd>${when(k, slot.time)}</dd></div>
-          <div><dt>Формат</dt><dd>${s.format}, 50 мин</dd></div>
-          <div><dt>Стоимость</dt><dd>${s.price} BYN</dd></div>
-        </dl>${s.note ? `<div class="sess__note"><b>Запрос клиента:</b> ${escapeHtml(s.note)}</div>` : ''}`;
-      foot.innerHTML = `<a href="psy-chat.html" class="btn btn--line">Написать</a>
+          <div><dt>Формат</dt><dd>${escapeHtml(a.format.name)}, ${len} мин</dd></div>
+          ${a.price ? `<div><dt>Стоимость</dt><dd>${a.price} BYN</dd></div>` : ''}
+        </dl>${a.note ? `<div class="sess__note"><b>Запрос клиента:</b> ${escapeHtml(a.note)}</div>` : ''}`;
+      foot.innerHTML = `${a.client.id ? `<a href="psy-chat.html?with=${a.client.id}" class="btn btn--line">Написать</a>` : ''}
         <a href="psy-sessions.html" class="btn btn--primary">Открыть в&nbsp;записях</a>`;
     } else {
       const free = slot.status === 'free';
@@ -149,16 +161,29 @@ document.addEventListener('DOMContentLoaded', () => {
     slotModal.showModal();
   };
 
-  slotModal.addEventListener('click', (e) => {
+  slotModal.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-slot-act]');
     if (!btn) return;
-    const { k, slot } = current;
+    const { slot } = current;
     const act = btn.dataset.slotAct;
-    if (act === 'delete') { day(k).splice(day(k).indexOf(slot), 1); toast(`Окно ${slot.time} удалено`); }
-    if (act === 'block') { slot.status = 'blocked'; toast(`Окно ${slot.time} закрыто`); }
-    if (act === 'open') { slot.status = 'free'; toast(`Окно ${slot.time} снова открыто`); }
-    slotModal.close();
-    render();
+    btn.disabled = true;
+    try {
+      if (act === 'delete') {
+        await API.del(`/schedule/slots/${slot.id}`);
+        toast(`Окно ${slot.time} удалено`);
+      } else {
+        await API.patch(`/schedule/slots/${slot.id}`, { status: act === 'block' ? 'blocked' : 'free' });
+        toast(act === 'block' ? `Окно ${slot.time} закрыто` : `Окно ${slot.time} снова открыто`);
+      }
+      slotModal.close();
+    } catch (err) {
+      // Например: окно уже занял клиент или с ним связана история записей
+      btn.disabled = false;
+      toast(err.message, true);
+      if (err.status !== 409) return;
+      slotModal.close();
+    }
+    show(true);
   });
 
   /* ---------- Клики по сетке ---------- */
@@ -175,9 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
         confirm: 'Закрыть',
       });
       if (!ok) return;
-      free.forEach((x) => { x.status = 'blocked'; });
-      render();
-      toast('Свободные окна дня закрыты');
+      try {
+        const { blocked } = await API.post('/schedule/block-day', { date: dateOf(k) });
+        toast(`Закрыто ${blocked} ${plural(blocked, 'окно', 'окна', 'окон')}`);
+      } catch (err) {
+        toast(err.message, true);
+      }
+      show(true);
       return;
     }
 
@@ -192,11 +221,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Пустая клетка – открыть новое окно, если оно ни с чем не пересекается
     const busy = overlap(k, time);
     if (busy) { toast(`У вас уже есть окно в ${busy.time} – две ваши сессии пересекутся`, true); return; }
-    day(k).push({ time, status: 'free' });
-    day(k).sort((a, b) => mins(a.time) - mins(b.time));
-    fresh = { k, time };
-    render();
-    toast(`Окно ${time} открыто`);
+    try {
+      const { created } = await API.post('/schedule/slots', { slots: [{ date: dateOf(k), time }] });
+      if (!created) { toast('Окно не добавлено: время уже прошло или пересекается с другим окном', true); return; }
+      fresh = { k, time };
+      toast(`Окно ${time} открыто`);
+    } catch (err) {
+      toast(err.fields ? Object.values(err.fields)[0] : err.message, true);
+    }
+    await show(true);
   });
 
   /* ---------- Диалог «Добавить окна» ---------- */
@@ -234,31 +267,37 @@ document.addEventListener('DOMContentLoaded', () => {
     renderChips();
   });
 
-  addModal.querySelector('[data-add-ok]').addEventListener('click', () => {
+  const addOk = addModal.querySelector('[data-add-ok]');
+  addOk.addEventListener('click', async () => {
     const days = [...addModal.querySelectorAll('[data-add-days] input:checked')].map((i) => Number(i.value));
     const weeks = Number(addModal.querySelector('input[name="weeks"]:checked').value);
     if (!days.length) { errorEl.textContent = 'Выберите хотя бы один день недели'; return; }
     if (!addTimes.length) { errorEl.textContent = 'Добавьте хотя бы одно время'; return; }
-    let added = 0, skipped = 0;
+    // Все окна – одним запросом; прошедшее время и пересечения сервер пропустит сам
+    const items = [];
     for (let w = 0; w < weeks; w += 1) {
       for (let i = 0; i < 7; i += 1) {
         const k = mondayK() + w * 7 + i;
         if (!days.includes(dateAt(k).getDay())) continue;
-        addTimes.forEach((t) => {
-          if (isPast(k, t)) return;
-          if (overlap(k, t)) { skipped += 1; return; }
-          day(k).push({ time: t, status: 'free' });
-          added += 1;
-        });
-        day(k).sort((a, b) => mins(a.time) - mins(b.time));
+        addTimes.forEach((t) => { if (!isPast(k, t)) items.push({ date: dateOf(k), time: t }); });
       }
     }
-    addModal.close();
-    render();
-    toast(added
-      ? `Добавлено ${added} ${plural(added, 'окно', 'окна', 'окон')}${skipped ? `, ${skipped} пропущено – у вас уже есть окна в это время` : ''}`
-      : 'Новых окон нет – всё время уже занято или прошло', !added);
+    if (!items.length) { errorEl.textContent = 'Всё это время уже прошло'; return; }
+    addOk.disabled = true;
+    try {
+      const { created, skipped } = await API.post('/schedule/slots', { slots: items });
+      const overlapped = skipped.filter((x) => x.reason === 'overlap').length;
+      addModal.close();
+      toast(created
+        ? `Добавлено ${created} ${plural(created, 'окно', 'окна', 'окон')}${overlapped ? `, ${overlapped} пропущено – у вас уже есть окна в это время` : ''}`
+        : 'Новых окон нет – всё время уже занято или прошло', !created);
+      await refresh();
+    } catch (err) {
+      errorEl.textContent = err.fields ? Object.values(err.fields)[0] : err.message;
+    } finally {
+      addOk.disabled = false;
+    }
   });
 
-  render();
+  show();
 });

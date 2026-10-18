@@ -641,7 +641,8 @@ const DEMO_API = (() => {
     const a = slot.status === 'booked' && store.book.appointments.find((x) => x.slotId === slot.id && x.status !== 'cancelled');
     return { id: slot.id, startsAt: slot.startsAt, endsAt: new Date(new Date(slot.startsAt).getTime() + 50 * 60000).toISOString(),
       date: slot.date, time: slot.time, status: slot.status,
-      ...(a && { appointment: { id: a.id, status: a.status, client: { id: a.client.id, name: a.client.name }, format: { code: a.format.code, name: a.format.name }, note: a.note } }) };
+      ...(a && { appointment: { id: a.id, status: a.status, client: { id: a.client.id, name: a.client.name },
+        format: { code: a.format.code, name: a.format.name }, price: a.price, note: a.note } }) };
   };
   route('GET', /^\/schedule\/slots$/, (_, { me: who, query }) => {
     const u = psyOnly(who);
@@ -650,6 +651,64 @@ const DEMO_API = (() => {
     const to = query.to || from;
     return { from, to, timezone: 'Europe/Minsk',
       slots: store.book.slots.filter((x) => x.date >= from && x.date <= to).map((x) => psySlotView(store, x)) };
+  });
+
+  /** Своё окно, которое ещё можно менять – те же проверки, что на сервере */
+  const ownSlot = (store, id) => {
+    const slot = store.book.slots.find((x) => String(x.id) === String(id)) || fail(404, 'NOT_FOUND', 'Окно не найдено');
+    if (new Date(slot.startsAt) <= new Date()) fail(409, 'SLOT_PAST', 'Это время уже прошло');
+    if (slot.status === 'booked') fail(409, 'SLOT_BOOKED', 'На это окно записан клиент – сначала отмените или перенесите запись');
+    return slot;
+  };
+  route('POST', /^\/schedule\/slots$/, (body, { me: who }) => {
+    const u = psyOnly(who);
+    const store = psyBook(u);
+    needPsyProfile(store);
+    const items = Array.isArray(body.slots) ? body.slots : [];
+    if (!items.length) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', { slots: 'Передайте хотя бы одно окно: [{ date, time }]' });
+    if (items.length > 300) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', { slots: 'Не больше 300 окон за раз' });
+    const len = (body.durationMin || 50) * 60000;
+    let created = 0;
+    const skipped = [];
+    items.forEach(({ date, time }) => {
+      const start = new Date(`${date}T${time}:00`);
+      if (start <= new Date()) { skipped.push({ date, time, reason: 'past' }); return; }
+      // Две сессии психолога не могут идти одновременно (в базе – ограничение ex_slots_no_overlap)
+      if (store.book.slots.some((x) => Math.abs(new Date(x.startsAt) - start) < len)) { skipped.push({ date, time, reason: 'overlap' }); return; }
+      store.book.slots.push({ id: store.book.nextSlot++, date, time, startsAt: start.toISOString(), status: 'free' });
+      created += 1;
+    });
+    store.book.slots.sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+    savePsy(u, store);
+    return { created, skipped };
+  });
+  route('PATCH', /^\/schedule\/slots\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    const u = psyOnly(who);
+    const store = psyBook(u);
+    if (!['free', 'blocked'].includes(body.status)) fail(422, 'VALIDATION_ERROR', 'Статус окна – free или blocked', { status: 'free или blocked' });
+    const slot = ownSlot(store, id);
+    slot.status = body.status;
+    savePsy(u, store);
+    return { id: slot.id, status: slot.status };
+  });
+  route('DELETE', /^\/schedule\/slots\/(\d+)$/, (_, { me: who, params: [id] }) => {
+    const u = psyOnly(who);
+    const store = psyBook(u);
+    const slot = ownSlot(store, id);
+    if (store.book.appointments.some((a) => a.slotId === slot.id)) {
+      fail(409, 'SLOT_HAS_HISTORY', 'С этим окном связана история записей – его можно закрыть, но не удалить');
+    }
+    store.book.slots = store.book.slots.filter((x) => x !== slot);
+    savePsy(u, store);
+    return null;
+  });
+  route('POST', /^\/schedule\/block-day$/, (body, { me: who }) => {
+    const u = psyOnly(who);
+    const store = psyBook(u);
+    const free = store.book.slots.filter((x) => x.date === body.date && x.status === 'free' && new Date(x.startsAt) > new Date());
+    free.forEach((x) => { x.status = 'blocked'; });
+    savePsy(u, store);
+    return { date: body.date, blocked: free.length };
   });
 
   // Профиль: психолог – анкета (выше), клиент – личные данные
