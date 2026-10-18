@@ -29,6 +29,7 @@ async function findAccountById(id, db = pool) {
             array_remove(array_agg(r.code ORDER BY r.id), NULL) AS roles,
             coalesce(cp.first_name, pp.first_name) AS first_name,
             coalesce(cp.last_name, pp.last_name)   AS last_name,
+            coalesce(pp.avatar_key, cp.avatar_key) AS avatar_key,
             pp.verification_status
        FROM users u
        LEFT JOIN user_roles ur            ON ur.user_id = u.id

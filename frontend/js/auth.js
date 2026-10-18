@@ -1,41 +1,19 @@
 /**
  * «Рядом» – страница входа и регистрации.
  * Переключение вкладок, показ пароля, поля психолога, проверка полей
- * и отправка на сервер: POST /api/auth/login и /api/auth/register.
- * Если сервера нет (tools/dev-server.py или страница открыта файлом) – демо-вход, как раньше.
+ * и отправка через API: POST /api/auth/login и /api/auth/register.
+ * Без сервера ответит демо-слой (js/api-demo.js): роль – по почте, пароль – любой.
  */
-/* Демо-почты для входа без сервера: психолог и модератор (любая другая почта – клиент) */
-const DEMO_PSYCHOLOGIST = 'marina@ryadom.by';
-const DEMO_MODERATOR = 'moderator@ryadom.by';
-
-/* Кабинет, который открывается после входа, – по роли */
-const CABINETS = { client: 'cabinet-client.html', psychologist: 'cabinet-psychologist.html', moderator: 'mod-users.html' };
-const cabinetFor = (roles) => CABINETS[['moderator', 'psychologist'].find((r) => roles.includes(r)) || 'client'];
-
-/**
- * Запрос к API. Ответ: { ok, data } – сервер ответил JSON;
- * { demo: true } – API нет, работает только интерфейс; { down: true } – сервер не отвечает.
- */
-async function postAuth(action, body) {
-  let res;
-  try {
-    res = await fetch(`api/auth/${action}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(15000),   // дольше ждать ответа нет смысла
-    });
-  } catch {
-    return location.protocol === 'file:' ? { demo: true } : { down: true };
-  }
-  if ((res.headers.get('content-type') || '').includes('application/json')) {
-    return { ok: res.ok, data: await res.json() };
-  }
-  // Статичный сервер без API на POST отвечает 404 / 405 / 501 своей HTML-страницей
-  return [404, 405, 501].includes(res.status) ? { demo: true } : { down: true };
-}
+/* Куда перейти после входа: ?next=… (только страница этого сайта), иначе – кабинет по роли */
+const afterLogin = (user) => {
+  const next = new URLSearchParams(location.search).get('next');
+  return next && /^[\w-]+\.html(\?[^#]*)?$/.test(next) ? next : Session.home(user);
+};
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Уже вошли – форма не нужна
+  Session.user().then((u) => { if (u) location.replace(afterLogin(u)); }).catch(() => {});
+
   const tabs = document.querySelector('.tabs');
   const tabButtons = document.querySelectorAll('.tabs__btn');
   const forms = {
@@ -200,13 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!shown) showAlert(form, error.message);
   };
 
-  /** Демо-вход без сервера: роль по почте (marina@ryadom.by – психолог, moderator@ryadom.by – модератор, остальные – клиент Анна) */
-  const demoLogin = (data) => {
-    const email = (data.email || '').trim().toLowerCase();
-    const role = data.role || (email === DEMO_PSYCHOLOGIST ? 'psychologist' : email === DEMO_MODERATOR ? 'moderator' : 'client');
-    location.href = CABINETS[role];
-  };
-
   /** Данные формы для API */
   const payload = (form, data) => {
     if (form === forms.login) {
@@ -236,13 +207,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = Object.fromEntries(new FormData(form));
       setBusy(form, true);
-      const res = await postAuth(form === forms.login ? 'login' : 'register', payload(form, data));
-      setBusy(form, false);
-
-      if (res.demo) demoLogin(data);
-      else if (res.ok) location.href = cabinetFor(res.data.user.roles);
-      else if (res.data && res.data.error) showServerError(form, res.data.error);
-      else showAlert(form, 'Сервер не отвечает. Попробуйте ещё раз через минуту');
+      try {
+        const { user } = await API.post(form === forms.login ? '/auth/login' : '/auth/register', payload(form, data));
+        location.href = afterLogin(user);
+      } catch (err) {
+        setBusy(form, false);
+        showServerError(form, err);
+      }
     });
 
     // Убираем ошибку, как только пользователь начал исправлять поле

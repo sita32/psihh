@@ -14,6 +14,7 @@ async function getAccount(userId) {
     permissions: await accessService.getPermissions(userId),
     firstName: row.first_name, // у модератора профиля нет – null
     lastName: row.last_name,
+    avatarUrl: row.avatar_key ? `/${row.avatar_key}` : null,
     verificationStatus: row.verification_status || undefined, // только у психолога
     createdAt: row.created_at,
     lastLoginAt: row.last_login_at,
