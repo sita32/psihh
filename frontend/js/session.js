@@ -79,6 +79,19 @@ const Session = (() => {
     setBadge('psy-sessions.html', n);
   }
 
+  /** Меню модератора: «Заявки» – ждут проверки, «Отзывы» – новые отзывы и жалобы.
+      Если раздел не ответил – значок остаётся как был */
+  async function fillModBadges() {
+    const count = (path) => API.get(path, { status: 'pending' }).then((r) => r.items.length);
+    if (!location.pathname.endsWith('mod-verification.html')) {
+      count('/admin/verification-requests').then((n) => setBadge('mod-verification.html', n), () => {});
+    }
+    if (!location.pathname.endsWith('mod-reviews.html')) {
+      Promise.all([count('/admin/reviews'), count('/admin/review-reports')])
+        .then(([a, b]) => setBadge('mod-reviews.html', a + b), () => {});
+    }
+  }
+
   /** Публичная шапка: значок «Войти» ведёт в кабинет */
   function fillPublic(u) {
     document.querySelectorAll('a[href="login.html"].btn--icon').forEach((a) => {
@@ -109,6 +122,7 @@ const Session = (() => {
       fillCabinet(u, role);
       if (role !== 'moderator' && !location.pathname.endsWith('chat.html')) fillChatBadge();   // в чате счётчик ведёт сам чат
       if (role === 'psychologist' && !location.pathname.endsWith('psy-sessions.html')) fillSessionsBadge();  // на «Записях» – сама страница
+      if (role === 'moderator') fillModBadges();                                // на своих страницах счётчик ведут они сами
     } else if (u) {
       fillPublic(u);
     }

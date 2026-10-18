@@ -51,7 +51,10 @@ const DEMO_API = (() => {
     if (!email) fields.email = 'Укажите почту';
     if (!body.password) fields.password = 'Введите пароль';
     if (Object.keys(fields).length) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', fields);
-    const user = account(email);
+    // Психолог, зарегистрированный в этом браузере, входит снова психологом (его анкета – в ryadom-demo-psy)
+    const psy = !ACCOUNTS[email] && (load(PSY_KEY) || {})[email];
+    const user = account(email, psy ? { id: 100, roles: ['psychologist'], firstName: psy.profile?.firstName || null,
+      lastName: psy.profile?.lastName || null, avatarUrl: psy.profile?.avatarUrl || null } : {});
     save(USER_KEY, user);
     return { user };
   });
@@ -1173,6 +1176,108 @@ const DEMO_API = (() => {
     target.block = null;
     saveMod(store);
     return target;
+  });
+
+  /* ---------- Панель модератора: заявки психологов ----------
+     Демо-заявки – MOD_APPLICATIONS из data.js (решения – в 'ryadom-demo-mod');
+     к ним добавляются заявки, отправленные из демо-кабинета психолога (ryadom-demo-psy), –
+     решение модератора сразу видно психологу. */
+
+  const DOC_KIND = { Диплом: 'diploma', Сертификат: 'certificate', Справка: 'other' };
+  const mimeOf = (name) => ({ pdf: 'application/pdf', png: 'image/png', webp: 'image/webp' }[name.split('.').pop().toLowerCase()] || 'image/jpeg');
+  const bytesOf = (size) => { const [n, unit] = size.split(' '); return Math.round(parseFloat(n.replace(',', '.')) * (unit === 'МБ' ? 1048576 : 1024)); };
+
+  /** Заявки из data.js в виде ответа API (при первом обращении – в хранилище модератора) */
+  const demoApplications = (store) => {
+    if (store.applications) return store.applications;
+    const at = (k) => (k === undefined ? null : demoDateAt(k).toISOString());
+    store.applications = MOD_APPLICATIONS.map((a) => {
+      const u = MOD_USERS.find((x) => x.id === a.user);
+      const docStatus = a.status === 'pending' ? 'pending' : a.status;
+      return {
+        id: a.id, status: a.status, submittedAt: at(a.sent), reviewedAt: at(a.decided), comment: a.comment || null,
+        reviewedBy: a.by ? { id: 3, login: 'moderator' } : null,
+        psychologist: {
+          id: u ? (ACCOUNTS[u.email] || {}).id || 500 + u.id : 600 + a.id, email: u ? u.email : 'viktor.n@mail.ru',
+          name: u ? u.name : a.name, middleName: null, gender: null, headline: a.role, bio: a.about, approach: null,
+          avatarUrl: u && u.photo ? `assets/img/psychologists/${u.photo}.webp` : null,
+          experienceYears: a.exp, priceFrom: a.price, methods: a.methods,
+        },
+        documents: a.docs.map((d, i) => {
+          const edu = a.edu[i] || a.edu[a.edu.length - 1];
+          const [institution, specialty] = edu.title.split(', ');
+          return { id: a.id * 10 + i, type: DOC_KIND[d.kind] || 'other', institution, specialty: specialty || null, year: edu.year,
+            fileName: d.name, mimeType: mimeOf(d.name), size: bytesOf(d.size), status: docStatus,
+            comment: a.status === 'rejected' ? a.comment : null };
+        }),
+      };
+    });
+    saveMod(store);
+    return store.applications;
+  };
+
+  /** Заявки из демо-кабинетов психологов (кроме Марины – она проверена давно) */
+  const psyApplications = () => {
+    const all = load(PSY_KEY) || {};
+    return Object.keys(all).sort().flatMap((email, i) => {
+      const st = all[email];
+      if (email === 'marina@ryadom.by' || !st.profile || !st.requests || !st.requests.length) return [];
+      const r = st.requests[0];
+      const pr = st.profile;
+      const prices = pr.services.map((x) => x.price);
+      return [{
+        id: 900000 + i * 1000 + r.id, status: r.status, submittedAt: r.submittedAt, reviewedAt: r.reviewedAt, comment: r.comment,
+        reviewedBy: r.reviewedAt ? { id: 3, login: 'moderator' } : null, psyEmail: email,
+        psychologist: { id: 700 + i, email, name: [pr.firstName, pr.lastName].filter(Boolean).join(' '), middleName: pr.middleName,
+          gender: pr.gender, headline: pr.headline, bio: pr.bio, approach: pr.approach, avatarUrl: pr.avatarUrl,
+          experienceYears: yearsSince(pr.practiceSince), priceFrom: prices.length ? Math.min(...prices) : null,
+          methods: pr.methods.map((m) => m.name) },
+        documents: st.documents.map((d) => ({ id: d.id, type: d.type, institution: d.institution, specialty: d.specialty, year: d.year,
+          fileName: d.fileName, mimeType: d.mimeType, size: d.size, status: d.status, comment: d.comment })),
+      }];
+    });
+  };
+
+  route('GET', /^\/admin\/verification-requests$/, (_, { me: who, query }) => {
+    modOnly(who, 'psychologists.verify');
+    const status = query.status || 'pending';
+    if (!['pending', 'approved', 'rejected'].includes(status)) fail(422, 'VALIDATION_ERROR', 'status – pending, approved или rejected');
+    const items = [...demoApplications(modStore()), ...psyApplications()].filter((a) => a.status === status)
+      .sort((a, b) => (status === 'pending' ? 1 : -1) * (new Date(status === 'pending' ? a.submittedAt : a.reviewedAt)
+        - new Date(status === 'pending' ? b.submittedAt : b.reviewedAt)));
+    return { status, items: items.map(({ psyEmail, ...a }) => a) };
+  });
+
+  route('PATCH', /^\/admin\/verification-requests\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    const moderator = modOnly(who, 'psychologists.verify');
+    const store = modStore();
+    const a = [...demoApplications(store), ...psyApplications()].find((x) => String(x.id) === id) || fail(404, 'NOT_FOUND', 'Заявка не найдена');
+    if (a.status !== 'pending') fail(409, 'ALREADY_DECIDED', 'По заявке уже есть решение');
+    const status = body.status;
+    const comment = String(body.comment || '').trim() || null;
+    if (!['approved', 'rejected'].includes(status)) fail(422, 'VALIDATION_ERROR', 'status – approved или rejected', { status: 'approved, rejected' });
+    if (status === 'rejected' && !comment) fail(422, 'VALIDATION_ERROR', 'Напишите психологу, почему заявка отклонена', { comment: 'Обязательно при отклонении' });
+    const now = new Date().toISOString();
+    const docComment = status === 'rejected' ? comment : null;
+    if (a.psyEmail) {
+      // Заявка из демо-кабинета психолога – решение записывается прямо в его анкету
+      const all = load(PSY_KEY);
+      const st = all[a.psyEmail];
+      Object.assign(st.requests[0], { status, comment, reviewedAt: now });
+      st.profile.verificationStatus = status === 'approved' ? 'verified' : 'rejected';
+      st.profile.verifiedAt = status === 'approved' ? now : null;
+      st.documents.filter((d) => d.status === 'pending').forEach((d) => Object.assign(d, { status, comment: docComment, reviewedAt: now }));
+      save(PSY_KEY, all);
+    } else {
+      Object.assign(a, { status, comment, reviewedAt: now, reviewedBy: { id: moderator.id, login: moderator.email.split('@')[0] } });
+      a.documents.filter((d) => d.status === 'pending').forEach((d) => Object.assign(d, { status, comment: docComment }));
+      const u = store.users && store.users.find((x) => x.email === a.psychologist.email);
+      if (u) u.verificationStatus = status === 'approved' ? 'verified' : 'rejected';
+    }
+    modAudit(store, moderator, status === 'approved' ? 'verification.approve' : 'verification.reject', 'psychologist',
+      a.psychologist.id, { psychologist: a.psychologist.name, comment });
+    saveMod(store);
+    return { id: a.id, status, comment };
   });
 
   /* ---------- Разбор запроса ---------- */

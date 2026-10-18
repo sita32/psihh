@@ -129,10 +129,14 @@
       <button class="icon-btn" value="cancel" aria-label="Закрыть"><svg><use href="#i-x"/></svg></button>
     </div>
     <div class="modal__body">
-      <!-- В демо вместо скана – заглушка; позже здесь будет файл из хранилища (MinIO) -->
-      <div class="doc-view"><svg><use href="#i-file"/></svg><b data-doc-name></b><span>Предпросмотр появится после подключения хранилища файлов</span></div>
+      <p class="doc-view__name" data-doc-name></p>
+      <!-- Скан из хранилища: картинка – прямо здесь, PDF – во встроенном просмотрщике браузера -->
+      <div class="doc-view doc-view--file" data-doc-view></div>
     </div>
-    <div class="modal__foot"><button class="btn btn--line" value="cancel">Закрыть</button></div>
+    <div class="modal__foot">
+      <a class="btn btn--line" data-doc-open target="_blank" rel="noopener"><svg><use href="#i-eye"/></svg>Открыть в&nbsp;новой вкладке</a>
+      <button class="btn btn--primary" value="cancel">Закрыть</button>
+    </div>
   </form>
 </dialog>
 

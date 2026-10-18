@@ -1329,6 +1329,12 @@
 .doc-view { display: grid; place-items: center; gap: 10px; height: 340px; background: repeating-linear-gradient(-45deg, #F3F6FA 0 10px, #fff 10px 20px); box-shadow: inset 0 0 0 1.5px var(--line); text-align: center; color: var(--ink-3); }
 .doc-view svg { width: 48px; height: 48px; color: var(--navy); }
 .doc-view b { color: var(--ink); }
+/* Настоящий скан: картинка или PDF во весь блок */
+.doc-view--file { height: min(60vh, 520px); background: #F3F6FA; overflow: hidden; }
+.doc-view--file img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.doc-view--file iframe { width: 100%; height: 100%; border: 0; }
+.doc-view__name { margin-bottom: 12px; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.vr-doc small + small { display: block; }
 
 /* ---------- Модерация отзывов ---------- */
 .mr { padding: 20px 22px; border-radius: 18px; background: #fff; }
