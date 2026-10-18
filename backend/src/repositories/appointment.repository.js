@@ -64,6 +64,7 @@ const SELECT_SQL = `
          pp.first_name AS psy_first_name, pp.last_name AS psy_last_name, pp.avatar_key AS psy_avatar_key,
          pp.headline AS psy_headline,
          EXISTS (SELECT 1 FROM reviews r WHERE r.appointment_id = a.id) AS has_review,
+         (SELECT json_build_object('id', r.id, 'status', r.status) FROM reviews r WHERE r.appointment_id = a.id) AS review,
          -- какая это встреча клиента с психологом по счёту (без отменённых и перенесённых)
          (SELECT count(*) FROM appointments a2 JOIN schedule_slots s2 ON s2.id = a2.slot_id
            WHERE a2.client_id = a.client_id AND a2.psychologist_id = a.psychologist_id

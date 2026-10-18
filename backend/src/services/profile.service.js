@@ -7,6 +7,7 @@ const psychologistRepository = require('../repositories/psychologist.repository'
 const catalogCache = require('../repositories/catalog-cache.repository');
 const fileRepository = require('../repositories/file.repository');
 const referenceService = require('./reference.service');
+const authService = require('./auth.service');
 const v = require('./validation');
 const { HttpError } = require('../errors');
 
@@ -220,7 +221,7 @@ async function updateOwn(user, body) {
 // Удаление анкеты психолога. Аккаунт остаётся – анкету можно заполнить заново.
 // С историей консультаций удалить нельзя (записи и цены в них должны сохраниться) – только скрыть.
 async function deleteOwn(user) {
-  if (profileRole(user) !== 'psychologist') throw new HttpError(403, 'Удалить можно только анкету психолога');
+  if (profileRole(user) === 'client') return deleteClientAccount(user);
   const current = await psychologistRepository.findOwnProfile(user.id);
   if (!current) throw new HttpError(404, 'Анкета уже удалена');
 
@@ -234,6 +235,17 @@ async function deleteOwn(user) {
   }
   await psychologistRepository.deleteProfile(user.id);
   await catalogCache.invalidate();
+}
+
+// Клиент удаляет аккаунт: предстоящие встречи нужно сначала отменить (психолог ждёт),
+// прошлые записи и отзывы остаются для истории психолога; все сессии входа завершаются
+async function deleteClientAccount(user) {
+  const { upcoming } = await userRepository.countClientAppointments(user.id);
+  if (upcoming) {
+    throw new HttpError(409, `Сначала отмените предстоящие сессии (${upcoming})`, { code: 'HAS_UPCOMING_APPOINTMENTS' });
+  }
+  await userRepository.markDeleted(user.id);
+  await authService.revokeAllSessions(user.id);
 }
 
 // ---------- Фото профиля ----------

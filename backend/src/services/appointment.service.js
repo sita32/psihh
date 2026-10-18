@@ -86,6 +86,7 @@ function appointmentView(row, user, history) {
     },
     client: { id: row.client_id, name: [row.client_first_name, row.client_last_name].filter(Boolean).join(' ') },
     hasReview: row.has_review,
+    review: row.review, // { id, status } – отзыв клиента по этой встрече, если есть
     actions: actionsFor(row, user),
     history,
   };

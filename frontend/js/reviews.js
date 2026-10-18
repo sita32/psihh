@@ -1,36 +1,36 @@
 /**
  * «Рядом» – отзывы в кабинете клиента (client-reviews.html).
- * Данные пока из data.js (CLIENT_REVIEWS, CLIENT_SESSIONS, PSYCHOLOGISTS).
- * Позже:
- *   GET    /api/reviews?author=me
- *   POST   /api/reviews { appointmentId, rating, text, anonymous }
- *   PATCH  /api/reviews/:id  – правка (снова уходит на проверку)
+ * Данные – из API:
+ *   GET    /api/reviews                                          – мои отзывы со статусом проверки
+ *   GET    /api/appointments?scope=past                          – сессии, по которым ещё нет отзыва
+ *   POST   /api/reviews { appointmentId, rating, body, anonymous }
+ *   PATCH  /api/reviews/:id                                      – правка (снова уходит на проверку)
  *   DELETE /api/reviews/:id
  */
 document.addEventListener('DOMContentLoaded', () => {
-  const { escapeHtml, dateAt, shortDate, fullDate, stars, toast } = UI;
+  const { escapeHtml, shortDate, fullDate, stars, toast } = UI;
   const $ = (sel) => document.querySelector(sel);
   UI.initModals();
 
-  const reviews = CLIENT_REVIEWS;
-  const psyBy = (id) => PSYCHOLOGISTS.find((p) => p.id === id);
+  let reviews = [];
+  let waitingList = [];
+
+  /** Маленькое фото: у демо-фото психологов есть квадратная версия -sq */
+  const thumb = (url) => (url && url.includes('/img/psychologists/') ? url.replace(/(\.\w+)$/, '-sq$1') : url);
+  const ava = (psy) => (psy.avatarUrl
+    ? `<img class="ava-sq" style="--s:44px" src="${escapeHtml(thumb(psy.avatarUrl))}" alt="">`
+    : UI.avatar(psy.name, null, 44));
+  const sessionText = (a) => `сессия ${shortDate(new Date(a.startsAt))}, ${a.time}`;
 
   /* ---------- Сессии, по которым ещё нет отзыва ---------- */
-  const waiting = () => CLIENT_SESSIONS.filter((s) => s.status === 'completed' && !s.review)
-    .sort((a, b) => b.k - a.k);
-
   const renderWaiting = () => {
-    const list = waiting();
-    $('[data-wait-wrap]').hidden = !list.length;
-    $('[data-wait]').innerHTML = list.map((s) => {
-      const p = psyBy(s.psy);
-      return `
-        <div class="rev-wait__item" data-session="${s.id}">
-          <img class="ava-sq" style="--s:44px" src="assets/img/psychologists/${p.photo}-sq.webp" alt="">
-          <span><b>${escapeHtml(p.name)}</b><small>Сессия ${shortDate(dateAt(s.k))}, ${s.time} · как всё прошло?</small></span>
+    $('[data-wait-wrap]').hidden = !waitingList.length;
+    $('[data-wait]').innerHTML = waitingList.map((a) => `
+        <div class="rev-wait__item" data-session="${a.id}">
+          ${ava(a.psychologist)}
+          <span><b>${escapeHtml(a.psychologist.name)}</b><small>Сессия ${shortDate(new Date(a.startsAt))}, ${a.time} · как всё прошло?</small></span>
           <button type="button" class="btn btn--primary btn--xs" data-act="new"><svg><use href="#i-star"/></svg>Оставить отзыв</button>
-        </div>`;
-    }).join('');
+        </div>`).join('');
   };
 
   /* ---------- Мои отзывы ---------- */
@@ -41,22 +41,22 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const card = (r) => {
-    const p = psyBy(r.psy);
     const btns = r.status === 'approved'
-      ? `<a href="psychologist.html?id=${p.id}#reviews" class="btn btn--line btn--xs"><svg><use href="#i-eye"/></svg>Посмотреть на&nbsp;странице</a>`
+      ? `<a href="psychologist.html?id=${r.psychologist.id}#reviews" class="btn btn--line btn--xs"><svg><use href="#i-eye"/></svg>Посмотреть на&nbsp;странице</a>
+         <button type="button" class="btn btn--line btn--xs" data-act="edit"><svg><use href="#i-edit"/></svg>Изменить</button>`
       : `<button type="button" class="btn btn--line btn--xs" data-act="edit"><svg><use href="#i-edit"/></svg>${r.status === 'rejected' ? 'Исправить и&nbsp;отправить' : 'Изменить'}</button>
          <button type="button" class="btn btn--danger btn--xs" data-act="delete"><svg><use href="#i-trash"/></svg>Удалить</button>`;
     return `
       <article class="rev" data-id="${r.id}">
         <header class="rev__head">
-          <img class="ava-sq" style="--s:44px" src="assets/img/psychologists/${p.photo}-sq.webp" alt="">
-          <span class="rev__who"><b>${escapeHtml(p.name)}</b><small>${fullDate(dateAt(r.created))}${r.anon ? ' · анонимно' : ''}</small></span>
+          ${ava(r.psychologist)}
+          <span class="rev__who"><b>${escapeHtml(r.psychologist.name)}</b><small>${fullDate(r.createdAt)}${r.anonymous ? ' · анонимно' : ''}</small></span>
           ${stars(r.rating, 18)}
           ${STATUS[r.status]}
         </header>
-        <p class="rev__text">${escapeHtml(r.text)}</p>
-        ${r.status === 'rejected' ? `<div class="rev__mod"><svg><use href="#i-alert"/></svg><span><b>Комментарий модератора:</b> ${escapeHtml(r.modComment)}</span></div>` : ''}
-        ${r.reply ? `<div class="rev__reply"><b>Ответ психолога</b>${escapeHtml(r.reply)}</div>` : ''}
+        ${r.body ? `<p class="rev__text">${escapeHtml(r.body)}</p>` : ''}
+        ${r.status === 'rejected' && r.moderationComment ? `<div class="rev__mod"><svg><use href="#i-alert"/></svg><span><b>Комментарий модератора:</b> ${escapeHtml(r.moderationComment)}</span></div>` : ''}
+        ${r.reply ? `<div class="rev__reply"><b>Ответ психолога</b>${escapeHtml(r.reply.text)}</div>` : ''}
         <div class="rev__foot">${btns}</div>
       </article>`;
   };
@@ -66,13 +66,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const render = () => {
     Object.keys(FILTER).forEach((t) => { $(`[data-count="${t}"]`).textContent = reviews.filter(FILTER[t]).length; });
-    const list = reviews.filter(FILTER[tab]).sort((a, b) => b.created - a.created);
+    const list = reviews.filter(FILTER[tab]);   // сервер отдаёт от новых к старым
     $('[data-list]').innerHTML = list.length ? list.map(card).join('') : `
       <div class="empty-box"><img src="assets/img/formats/individual.webp" alt=""><b>Здесь пока пусто</b>
       <p>Отзывы появятся после того, как вы оцените проведённые сессии.</p></div>`;
     renderWaiting();
   };
   UI.initTabs($('[data-tabs]'), (t) => { tab = t; render(); });
+
+  /** Отзывы и сессии без отзыва – заново с сервера */
+  const load = async () => {
+    try {
+      const [mine, past] = await Promise.all([API.get('/reviews'), API.get('/appointments', { scope: 'past', as: 'client' })]);
+      reviews = mine.items;
+      waitingList = past.items.filter((a) => a.actions.review);
+      render();
+    } catch (err) {
+      $('[data-list]').innerHTML = `<div class="empty-box"><b>Не удалось загрузить отзывы</b><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  };
+
+  /** Отправить и сообщить результат */
+  const send = async (request, okText) => {
+    try {
+      await request();
+      toast(okText);
+    } catch (err) {
+      toast(err.message, true);
+    }
+    load();
+  };
 
   /* ---------- Действия ---------- */
   document.querySelector('.cab-main').addEventListener('click', async (e) => {
@@ -81,44 +104,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Новый отзыв по сессии из блока «Ждут вашего отзыва»
     if (btn.dataset.act === 'new') {
-      const s = CLIENT_SESSIONS.find((x) => x.id === Number(btn.closest('[data-session]').dataset.session));
-      const p = psyBy(s.psy);
-      const res = await UI.askReview({ title: 'Отзыв о психологе', who: `<b>${escapeHtml(p.name)}</b> · сессия ${shortDate(dateAt(s.k))}, ${s.time}` });
+      const a = waitingList.find((x) => String(x.id) === btn.closest('[data-session]').dataset.session);
+      const res = await UI.askReview({ title: 'Отзыв о психологе', who: `<b>${escapeHtml(a.psychologist.name)}</b> · ${sessionText(a)}` });
       if (!res) return;
-      const id = Math.max(...reviews.map((r) => r.id)) + 1;
-      reviews.push({ id, session: s.id, psy: p.id, created: 0, status: 'pending', ...res });
-      s.review = id;
-      render();
-      toast('Спасибо! Отзыв отправлен на проверку');
+      send(() => API.post('/reviews', { appointmentId: a.id, rating: res.rating, body: res.text || null, anonymous: res.anon }),
+        'Спасибо! Отзыв отправлен на проверку');
       return;
     }
 
-    const r = reviews.find((x) => x.id === Number(btn.closest('[data-id]').dataset.id));
-    const p = psyBy(r.psy);
+    const r = reviews.find((x) => String(x.id) === btn.closest('[data-id]').dataset.id);
 
     // Правка: после изменения отзыв снова проверяет модератор
     if (btn.dataset.act === 'edit') {
-      const res = await UI.askReview({ title: 'Изменить отзыв', who: `<b>${escapeHtml(p.name)}</b>`, initial: r });
+      const res = await UI.askReview({
+        title: 'Изменить отзыв', who: `<b>${escapeHtml(r.psychologist.name)}</b>`,
+        initial: { rating: r.rating, text: r.body || '', anon: r.anonymous },
+      });
       if (!res) return;
-      Object.assign(r, res, { status: 'pending', modComment: undefined });
-      render();
-      toast('Отзыв отправлен на повторную проверку');
+      send(() => API.patch(`/reviews/${r.id}`, { rating: res.rating, body: res.text || null, anonymous: res.anon }),
+        'Отзыв отправлен на повторную проверку');
     }
 
     if (btn.dataset.act === 'delete') {
       const ok = await UI.confirmAction({
         title: 'Удалить отзыв?',
-        text: `Отзыв о&nbsp;специалисте ${escapeHtml(p.name)} будет удалён. Оставить новый по&nbsp;этой сессии можно будет снова.`,
+        text: `Отзыв о&nbsp;специалисте ${escapeHtml(r.psychologist.name)} будет удалён. Оставить новый по&nbsp;этой сессии можно будет снова.`,
         confirm: 'Удалить', danger: true,
       });
       if (!ok) return;
-      reviews.splice(reviews.indexOf(r), 1);
-      const s = CLIENT_SESSIONS.find((x) => x.review === r.id);
-      if (s) s.review = null;
-      render();
-      toast('Отзыв удалён');
+      send(() => API.del(`/reviews/${r.id}`), 'Отзыв удалён');
     }
   });
 
-  render();
+  load();
 });

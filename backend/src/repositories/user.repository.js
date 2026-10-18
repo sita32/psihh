@@ -101,6 +101,22 @@ async function setClientAvatar(userId, key, db = pool) {
   await db.query('UPDATE client_profiles SET avatar_key = $2 WHERE user_id = $1', [userId, key]);
 }
 
+// Предстоящие записи клиента (перед удалением аккаунта)
+async function countClientAppointments(userId, db = pool) {
+  const { rows } = await db.query(
+    `SELECT count(*)::int AS upcoming
+       FROM appointments a JOIN schedule_slots sl ON sl.id = a.slot_id
+      WHERE a.client_id = $1 AND a.status = 'scheduled' AND sl.starts_at > now()`,
+    [userId],
+  );
+  return rows[0];
+}
+
+// Аккаунт удалён самим пользователем: войти больше нельзя, история записей остаётся
+async function markDeleted(id, db = pool) {
+  await db.query("UPDATE users SET status = 'deleted' WHERE id = $1", [id]);
+}
+
 async function touchLastLogin(id, db = pool) {
   await db.query('UPDATE users SET last_login_at = now() WHERE id = $1', [id]);
 }
@@ -141,4 +157,6 @@ module.exports = {
   touchLastLogin,
   findActiveBlock,
   liftBlock,
+  markDeleted,
+  countClientAppointments,
 };

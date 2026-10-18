@@ -51,6 +51,20 @@ const Session = (() => {
     });
   }
 
+  /** «Чат» в меню кабинета: число непрочитанных сообщений (или без значка) */
+  async function fillChatBadge() {
+    const links = document.querySelectorAll('.cab-nav a[href$="chat.html"]');
+    if (!links.length) return;
+    let total = 0;
+    try { ({ total } = await API.get('/conversations/unread')); } catch { /* значок – не главное */ }
+    links.forEach((a) => {
+      let b = a.querySelector('.badge');
+      if (!total) { b?.remove(); return; }
+      if (!b) { b = document.createElement('span'); b.className = 'badge'; a.appendChild(b); }
+      b.textContent = total;
+    });
+  }
+
   /** Публичная шапка: значок «Войти» ведёт в кабинет */
   function fillPublic(u) {
     document.querySelectorAll('a[href="login.html"].btn--icon').forEach((a) => {
@@ -79,6 +93,7 @@ const Session = (() => {
       if (!u) { location.replace(loginUrl()); return; }
       if (!u.roles.includes(role)) { location.replace(home(u)); return; }
       fillCabinet(u, role);
+      if (role !== 'moderator' && !location.pathname.endsWith('chat.html')) fillChatBadge();   // в чате счётчик ведёт сам чат
     } else if (u) {
       fillPublic(u);
     }

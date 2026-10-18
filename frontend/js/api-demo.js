@@ -95,15 +95,16 @@ const DEMO_API = (() => {
 
   /* ---------- Психологи из data.js в виде ответа API ---------- */
 
-  const BOOKED_KEY = 'ryadom-demo-booked';   // окна, занятые демо-записью в этом браузере
   const pad = (n) => String(n).padStart(2, '0');
   const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const kOf = (date) => Math.round((new Date(`${date}T00:00:00`) - DEMO_TODAY) / 86400000);
   const startsAt = (k, time) => { const d = demoDateAt(k); d.setHours(...time.split(':').map(Number)); return d.toISOString(); };
   const slotId = (p, k, time) => `${p.id}:${isoDate(demoDateAt(k))}:${time}`;
-  const booked = () => new Set(load(BOOKED_KEY) || []);
-  /** Свободное время психолога через k дней (минус окна, занятые демо-записью) */
-  const freeOn = (p, k) => { const b = booked(); return demoSlotsOn(p, k).filter((t) => !b.has(slotId(p, k, t))); };
+  /** Свободное время психолога через k дней (минус окна, занятые записями клиента в этом браузере) */
+  const freeOn = (p, k) => {
+    const b = new Set(takenByClient());
+    return demoSlotsOn(p, k).filter((t) => !b.has(slotId(p, k, t)));
+  };
   const findPsy = (id) => PSYCHOLOGISTS.find((p) => String(p.id) === String(id)) || fail(404, 'NOT_FOUND', 'Психолог не найден');
 
   const card = (p, next) => {
@@ -246,25 +247,184 @@ const DEMO_API = (() => {
     return { from: isoDate(demoDateAt(from)), to: isoDate(demoDateAt(to)), timezone: 'Europe/Minsk', slots };
   });
 
-  /* ---------- Запись (окно запоминается занятым в этом браузере) ---------- */
+  /* ---------- Кабинет клиента: профиль, записи и отзывы Анны из data.js ----------
+     Изменения хранятся в localStorage – переходы между страницами их не теряют. */
+
+  const CLIENT_KEY = 'ryadom-demo-client';
+  const HIST_TYPES = [[/^Запись создана/, 'created'], [/^Перенесена/, 'rescheduled'], [/^Отменена/, 'cancelled'],
+    [/^Сессия состоялась/, 'completed'], [/^Отмечено/, 'no_show']];
+  const psyRef = (p) => ({ id: p.id, name: p.name, headline: p.role, avatarUrl: `assets/img/psychologists/${p.photo}.webp` });
+  const atOf = (k, time) => startsAt(k, time);
+
+  /** Записи и отзывы клиента: при первом обращении – из CLIENT_SESSIONS и CLIENT_REVIEWS */
+  const clientStore = () => {
+    const saved = load(CLIENT_KEY);
+    if (saved) return saved;
+    const store = { profile: { firstName: 'Анна', lastName: 'Петрова', birthDate: null, gender: 'female', phone: null,
+      avatarUrl: 'assets/img/avatars/a03.webp', about: null }, appointments: [], reviews: [], nextId: 1000 };
+    CLIENT_SESSIONS.forEach((x) => {
+      const p = findPsy(x.psy);
+      store.appointments.push({
+        id: x.id, status: x.status, startsAt: atOf(x.k, x.time), date: isoDate(demoDateAt(x.k)), time: x.time,
+        format: { code: 'individual', name: x.format, durationMin: 50 }, price: x.price, note: x.note || null, meetingUrl: null,
+        psychologist: psyRef(p),
+        history: x.hist.map((h) => {
+          const m = /с (\d\d:\d\d) на (\d\d:\d\d)/.exec(h.text);
+          return {
+            type: (HIST_TYPES.find(([re]) => re.test(h.text)) || [, 'created'])[1], at: atOf(h.k, h.time), reason: h.reason || null,
+            by: h.by === 'Вы' ? { role: 'client', name: 'Анна' } : { role: 'psychologist', name: h.by },
+            ...(m && { from: { date: isoDate(demoDateAt(x.k)), time: m[1] }, to: { date: isoDate(demoDateAt(x.k)), time: m[2] } }),
+          };
+        }),
+        reviewId: x.review || null,
+      });
+    });
+    CLIENT_REVIEWS.forEach((r) => {
+      const session = CLIENT_SESSIONS.find((x) => x.id === r.session);
+      store.reviews.push({ id: r.id, appointmentId: session ? session.id : null, psychologist: psyRef(findPsy(r.psy)),
+        rating: r.rating, body: r.text, anonymous: r.anon, status: r.status, moderationComment: r.modComment || null,
+        reply: r.reply ? { text: r.reply, at: null } : null, createdAt: atOf(r.created, '12:00') });
+    });
+    save(CLIENT_KEY, store);
+    return store;
+  };
+  const saveClient = (store) => save(CLIENT_KEY, store);
+
+  /** Запись в виде ответа API: доступные действия и статус отзыва считаются как на сервере */
+  const appointmentView = (a, store) => {
+    const started = new Date(a.startsAt) <= new Date();
+    const review = store.reviews.find((r) => r.appointmentId === a.id);
+    const open = a.status === 'scheduled' && !started;
+    return { ...a, needsMark: a.status === 'scheduled' && started, review: review ? { id: review.id, status: review.status } : null,
+      actions: { cancel: open, reschedule: open, markCompleted: false, markNoShow: false, review: a.status === 'completed' && !review } };
+  };
+  const clientOnly = (who) => { const u = who(); if (!u.roles.includes('client')) fail(403, 'FORBIDDEN', 'Недостаточно прав для этого действия'); return u; };
+  const findAppt = (store, id) => store.appointments.find((a) => String(a.id) === String(id)) || fail(404, 'NOT_FOUND', 'Запись не найдена');
+  const event = (type, extra = {}) => ({ type, at: new Date().toISOString(), by: { role: 'client', name: 'Вы' }, reason: null, ...extra });
+  /** Окна, занятые записями клиента, – больше не свободны */
+  const takenByClient = () => { try { return clientStore().appointments.filter((a) => a.status === 'scheduled').map((a) => a.slotId).filter(Boolean); } catch { return []; } };
+
+  route('GET', /^\/profile$/, (_, { me: who }) => ({ role: 'client', profile: clientStore(clientOnly(who)).profile }));
+  route('PATCH', /^\/profile$/, (body, { me: who }) => {
+    clientOnly(who);
+    const store = clientStore();
+    const fields = {};
+    if (body.firstName !== undefined && !String(body.firstName).trim()) fields.firstName = 'Укажите имя';
+    const phone = body.phone ? String(body.phone).replace(/[\s()-]/g, '') : body.phone;
+    if (phone && !/^\+?[0-9]{7,15}$/.test(phone)) fields.phone = 'Телефон в формате +375291234567';
+    if (Object.keys(fields).length) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', fields);
+    const { avatar, ...rest } = body;
+    Object.assign(store.profile, rest, phone !== undefined ? { phone } : {});
+    if (avatar !== undefined) store.profile.avatarUrl = avatar ? `assets/img/avatars/${avatar}.webp` : null;
+    saveClient(store);
+    const user = load(USER_KEY);
+    save(USER_KEY, { ...user, firstName: store.profile.firstName, avatarUrl: store.profile.avatarUrl });   // шапка – по профилю
+    return { role: 'client', profile: store.profile };
+  });
+  route('DELETE', /^\/profile$/, (_, { me: who }) => {
+    clientOnly(who);
+    const upcoming = clientStore().appointments.filter((a) => a.status === 'scheduled' && new Date(a.startsAt) > new Date()).length;
+    if (upcoming) fail(409, 'HAS_UPCOMING_APPOINTMENTS', `Сначала отмените предстоящие сессии (${upcoming})`);
+    forget(CLIENT_KEY);
+    forget(USER_KEY);
+    return null;
+  });
+
+  route('GET', /^\/appointments$/, (_, { me: who, query }) => {
+    clientOnly(who);
+    const store = clientStore();
+    const now = new Date();
+    const SCOPES = {
+      upcoming: (a) => a.status === 'scheduled' && new Date(a.startsAt) > now,
+      past: (a) => ['scheduled', 'completed', 'no_show'].includes(a.status) && new Date(a.startsAt) <= now,
+      cancelled: (a) => a.status === 'cancelled',
+      all: () => true,
+    };
+    const items = store.appointments.filter(SCOPES[query.scope || 'upcoming'])
+      .sort((x, y) => (query.scope === 'upcoming' ? 1 : -1) * (new Date(x.startsAt) - new Date(y.startsAt)));
+    return { as: 'client', scope: query.scope || 'upcoming', items: items.map((a) => appointmentView(a, store)) };
+  });
 
   route('POST', /^\/appointments$/, (body, { me: who }) => {
-    const user = who();
-    if (!user.roles.includes('client')) fail(403, 'FORBIDDEN', 'Записываться могут только клиенты');
+    clientOnly(who);
     // Номер окна в демо: «психолог:дата:время»
     const [, pid, date, time] = /^(\d+):(\d{4}-\d{2}-\d{2}):(\d{2}:\d{2})$/.exec(String(body.slotId || ''))
       || fail(404, 'NOT_FOUND', 'Окно не найдено');
     const p = findPsy(pid);
     const k = kOf(date);
     if (!freeOn(p, k).includes(time)) fail(409, 'SLOT_TAKEN', 'Это время уже заняли – выберите другое');
-    const service = card(p).services.find((s) => s.code === (body.format || 'individual'))
+    const service = card(p).services.find((x) => x.code === (body.format || 'individual'))
       || fail(422, 'VALIDATION_ERROR', 'Психолог не работает в этом формате', { format: 'Выберите другой формат' });
-    save(BOOKED_KEY, [...booked(), body.slotId]);
-    return {
-      id: Date.now(), status: 'scheduled', startsAt: startsAt(k, time), date, time,
+    const store = clientStore();
+    const a = { id: store.nextId++, status: 'scheduled', startsAt: startsAt(k, time), date, time, slotId: body.slotId,
       format: { code: service.code, name: service.name, durationMin: 50 }, price: service.price, note: body.note || null,
-      psychologist: { id: p.id, name: p.name, headline: p.role, avatarUrl: `assets/img/psychologists/${p.photo}.webp` },
-    };
+      meetingUrl: null, psychologist: psyRef(p), history: [event('created')] };
+    store.appointments.push(a);
+    saveClient(store);
+    return appointmentView(a, store);
+  });
+
+  route('PATCH', /^\/appointments\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    clientOnly(who);
+    const store = clientStore();
+    const a = findAppt(store, id);
+    if (body.status !== 'cancelled') fail(403, 'FORBIDDEN', 'Отметить встречу может только психолог');
+    if (String(body.reason || '').trim().length < 3) fail(422, 'VALIDATION_ERROR', 'Укажите причину', { reason: 'Напишите причину' });
+    if (!appointmentView(a, store).actions.cancel) fail(409, 'CANNOT_CANCEL', 'Отменить можно только запланированную встречу до её начала');
+    a.status = 'cancelled';
+    a.history.push(event('cancelled', { reason: body.reason }));
+    saveClient(store);
+    return appointmentView(a, store);
+  });
+
+  route('POST', /^\/appointments\/(\d+)\/reschedule$/, (body, { me: who, params: [id] }) => {
+    clientOnly(who);
+    const store = clientStore();
+    const a = findAppt(store, id);
+    if (String(body.reason || '').trim().length < 3) fail(422, 'VALIDATION_ERROR', 'Укажите причину', { reason: 'Напишите причину' });
+    const [, pid, date, time] = /^(\d+):(\d{4}-\d{2}-\d{2}):(\d{2}:\d{2})$/.exec(String(body.slotId || '')) || fail(404, 'NOT_FOUND', 'Окно не найдено');
+    if (String(pid) !== String(a.psychologist.id) || !freeOn(findPsy(pid), kOf(date)).includes(time)) fail(409, 'SLOT_TAKEN', 'Это время уже заняли – выберите другое');
+    const from = { date: a.date, time: a.time };
+    Object.assign(a, { startsAt: startsAt(kOf(date), time), date, time, slotId: body.slotId });
+    a.history.push(event('rescheduled', { reason: body.reason, from, to: { date, time } }));
+    saveClient(store);
+    return appointmentView(a, store);
+  });
+
+  route('GET', /^\/reviews$/, (_, { me: who }) => {
+    clientOnly(who);
+    return { items: [...clientStore().reviews].sort((x, y) => new Date(y.createdAt) - new Date(x.createdAt)) };
+  });
+  const reviewBody = (body) => {
+    const rating = Number(body.rating);
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', { rating: 'Оценка от 1 до 5' });
+    return { rating, body: body.body || null, anonymous: body.anonymous === true };
+  };
+  route('POST', /^\/reviews$/, (body, { me: who }) => {
+    clientOnly(who);
+    const store = clientStore();
+    const a = findAppt(store, body.appointmentId);
+    if (!appointmentView(a, store).actions.review) fail(409, 'ALREADY_REVIEWED', 'Отзыв по этой консультации уже есть');
+    const r = { id: store.nextId++, appointmentId: a.id, psychologist: a.psychologist, ...reviewBody(body),
+      status: 'pending', moderationComment: null, reply: null, createdAt: new Date().toISOString() };
+    store.reviews.push(r);
+    saveClient(store);
+    return r;
+  });
+  route('PATCH', /^\/reviews\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    clientOnly(who);
+    const store = clientStore();
+    const r = store.reviews.find((x) => String(x.id) === id) || fail(404, 'NOT_FOUND', 'Отзыв не найден');
+    Object.assign(r, reviewBody(body), { status: 'pending', moderationComment: null });   // снова на проверку
+    saveClient(store);
+    return r;
+  });
+  route('DELETE', /^\/reviews\/(\d+)$/, (_, { me: who, params: [id] }) => {
+    clientOnly(who);
+    const store = clientStore();
+    store.reviews = store.reviews.filter((x) => String(x.id) !== id);
+    saveClient(store);
+    return null;
   });
 
   /* ---------- Подбор по анкете: те же правила, что у сервера ---------- */
@@ -305,6 +465,117 @@ const DEMO_API = (() => {
     };
   });
 
+  /* ---------- Чат: демо-переписка из data.js (DIALOGS / PSY_DIALOGS) в виде ответов API ---------- */
+
+  const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  /** «Сегодня», «Вчера», «12 октября» → дата */
+  const parseDay = (label) => {
+    const rel = { 'Сегодня': 0, 'Вчера': -1, 'Позавчера': -2 }[label];
+    if (rel !== undefined) return demoDateAt(rel);
+    const [d, m] = label.split(' ');
+    return new Date(DEMO_TODAY.getFullYear(), MONTHS.indexOf(m), Number(d));
+  };
+
+  let chat = null;   // переписка собирается один раз на страницу
+  const chatState = (user) => {
+    if (chat) return chat;
+    const isPsy = user.roles.includes('psychologist');
+    let msgId = 1;
+    const conversations = (isPsy ? PSY_DIALOGS : DIALOGS).filter((d) => d.photo).map((d) => {
+      const partnerId = d.profile ? Number(new URLSearchParams(d.profile.split('?')[1]).get('id')) : d.id * 1000;
+      let day = DEMO_TODAY;
+      const messages = [];
+      const events = [];
+      d.messages.forEach((m) => {
+        if (m.day) { day = parseDay(m.day); return; }
+        const at = new Date(day);
+        const [h, mi] = (m.time || '12:00').split(':').map(Number);
+        at.setHours(h, mi);
+        if (m.event) {
+          events.push({ type: { booked: 'booked', moved: 'rescheduled', done: 'completed' }[m.event], at: at.toISOString(), label: m.text });
+          return;
+        }
+        messages.push({
+          id: msgId++, conversationId: d.id, senderId: m.from === 'me' ? user.id : partnerId,
+          body: m.text || null, attachment: m.file ? { name: m.file.name } : null,
+          createdAt: (at > new Date() ? new Date() : at).toISOString(), readAt: at.toISOString(),
+        });
+      });
+      // Последние входящие – непрочитанные, как в демо
+      messages.filter((m) => m.senderId !== user.id).slice(-d.unread).forEach((m) => { if (d.unread) m.readAt = null; });
+      return {
+        id: d.id, messages, events, typingReplies: 0,
+        partner: { id: partnerId, role: isPsy ? 'client' : 'psychologist', name: d.name, headline: d.role, avatarUrl: d.photo },
+        online: d.online, lastSeenText: d.lastSeen || null,
+        nextSession: d.nextSession ? { label: d.nextSession } : null,
+      };
+    });
+    chat = { conversations, nextId: msgId, replies: isPsy ? PSY_DEMO_REPLIES : DEMO_REPLIES };
+    return chat;
+  };
+  const convOf = (user, id) => chatState(user).conversations.find((c) => String(c.id) === String(id))
+    || fail(404, 'NOT_FOUND', 'Диалог не найден');
+  const unreadOf = (user, c) => c.messages.filter((m) => m.senderId !== user.id && !m.readAt).length;
+
+  route('GET', /^\/conversations$/, (_, { me: who }) => {
+    const user = who();
+    return {
+      items: chatState(user).conversations.map((c) => ({
+        id: c.id, partner: c.partner, online: c.online, lastSeenAt: null, lastSeenText: c.lastSeenText,
+        lastMessage: c.messages[c.messages.length - 1] || null, unread: unreadOf(user, c), nextSession: c.nextSession,
+      })),
+    };
+  });
+
+  route('GET', /^\/conversations\/unread$/, (_, { me: who }) => {
+    const user = who();
+    const byConversation = {};
+    chatState(user).conversations.forEach((c) => { const n = unreadOf(user, c); if (n) byConversation[c.id] = n; });
+    return { total: Object.values(byConversation).reduce((a, b) => a + b, 0), byConversation };
+  });
+
+  route('GET', /^\/conversations\/(\d+)\/messages$/, (_, { me: who, params: [id] }) => {
+    const c = convOf(who(), id);
+    // Копии – как с сервера: страница не должна видеть изменения демо-хранилища напрямую
+    return { conversationId: c.id, messages: c.messages.map((m) => ({ ...m })), events: c.events.map((e) => ({ ...e })), hasMore: false };
+  });
+
+  /** Новое сообщение в демо-диалоге (текст или файл – только имя, сам файл никуда не уходит) */
+  const addMessage = (user, id, body, fileName) => {
+    const c = convOf(user, id);
+    const text = String(body || '').trim();
+    if (!text && !fileName) fail(422, 'VALIDATION_ERROR', 'Пустое сообщение', { body: 'Напишите сообщение' });
+    const m = { id: chat.nextId++, conversationId: c.id, senderId: user.id, body: text || null,
+      attachment: fileName ? { name: fileName } : null, createdAt: new Date().toISOString(), readAt: null };
+    c.messages.push(m);
+    return { ...m };
+  };
+  route('POST', /^\/conversations\/(\d+)\/messages$/, (body, { me: who, params: [id] }) => addMessage(who(), id, body.body));
+  route('POST', /^\/conversations\/(\d+)\/attachments$/, (form, { me: who, params: [id] }) => {
+    const file = form instanceof FormData ? form.get('file') : null;
+    return addMessage(who(), id, form instanceof FormData ? form.get('body') : '', file ? file.name : 'файл');
+  });
+  route('POST', /^\/conversations\/(\d+)\/read$/, (_, { me: who, params: [id] }) => {
+    const user = who();
+    const c = convOf(user, id);
+    const unread = c.messages.filter((m) => m.senderId !== user.id && !m.readAt);
+    unread.forEach((m) => { m.readAt = new Date().toISOString(); });
+    return { conversationId: c.id, read: unread.length };
+  });
+
+  /** Ответ собеседника в демо (сервера и живого собеседника нет): следующий из заготовленных */
+  const demoReply = (conversationId) => {
+    const user = load(USER_KEY);
+    if (!user || !chat) return null;
+    const c = chat.conversations.find((x) => x.id === conversationId);
+    if (!c || !c.online) return null;
+    const m = { id: chat.nextId++, conversationId: c.id, senderId: c.partner.id,
+      body: chat.replies[c.typingReplies++ % chat.replies.length], attachment: null,
+      createdAt: new Date().toISOString(), readAt: null };
+    c.messages.push(m);
+    return { ...m };
+  };
+
   /* ---------- Разбор запроса ---------- */
 
   async function handle(method, url, body) {
@@ -321,6 +592,7 @@ const DEMO_API = (() => {
     route,
     fail,
     me,
+    demoReply,
     /** Файлы в демо – образцы (их нет на диске сайта, поэтому – картинка-заглушка из assets) */
     fileUrl: () => 'assets/img/quiz/start.webp',
   };

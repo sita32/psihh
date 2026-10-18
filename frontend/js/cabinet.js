@@ -1,7 +1,9 @@
 /**
  * «Рядом» – личный кабинет (клиент и психолог).
- * Пока только интерфейс: данные никуда не отправляются, сохранение показывает уведомление.
- * Позже здесь будут запросы к API на NodeJS (см. комментарии «API»).
+ * Клиент: профиль – GET/PATCH /api/profile (имя, телефон, дата рождения, «о себе», готовый аватар),
+ * удаление аккаунта – DELETE /api/profile. Темы запроса и часовой пояс в базе не хранятся –
+ * они запоминаются в этом браузере.
+ * Психолог: пока интерфейс без сервера (см. комментарии «API») – переедет на API в части 7.4.
  */
 document.addEventListener('DOMContentLoaded', () => {
   const role = document.body.dataset.role;            // client | psychologist
@@ -63,11 +65,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /** Удаление аккаунта / профиля (подтверждение в диалоге) */
   const deleteModal = document.getElementById('delete-modal');
-  deleteModal.addEventListener('close', () => {
+  deleteModal.addEventListener('close', async () => {
     if (deleteModal.returnValue !== 'delete') return;
-    // API: DELETE /api/users/me
+    try {
+      await API.del('/profile');
+    } catch (err) {
+      toast(err.message, true);
+      return;
+    }
     toast(role === 'client' ? 'Аккаунт удалён' : 'Профиль удалён');
-    setTimeout(() => { location.href = 'index.html'; }, 1400);
+    // Клиент выходит совсем; у психолога остаётся аккаунт – анкету можно заполнить заново
+    setTimeout(() => { if (role === 'client') Session.logout(); else location.reload(); }, 1400);
   });
 
   /** Проверка обязательных полей формы */
@@ -90,9 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
      Кабинет клиента: аватар из готовых или «без фото»
      ------------------------------------------------------------------ */
   if (role === 'client') {
-    const nameInput = form.querySelector('[name="name"]');
+    const F = (n) => form.elements.namedItem(n);
+    const nameInput = F('name');
     const modal = document.getElementById('avatar-modal');
-    let avatar = 'a03';                                 // выбранный аватар; 'none' – без фото
+    const PREFS_KEY = 'ryadom-client-prefs';           // темы запроса и часовой пояс – только в браузере
+    const PRESET_RE = /assets\/img\/avatars\/(a\d\d)\.webp$/;
+    const SERVER_FIELDS = { firstName: 'name', birthDate: 'birth' };   // поле API → поле формы
+    let avatar = 'none';                               // выбранный аватар: 'a01'…'a12' или 'none' – без фото
 
     const render = () => {
       const src = avatar === 'none' ? null : `assets/img/avatars/${avatar}.webp`;
@@ -118,15 +130,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('[data-avatar-clear]').addEventListener('click', () => { avatar = 'none'; render(); markDirty(); });
     nameInput.addEventListener('input', render);
-    render();
 
-    form.addEventListener('submit', (e) => {
+    /** Темы и часовой пояс – из браузера */
+    const loadPrefs = () => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; } };
+    const savePrefs = () => {
+      const prefs = { tz: F('tz').value, topics: [...form.querySelectorAll('[name="topics"]:checked')].map((i) => i.value) };
+      try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch { /* приватный режим – не страшно */ }
+    };
+
+    /** Профиль с сервера → форма */
+    const fill = (profile, user) => {
+      nameInput.value = profile.firstName || '';
+      F('email').value = user.email;
+      F('phone').value = profile.phone || '';
+      F('birth').value = profile.birthDate || '';
+      F('about').value = profile.about || '';
+      const m = PRESET_RE.exec(profile.avatarUrl || '');
+      avatar = m ? m[1] : 'none';
+      const prefs = loadPrefs();
+      if (prefs.tz) F('tz').value = prefs.tz;
+      if (prefs.topics) form.querySelectorAll('[name="topics"]').forEach((i) => { i.checked = prefs.topics.includes(i.value); });
+      F('about').dispatchEvent(new Event('input'));    // обновить счётчик символов
+      render();
+      markSaved();
+    };
+
+    // Почту меняет только служба поддержки – поле только для чтения
+    F('email').readOnly = true;
+    F('email').title = 'Почту можно сменить через службу поддержки';
+
+    (async () => {
+      try {
+        const [user, { profile }] = await Promise.all([Session.user(), API.get('/profile')]);
+        if (profile && user) fill(profile, user);
+      } catch (err) {
+        toast(`Не удалось загрузить профиль: ${err.message}`, true);
+      }
+    })();
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const bad = validateRequired();
       if (bad) { bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('Проверьте выделенные поля', true); return; }
-      // API: PATCH /api/clients/me  { ...данные формы, avatar }
-      markSaved();
-      toast('Изменения сохранены');
+      savePrefs();
+      try {
+        const { profile } = await API.patch('/profile', {
+          firstName: nameInput.value.trim(),
+          phone: F('phone').value.trim() || null,
+          birthDate: F('birth').value || null,
+          about: F('about').value.trim() || null,
+          avatar: avatar === 'none' ? null : avatar,
+        });
+        markSaved();
+        toast('Изменения сохранены');
+        // Имя и фото в шапке – как на сервере
+        document.querySelectorAll('.cab-top .me .me__name').forEach((el) => { el.textContent = profile.firstName; });
+      } catch (err) {
+        // Ошибки по полям – подсветить поле, текст – во всплывающем сообщении
+        Object.keys(err.fields || {}).forEach((f) => form.querySelector(`[name="${SERVER_FIELDS[f] || f}"]`)?.closest('.f')?.classList.add('is-error'));
+        toast(err.fields ? Object.values(err.fields)[0] : err.message, true);
+      }
     });
   }
 

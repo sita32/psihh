@@ -11,19 +11,24 @@ const { requireAuth, readCookie, ACCESS_COOKIE, REFRESH_COOKIE } = require('../m
 const router = Router();
 
 const cookieBase = { httpOnly: true, sameSite: 'strict', secure: config.auth.cookieSecure };
-const accessCookie = { ...cookieBase, path: '/api' };
+// access-токен нужен и API (/api), и чату (/socket.io) – поэтому на весь сайт
+const accessCookie = { ...cookieBase, path: '/' };
 const refreshCookie = { ...cookieBase, path: '/api/auth' }; // refresh-токен уходит только на /api/auth
+// Раньше access-cookie ставилась на /api – у входивших она осталась, её убираем при входе и выходе
+const legacyAccessCookie = { ...cookieBase, path: '/api' };
 
 // Без «Запомнить меня» cookie без срока – удаляются при закрытии браузера.
 // Cookie access-токена живёт дольше самого токена: истёкший JWT дойдёт до сервера,
 // и тот ответит TOKEN_EXPIRED – интерфейс поймёт, что пора вызвать /refresh.
 function setSessionCookies(res, { accessToken, refreshToken, remember }) {
   const maxAge = remember ? { maxAge: config.auth.refreshTtlSec * 1000 } : {};
+  res.clearCookie(ACCESS_COOKIE, legacyAccessCookie);
   res.cookie(ACCESS_COOKIE, accessToken, { ...accessCookie, ...maxAge });
   res.cookie(REFRESH_COOKIE, refreshToken, { ...refreshCookie, ...maxAge });
 }
 
 function clearSessionCookies(res) {
+  res.clearCookie(ACCESS_COOKIE, legacyAccessCookie);
   res.clearCookie(ACCESS_COOKIE, accessCookie);
   res.clearCookie(REFRESH_COOKIE, refreshCookie);
 }

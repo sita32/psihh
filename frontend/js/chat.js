@@ -1,160 +1,15 @@
 /**
  * «Рядом» – чат клиента с психологом (client-chat.html и psy-chat.html).
- * Роль берётся из <body data-role>: у клиента – диалоги с психологами (DIALOGS),
- * у психолога – диалоги с клиентами (PSY_DIALOGS). Ответы собеседника имитируются.
- * Позже: список диалогов и сообщения придут с сервера (API на NodeJS),
- * а новые сообщения – в реальном времени через WebSocket (например, Socket.IO).
+ * Роль – из <body data-role>: у клиента – диалоги с психологами, у психолога – с клиентами.
+ * Данные – из API: GET /api/conversations (список), …/:id/messages (переписка и события записей),
+ * отправка – Socket.IO «message:send» (или POST …/messages), файл – POST …/attachments,
+ * «прочитано» – «messages:read». В реальном времени приходят message:new, messages:read,
+ * typing («печатает…») и presence («в сети»). Без сервера ответ собеседника имитирует демо-слой.
  */
 
-/* ---------- Демо-данные ---------- */
-const DIALOGS = [
-  {
-    id: 1,
-    name: 'Марина Волкова',
-    role: 'Клинический психолог',
-    photo: 'assets/img/psychologists/p01-sq.webp',
-    online: true,
-    profile: 'psychologist.html?id=1',
-    nextSession: 'Чт, 15 октября, 15:00',
-    unread: 2,
-    messages: [
-      { day: '12 октября' },
-      { from: 'psy', time: '18:02', text: 'Здравствуйте, Анна! Я получила вашу анкету. Перед первой встречей можно коротко написать, что сейчас беспокоит больше всего?' },
-      { from: 'me', time: '18:20', text: 'Здравствуйте! В последнее время сложно уснуть – постоянно прокручиваю мысли о работе.' },
-      { from: 'psy', time: '18:24', text: 'Спасибо, что поделились. Обсудим это на сессии. Если до встречи станет тяжело – пишите.' },
-      { event: 'booked', text: 'Вы записались на сессию · <b>чт, 15 октября, 12:30</b>' },
-      { day: 'Вчера' },
-      { from: 'me', time: '10:15', text: 'Марина, можно перенести встречу на попозже? На работе совещание.' },
-      { event: 'moved', text: 'Сессия перенесена на <b>15:00</b> · причина: рабочее совещание' },
-      { from: 'psy', time: '10:31', text: 'Конечно, перенесла на 15:00. Жду вас 🙂' },
-      { day: 'Сегодня' },
-      { from: 'psy', time: '09:12', file: { name: 'Дневник мыслей.pdf', size: '240 КБ' } },
-      { from: 'psy', time: '09:13', text: 'Если будет время – попробуйте заполнить этот дневник пару дней. Обсудим на встрече.' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Дмитрий Соколов',
-    role: 'Гештальт-терапевт',
-    photo: 'assets/img/psychologists/p06-sq.webp',
-    online: false,
-    lastSeen: 'был в сети 2 часа назад',
-    profile: 'psychologist.html?id=2',
-    unread: 0,
-    messages: [
-      { day: '28 сентября' },
-      { event: 'done', text: 'Сессия состоялась · <b>пн, 28 сентября, 19:00</b>' },
-      { from: 'psy', time: '20:05', text: 'Спасибо за встречу. Если захотите продолжить – свободные окна есть в моём расписании.' },
-      { from: 'me', time: '20:40', text: 'Спасибо! Пока попробую поработать с Мариной, но буду иметь в виду.' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Поддержка «Рядом»',
-    role: 'Служба поддержки',
-    photo: null,
-    color: '#4AA597',
-    online: true,
-    unread: 0,
-    messages: [
-      { day: '10 октября' },
-      { from: 'psy', time: '12:00', text: 'Здравствуйте! Мы на связи каждый день с 9:00 до 21:00. Напишите, если что-то не получается с записью или оплатой.' },
-    ],
-  },
-];
-
-/* Диалоги психолога «Марина Волкова» с клиентами.
-   Переписка с Анной – та же, что у клиента, только глазами психолога */
-const PSY_DIALOGS = [
-  {
-    id: 11,
-    name: 'Анна',
-    role: 'Клиент · 4-я сессия',
-    photo: 'assets/img/avatars/a03.webp',
-    online: true,
-    nextSession: 'Завтра, 15:00',
-    unread: 1,
-    messages: [
-      { day: '12 октября' },
-      { from: 'me', time: '18:02', text: 'Здравствуйте, Анна! Я получила вашу анкету. Перед первой встречей можно коротко написать, что сейчас беспокоит больше всего?' },
-      { from: 'psy', time: '18:20', text: 'Здравствуйте! В последнее время сложно уснуть – постоянно прокручиваю мысли о работе.' },
-      { from: 'me', time: '18:24', text: 'Спасибо, что поделились. Обсудим это на сессии. Если до встречи станет тяжело – пишите.' },
-      { event: 'booked', text: 'Анна записалась на сессию · <b>15 октября, 12:30</b>' },
-      { day: 'Вчера' },
-      { from: 'psy', time: '10:15', text: 'Марина, можно перенести встречу на попозже? На работе совещание.' },
-      { event: 'moved', text: 'Сессия перенесена на <b>15:00</b> · причина: рабочее совещание' },
-      { from: 'me', time: '10:31', text: 'Конечно, перенесла на 15:00. Жду вас 🙂' },
-      { day: 'Сегодня' },
-      { from: 'me', time: '09:12', file: { name: 'Дневник мыслей.pdf', size: '240 КБ' } },
-      { from: 'me', time: '09:13', text: 'Если будет время – попробуйте заполнить этот дневник пару дней. Обсудим на встрече.' },
-      { from: 'psy', time: '09:40', text: 'Спасибо! Начну сегодня вечером.' },
-    ],
-  },
-  {
-    id: 12,
-    name: 'Ольга',
-    role: 'Клиент · первая встреча',
-    photo: 'assets/img/avatars/a07.webp',
-    online: false,
-    lastSeen: 'была в сети час назад',
-    nextSession: 'Пн, 10:00',
-    unread: 1,
-    messages: [
-      { day: 'Позавчера' },
-      { event: 'booked', text: 'Ольга записалась на первую сессию · <b>пн, 10:00</b>' },
-      { from: 'psy', time: '22:10', text: 'Здравствуйте. Я никогда раньше не ходила к психологу – нужно ли как-то готовиться к первой встрече?' },
-    ],
-  },
-  {
-    id: 13,
-    name: 'Павел',
-    role: 'Клиент · 3-я сессия',
-    photo: 'assets/img/avatars/a04.webp',
-    online: false,
-    lastSeen: 'был в сети вчера',
-    nextSession: 'Ср, 18:30',
-    unread: 0,
-    messages: [
-      { day: '14 октября' },
-      { event: 'done', text: 'Сессия состоялась · <b>ср, 14 октября, 18:30</b>' },
-      { from: 'psy', time: '19:30', text: 'Спасибо за встречу, стало спокойнее. Записался на следующую среду.' },
-      { from: 'me', time: '19:45', text: 'Рада слышать, Павел. До встречи!' },
-    ],
-  },
-  {
-    id: 14,
-    name: 'Поддержка «Рядом»',
-    role: 'Служба поддержки',
-    photo: null,
-    color: '#4AA597',
-    online: true,
-    unread: 0,
-    messages: [
-      { day: '10 октября' },
-      { from: 'psy', time: '12:00', text: 'Марина, ваш профиль прошёл проверку и опубликован в каталоге. Если появятся вопросы по выплатам или расписанию – пишите сюда.' },
-    ],
-  },
-];
-
-/* Ответы клиента – для демонстрации в кабинете психолога (по кругу) */
-const PSY_DEMO_REPLIES = [
-  'Спасибо, поняла!',
-  'Хорошо, обязательно попробую.',
-  'Договорились 🙂',
-];
-
-/* Ответы психолога для демонстрации (по кругу) */
-const DEMO_REPLIES = [
-  'Спасибо, что написали. Давайте обсудим это подробнее на нашей встрече.',
-  'Понимаю. Если станет тяжелее – напишите, я отвечу, как только смогу.',
-  'Хорошо, отметила для себя 🙂',
-];
-
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Кто открыл чат: клиент (по умолчанию) или психолог
   const isPsy = document.body.dataset.role === 'psychologist';
-  const LIST = isPsy ? PSY_DIALOGS : DIALOGS;
-  const REPLIES = isPsy ? PSY_DEMO_REPLIES : DEMO_REPLIES;
   const chat = document.querySelector('[data-chat]');
   const listEl = document.querySelector('[data-dialogs]');
   const messagesEl = document.querySelector('[data-messages]');
@@ -162,131 +17,264 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.querySelector('[data-input]');
   const sendBtn = form.querySelector('.send');
   const search = document.querySelector('[data-search]');
-  let current = LIST[0];
-  let replyIndex = 0;
+
+  let me = null;              // кто вошёл
+  let list = [];              // диалоги
+  let current = null;         // открытый диалог
+  let thread = { messages: [], events: [] };   // переписка открытого диалога
+  let socket = null;          // соединение Socket.IO (только с сервером)
 
   /* ---------- Помощники ---------- */
-  const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const now = () => new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pad = (n) => String(n).padStart(2, '0');
+  const hhmm = (iso) => { const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const dayStart = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+  /** «Сегодня», «Вчера», «12 октября» */
+  const dayLabel = (iso) => {
+    const k = Math.round((dayStart(new Date()) - dayStart(iso)) / 86400000);
+    if (k === 0) return 'Сегодня';
+    if (k === 1) return 'Вчера';
+    return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  };
+  /** Время в списке диалогов: сегодня – часы, раньше – дата */
+  const listTime = (iso) => (dayLabel(iso) === 'Сегодня' ? hhmm(iso) : new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', ''));
 
+  /** Цвет «заглушки без фото» зависит от имени */
+  const COLORS = ['#F0886B', '#4AA597', '#E9B526', '#4C8FE6', '#A08BEA', '#2E4C86'];
+  const colorFor = (name) => { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; };
+  /** Маленькое фото: у демо-фото психологов есть квадратная версия -sq */
+  const thumb = (url) => (url && url.includes('/img/psychologists/') ? url.replace(/(\.\w+)$/, '-sq$1') : url);
   /** Квадратный аватар: фото или первая буква на цветном фоне */
-  const avatar = (d, size) => (d.photo
-    ? `<span class="ava-sq" style="--s:${size}px"><img src="${d.photo}" alt=""></span>`
-    : `<span class="ava-sq" style="--s:${size}px;--c:${d.color}">${d.name[0]}</span>`);
+  const avatar = (p, size) => (p.avatarUrl
+    ? `<span class="ava-sq" style="--s:${size}px"><img src="${escapeHtml(thumb(p.avatarUrl))}" alt=""></span>`
+    : `<span class="ava-sq" style="--s:${size}px;--c:${colorFor(p.name)}">${escapeHtml(p.name[0])}</span>`);
 
-  /** Последнее текстовое сообщение диалога – для превью в списке */
-  const lastOf = (d) => {
-    const m = [...d.messages].reverse().find((x) => x.text || x.file);
-    if (!m) return { text: '', time: '' };
-    const prefix = m.from === 'me' ? 'Вы: ' : '';
-    return { text: prefix + (m.file ? `📎 ${m.file.name}` : m.text), time: m.time };
+  /** Подпись под именем: «в сети», «был(а) в сети …» или роль */
+  const statusText = (c) => {
+    if (c.online) return 'в сети';
+    if (c.lastSeenText) return c.lastSeenText;
+    if (c.lastSeenAt) {
+      const min = Math.round((Date.now() - new Date(c.lastSeenAt)) / 60000);
+      const ago = min < 60 ? `${Math.max(1, min)} мин назад` : dayLabel(c.lastSeenAt) === 'Сегодня' ? `в ${hhmm(c.lastSeenAt)}` : dayLabel(c.lastSeenAt).toLowerCase();
+      return `был(а) в сети ${ago}`;
+    }
+    return c.partner.role === 'client' ? `Клиент${c.sessionsCount ? ` · сессий: ${c.sessionsCount}` : ''}` : (c.partner.headline || 'Психолог');
   };
 
   /* ---------- Список диалогов ---------- */
-  const renderList = () => {
-    const q = search.value.trim().toLowerCase();
-    const items = LIST.filter((d) => d.name.toLowerCase().includes(q));
-    listEl.innerHTML = items.length ? items.map((d) => {
-      const last = lastOf(d);
-      return `
-        <button type="button" class="dlg${d === current ? ' is-active' : ''}" data-id="${d.id}">
-          <span class="dlg__ava">${avatar(d, 48)}${d.online ? '<span class="online" aria-label="в сети"></span>' : ''}</span>
-          <span class="dlg__body">
-            <span class="dlg__top"><span class="dlg__name">${d.name}</span><span class="dlg__time">${last.time}</span></span>
-            <span class="dlg__bottom"><span class="dlg__last">${escapeHtml(last.text)}</span>${d.unread ? `<span class="dlg__unread">${d.unread}</span>` : ''}</span>
-          </span>
-        </button>`;
-    }).join('') : '<p class="dialogs__empty">Никого не нашли</p>';
+  const lastText = (c) => {
+    const m = c.lastMessage;
+    if (!m) return '';
+    return (m.senderId === me.id ? 'Вы: ' : '') + (m.body || (m.attachment ? `📎 ${m.attachment.name}` : ''));
   };
 
-  /* ---------- Сообщения ---------- */
-  const EVENT_ICONS = { booked: 'i-calendar', moved: 'i-clock', done: 'i-check' };
+  const renderList = () => {
+    const q = search.value.trim().toLowerCase();
+    const items = list.filter((c) => c.partner.name.toLowerCase().includes(q));
+    listEl.innerHTML = items.length ? items.map((c) => `
+        <button type="button" class="dlg${c === current ? ' is-active' : ''}" data-id="${c.id}">
+          <span class="dlg__ava">${avatar(c.partner, 48)}${c.online ? '<span class="online" aria-label="в сети"></span>' : ''}</span>
+          <span class="dlg__body">
+            <span class="dlg__top"><span class="dlg__name">${escapeHtml(c.partner.name)}</span><span class="dlg__time">${c.lastMessage ? listTime(c.lastMessage.createdAt) : ''}</span></span>
+            <span class="dlg__bottom"><span class="dlg__last">${escapeHtml(lastText(c))}</span>${c.unread ? `<span class="dlg__unread">${c.unread}</span>` : ''}</span>
+          </span>
+        </button>`).join('')
+      : `<p class="dialogs__empty">${list.length ? 'Никого не нашли' : isPsy ? 'Диалогов пока нет' : 'Диалогов пока нет – напишите психологу со страницы его профиля'}</p>`;
+  };
 
+  /** Счётчик непрочитанных в меню кабинета */
+  const renderBadge = () => {
+    const total = list.reduce((a, c) => a + c.unread, 0);
+    document.querySelectorAll('.cab-nav a[href$="chat.html"]').forEach((a) => {
+      let b = a.querySelector('.badge');
+      if (!total) { b?.remove(); return; }
+      if (!b) { b = document.createElement('span'); b.className = 'badge'; a.appendChild(b); }
+      b.textContent = total;
+    });
+  };
+
+  /* ---------- Переписка ---------- */
+  const EVENT_ICONS = { booked: 'i-calendar', rescheduled: 'i-clock', cancelled: 'i-x', completed: 'i-check', no_show: 'i-alert' };
+  const slotText = (slot) => `${new Date(`${slot.date}T00:00:00`).toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' })}, ${slot.time}`;
+  /** Событие записи в ленте: «Вы записались на сессию · чт, 15 октября, 12:30» */
+  const eventText = (e) => {
+    if (e.label) return e.label;   // демо-данные – готовая подпись
+    const why = e.reason ? ` · причина: ${escapeHtml(e.reason.toLowerCase())}` : '';
+    if (e.type === 'booked') return `${isPsy ? 'Клиент записался' : 'Вы записались'} на&nbsp;сессию · <b>${slotText(e.slot)}</b>`;
+    if (e.type === 'rescheduled') return `Сессия перенесена${e.to ? ` на&nbsp;<b>${slotText(e.to)}</b>` : ''}${why}`;
+    if (e.type === 'cancelled') return `Сессия <b>${slotText(e.slot)}</b> отменена${why}`;
+    if (e.type === 'completed') return `Сессия состоялась · <b>${slotText(e.slot)}</b>`;
+    return `Сессия <b>${slotText(e.slot)}</b> пропущена`;
+  };
+  const EVENT_CLASS = { rescheduled: 'moved', cancelled: 'moved', completed: 'done', no_show: 'moved' };
+
+  const fileUrl = (m) => API.fileUrl(`/conversations/${m.conversationId}/messages/${m.id}/attachment`);
   const messageHtml = (m) => {
-    if (m.day) return `<div class="day">${m.day}</div>`;
-    if (m.event) return `<div class="event event--${m.event}"><svg><use href="#${EVENT_ICONS[m.event]}"/></svg><span>${m.text}</span></div>`;
-    const out = m.from === 'me';
-    const file = m.file ? `
-      <span class="file">
-        <span class="file__ic">${escapeHtml(m.file.name.split('.').pop().toUpperCase().slice(0, 4))}</span>
-        <span><b>${escapeHtml(m.file.name)}</b><small>${m.file.size}</small></span>
-      </span>` : '';
-    const text = m.text ? escapeHtml(m.text).replace(/\n/g, '<br>') : '';
-    const read = out ? '<svg aria-label="прочитано"><use href="#i-read"/></svg>' : '';
-    return `<div class="msg${out ? ' msg--out' : ''}">${file}${text}<div class="msg__meta">${m.time}${read}</div></div>`;
+    const out = m.senderId === me.id;
+    const file = m.attachment ? `
+      <a class="file" href="${escapeHtml(fileUrl(m))}" target="_blank" rel="noopener">
+        <span class="file__ic">${escapeHtml(m.attachment.name.split('.').pop().toUpperCase().slice(0, 4))}</span>
+        <span><b>${escapeHtml(m.attachment.name)}</b><small>Открыть</small></span>
+      </a>` : '';
+    const text = m.body ? escapeHtml(m.body).replace(/\n/g, '<br>') : '';
+    const read = out && m.readAt ? '<svg aria-label="прочитано"><use href="#i-read"/></svg>' : '';
+    return `<div class="msg${out ? ' msg--out' : ''}" data-msg="${m.id}">${file}${text}<div class="msg__meta">${hhmm(m.createdAt)}${read}</div></div>`;
+  };
+
+  /** Сообщения и события по времени, с разделителями дней */
+  const timelineHtml = () => {
+    const items = [
+      ...thread.messages.map((m) => ({ at: m.createdAt, html: messageHtml(m) })),
+      ...thread.events.map((e) => ({ at: e.at, html: `<div class="event event--${EVENT_CLASS[e.type] || 'booked'}"><svg><use href="#${EVENT_ICONS[e.type] || 'i-calendar'}"/></svg><span>${eventText(e)}</span></div>` })),
+    ].sort((a, b) => new Date(a.at) - new Date(b.at));
+    let day = '';
+    return items.map((it) => {
+      const d = dayLabel(it.at);
+      const sep = d !== day ? `<div class="day">${d}</div>` : '';
+      day = d;
+      return sep + it.html;
+    }).join('');
   };
 
   const scrollDown = () => { messagesEl.scrollTop = messagesEl.scrollHeight; };
 
-  const renderConversation = () => {
-    const d = current;
+  const renderHeader = () => {
+    const c = current;
     const ava = document.querySelector('[data-conv-ava]');
-    ava.outerHTML = avatar(d, 44).replace('class="ava-sq"', 'class="ava-sq" data-conv-ava');
-    document.querySelector('[data-conv-name]').textContent = d.name;
+    ava.outerHTML = avatar(c.partner, 44).replace('class="ava-sq"', 'class="ava-sq" data-conv-ava');
+    document.querySelector('[data-conv-name]').textContent = c.partner.name;
     const status = document.querySelector('[data-conv-status]');
-    status.textContent = d.online ? 'в сети' : (d.lastSeen || d.role);
-    status.classList.toggle('is-online', d.online);
+    status.textContent = statusText(c);
+    status.classList.toggle('is-online', c.online);
 
     const session = document.querySelector('[data-conv-session]');
-    session.hidden = !d.nextSession;
-    if (d.nextSession) session.querySelector('span').textContent = `Сессия: ${d.nextSession}`;
+    session.hidden = !c.nextSession;
+    if (c.nextSession) session.querySelector('span').textContent = `Сессия: ${c.nextSession.label || slotText(c.nextSession)}`;
 
     const profile = document.querySelector('[data-conv-profile]');
-    profile.hidden = !d.profile;
-    if (d.profile) profile.href = d.profile;
+    profile.hidden = c.partner.role !== 'psychologist';
+    if (!profile.hidden) profile.href = `psychologist.html?id=${c.partner.id}`;
+  };
 
+  const renderThread = () => {
     messagesEl.innerHTML = `<div class="privacy"><svg><use href="#i-lock"/></svg>Переписка видна только вам и&nbsp;${isPsy ? 'клиенту' : 'специалисту'}</div>`
-      + d.messages.map(messageHtml).join('');
+      + timelineHtml();
     scrollDown();
   };
 
+  /** Отметить входящие открытого диалога прочитанными */
+  const markRead = async () => {
+    if (!current || !current.unread) return;
+    current.unread = 0;
+    renderList(); renderBadge();
+    try {
+      if (socket && socket.connected) socket.emit('messages:read', { conversationId: current.id });
+      else await API.post(`/conversations/${current.id}/read`);
+    } catch { /* не страшно – отметится при следующем открытии */ }
+  };
+
   /** Открыть диалог */
-  const open = (d) => {
-    current = d;
-    d.unread = 0;                      // API: отметить сообщения прочитанными
+  const open = async (c) => {
+    current = c;
     renderList();
-    renderConversation();
+    renderHeader();
+    messagesEl.innerHTML = '';
     chat.classList.add('is-open');     // на телефоне – переключение со списка на переписку
-    scrollDown();                      // прокрутка к последним сообщениям, когда переписка уже видна
+    try {
+      const data = await API.get(`/conversations/${c.id}/messages`, { limit: 100 });
+      if (current !== c) return;       // пока грузилось, открыли другой диалог
+      thread = { messages: data.messages, events: data.events || [] };
+    } catch (err) {
+      messagesEl.innerHTML = `<div class="event event--moved"><span>${escapeHtml(err.message)}</span></div>`;
+      return;
+    }
+    renderThread();
+    markRead();
     if (window.matchMedia('(min-width: 761px)').matches) input.focus();
   };
 
   listEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.dlg');
-    if (btn) open(LIST.find((d) => d.id === Number(btn.dataset.id)));
+    if (btn) open(list.find((c) => String(c.id) === btn.dataset.id));
   });
   document.querySelector('[data-back]').addEventListener('click', () => chat.classList.remove('is-open'));
   search.addEventListener('input', renderList);
 
-  /* ---------- Отправка ---------- */
-  const push = (d, m) => {
-    d.messages.push(m);
-    if (d === current) { messagesEl.insertAdjacentHTML('beforeend', messageHtml(m)); scrollDown(); }
-    renderList();
-  };
-
-  /** Имитация ответа: «печатает…», затем сообщение (только для демонстрации) */
-  const fakeReply = (d) => {
-    if (!d.online) return;
-    setTimeout(() => {
-      if (d !== current) return;
+  /* ---------- «Печатает…» ---------- */
+  let typingTimer = null;
+  const hideTyping = () => { clearTimeout(typingTimer); document.querySelector('[data-typing]')?.remove(); };
+  const showTyping = (ttlSec = 4) => {
+    if (!document.querySelector('[data-typing]')) {
       messagesEl.insertAdjacentHTML('beforeend', '<div class="typing" data-typing><i></i><i></i><i></i></div>');
       scrollDown();
-      setTimeout(() => {
-        document.querySelector('[data-typing]')?.remove();
-        push(d, { from: 'psy', time: now(), text: REPLIES[replyIndex++ % REPLIES.length] });
-      }, 1600);
+    }
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(hideTyping, ttlSec * 1000);
+  };
+
+  /* ---------- Новое сообщение (своё или собеседника) ---------- */
+  const receive = (m) => {
+    const c = list.find((x) => x.id === m.conversationId);
+    if (!c) return;
+    c.lastMessage = m;
+    if (c === current) {
+      if (!thread.messages.some((x) => x.id === m.id)) {
+        hideTyping();
+        thread.messages.push(m);
+        messagesEl.insertAdjacentHTML('beforeend', messageHtml(m));
+        scrollDown();
+      }
+      if (m.senderId !== me.id) { c.unread = 1; markRead(); }
+    } else if (m.senderId !== me.id) {
+      c.unread += 1;
+    }
+    // Диалог с новым сообщением – наверх списка
+    list = [c, ...list.filter((x) => x !== c)];
+    renderList(); renderBadge();
+  };
+
+  let typingSentAt = 0;
+  input.addEventListener('input', () => {
+    // Сообщаем собеседнику не чаще раза в 3 секунды
+    if (!socket || !current || Date.now() - typingSentAt < 3000) return;
+    typingSentAt = Date.now();
+    socket.emit('typing', { conversationId: current.id });
+  });
+
+  /* ---------- Отправка ---------- */
+  /** Без сервера – ответ собеседника имитирует демо-слой: «печатает…», затем сообщение */
+  const demoReply = (c) => {
+    if (!API.isDemo() || typeof DEMO_API === 'undefined' || !c.online) return;
+    setTimeout(() => {
+      if (current === c) showTyping(3);
+      setTimeout(() => { const m = DEMO_API.demoReply(c.id); if (m) receive(m); }, 1600);
     }, 700);
   };
 
-  const send = () => {
+  /** Отправка через сокет с подтверждением; без сокета – обычным запросом */
+  const sendBySocket = (c, text) => new Promise((resolve, reject) => {
+    socket.timeout(10000).emit('message:send', { conversationId: c.id, body: text }, (err, res) => {
+      if (err) reject(new API.Error(0, { message: 'Сервер не ответил – попробуйте ещё раз' }));
+      else if (res.error) reject(new API.Error(0, res.error));
+      else resolve(res.message);
+    });
+  });
+
+  const send = async () => {
     const text = input.value.trim();
-    if (!text) return;
-    // API: socket.emit('message', { dialogId: current.id, text })
-    push(current, { from: 'me', time: now(), text });
+    if (!text || !current) return;
+    const c = current;
     input.value = '';
     autosize();
-    fakeReply(current);
+    try {
+      const m = socket && socket.connected ? await sendBySocket(c, text) : await API.post(`/conversations/${c.id}/messages`, { body: text });
+      receive(m);
+      demoReply(c);
+    } catch (err) {
+      input.value = text;              // текст не потерялся – можно отправить ещё раз
+      autosize();
+      alertInChat(err.message);
+    }
   };
 
   form.addEventListener('submit', (e) => { e.preventDefault(); send(); });
@@ -303,15 +291,17 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   input.addEventListener('input', autosize);
 
-  /** Прикрепление файла (до 10 МБ) */
-  document.querySelector('[data-attach]').addEventListener('change', (e) => {
+  /** Прикрепление файла (до 10 МБ): PDF или картинка – тип проверит сервер */
+  document.querySelector('[data-attach]').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     e.target.value = '';
-    if (!file) return;
+    if (!file || !current) return;
     if (file.size > 10 * 1024 * 1024) { alertInChat('Файл больше 10 МБ'); return; }
-    const size = file.size > 1024 * 1024 ? `${(file.size / 1024 / 1024).toFixed(1).replace('.', ',')} МБ` : `${Math.max(1, Math.round(file.size / 1024))} КБ`;
-    // API: загрузка файла на сервер, затем отправка ссылки в чат
-    push(current, { from: 'me', time: now(), file: { name: file.name, size } });
+    try {
+      receive(await API.upload(`/conversations/${current.id}/attachments`, file));
+    } catch (err) {
+      alertInChat(err.message);
+    }
   });
 
   /** Короткое системное сообщение внутри переписки (вместо alert) */
@@ -320,9 +310,60 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollDown();
   };
 
+  /* ---------- Реальное время: Socket.IO (клиентскую библиотеку отдаёт сам сервер) ---------- */
+  const connectSocket = () => new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = '/socket.io/socket.io.js';
+    script.onerror = () => resolve(null);  // без сокета чат работает обычными запросами
+    script.onload = () => {
+      // Только websocket: при нескольких экземплярах сервера не нужны «липкие» сессии
+      const s = io({ transports: ['websocket'] });
+      s.on('connect_error', async (err) => {
+        // Вход истёк – обновляем сессию обычным запросом и подключаемся снова
+        if (err.data && err.data.code === 'TOKEN_EXPIRED') {
+          try { await API.get('/auth/me'); s.connect(); } catch { /* войти заново придётся вручную */ }
+        }
+      });
+      s.on('message:new', receive);
+      s.on('messages:read', ({ conversationId, readerId, messageIds, readAt }) => {
+        if (readerId === me.id || !current || current.id !== conversationId) return;
+        thread.messages.forEach((m) => { if (messageIds.includes(m.id)) m.readAt = readAt; });
+        messageIds.forEach((id) => {
+          const meta = messagesEl.querySelector(`[data-msg="${id}"] .msg__meta`);
+          if (meta && !meta.querySelector('svg')) meta.insertAdjacentHTML('beforeend', '<svg aria-label="прочитано"><use href="#i-read"/></svg>');
+        });
+      });
+      s.on('typing', ({ conversationId, ttlSec }) => { if (current && current.id === conversationId) showTyping(ttlSec); });
+      s.on('presence', ({ userId, online, lastSeenAt }) => {
+        list.filter((c) => c.partner.id === userId).forEach((c) => {
+          Object.assign(c, { online, lastSeenAt, lastSeenText: null });
+          if (c === current) renderHeader();
+        });
+        renderList();
+      });
+      resolve(s);
+    };
+    document.head.appendChild(script);
+  });
+
   /* ---------- Старт ---------- */
-  // На компьютере сразу открыт первый диалог, на телефоне – список
-  if (window.matchMedia('(min-width: 761px)').matches) current.unread = 0;
+  try {
+    [me, { items: list }] = await Promise.all([Session.user(), API.get('/conversations')]);
+  } catch (err) {
+    listEl.innerHTML = `<p class="dialogs__empty">Не удалось загрузить диалоги: ${escapeHtml(err.message)}</p>`;
+    return;
+  }
+  if (!me) return;                     // не вошёл – Session уже ведёт на страницу входа
   renderList();
-  renderConversation();
+  renderBadge();
+  if (!API.isDemo()) socket = await connectSocket();
+
+  // Диалог из ссылки (?with=id собеседника) или первый; на телефоне – сначала список
+  const withId = new URLSearchParams(location.search).get('with');
+  const start = list.find((c) => String(c.partner.id) === withId) || list[0];
+  if (start && (withId || window.matchMedia('(min-width: 761px)').matches)) open(start);
+  else if (!start) {
+    document.querySelector('[data-conv-name]').textContent = 'Нет диалогов';
+    form.hidden = true;
+  }
 });
