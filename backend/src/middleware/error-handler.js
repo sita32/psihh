@@ -1,4 +1,4 @@
-// Единая обработка ошибок: любой ответ с ошибкой имеет вид { error: { code, message } }.
+// Единая обработка ошибок: любой ответ с ошибкой имеет вид { error: { code, message, fields? } }.
 const { HttpError } = require('../errors');
 
 // Неизвестный адрес внутри /api – JSON, а не HTML-страница
@@ -20,7 +20,8 @@ function errorHandler(err, req, res, next) {
   }
 
   const code = err instanceof HttpError ? err.code : HttpError.codes[status] || 'ERROR';
-  res.status(status).json({ error: { code, message: err.message } });
+  const fields = err instanceof HttpError ? err.fields : undefined;
+  res.status(status).json({ error: { code, message: err.message, fields } });
 }
 
 module.exports = { notFound, errorHandler };

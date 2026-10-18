@@ -1,5 +1,5 @@
 // Репозиторий состояния хранилищ: только запросы к PostgreSQL и Redis, без логики.
-const pool = require('../db/postgres');
+const { pool } = require('../db/postgres');
 const redis = require('../db/redis');
 
 // Проверка соединения с PostgreSQL

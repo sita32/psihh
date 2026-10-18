@@ -30,6 +30,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:?задайте REDIS_PASSWORD в .env}
+      JWT_SECRET: ${JWT_SECRET:?задайте JWT_SECRET в .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,7 +46,7 @@ services:
       start_interval: 2s
     restart: unless-stopped
 
-  # PostgreSQL 16: при первом старте (пустой volume) выполняет schema.sql, затем seed.sql
+  # PostgreSQL 16: при первом старте (пустой volume) выполняет schema.sql, seed.sql и demo.sql
   postgres:
     image: postgres:16-alpine
     environment:
@@ -57,6 +59,7 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./database/demo.sql:/docker-entrypoint-initdb.d/03-demo.sql:ro   # демо-аккаунты
     healthcheck:
       # -h 127.0.0.1: пока идёт начальная загрузка схемы, БД слушает только сокет – не считаем её готовой
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]

@@ -13,7 +13,7 @@
 |---|---|
 | Интерфейс (`frontend/`) | готов: 25 страниц, статичный HTML/CSS/JS с демо-данными |
 | База данных (`database/`) | спроектирована: PostgreSQL 16, 23 таблицы, триггеры бизнес-правил; Redis – сессии и временные данные (redis.md) |
-| Сервер на Node.js (`backend/`), Docker | в работе: каркас по слоям, подключение к PostgreSQL и Redis, `GET /api/health` |
+| Сервер на Node.js (`backend/`), Docker | в работе: каркас по слоям, PostgreSQL и Redis, регистрация, вход, роли и права – см. [API](#api) |
 
 ## Запуск в Docker
 
@@ -23,7 +23,7 @@
 |---|---|
 | `nginx` | отдаёт страницы из `frontend/`, проксирует `/api` на сервер, показывает свою страницу 404 |
 | `api` | сервер на Node.js + Express (`backend/`), наружу открыт только через nginx |
-| `postgres` | PostgreSQL 16; при первом старте сам выполняет `database/schema.sql` и `database/seed.sql` |
+| `postgres` | PostgreSQL 16; при первом старте сам выполняет `database/schema.sql`, `seed.sql` и `demo.sql` |
 | `redis` | сессии и временные данные (`database/redis.md`) |
 
 Первый запуск – скопировать настройки и задать свои пароли в `.env` (в git он не попадает):
@@ -52,7 +52,45 @@ docker compose up --build
 
 Правки в `frontend/` видны сразу, без перезапуска: nginx читает папку напрямую.
 PostgreSQL доступен клиентам БД (DBeaver, DataGrip) на `localhost:5432` (порт меняется в `.env`, только с этого компьютера).
-`schema.sql` и `seed.sql` применяются только к пустому тому: после правки схемы нужен `docker compose down -v`.
+SQL-файлы из `database/` применяются только к пустому тому: после правки схемы нужен `docker compose down -v`.
+
+## API
+
+Все адреса – через nginx: `http://localhost/api/...`. Ошибки приходят в одном виде:
+`{ "error": { "code", "message", "fields" } }`, где `fields` – ошибки по полям формы.
+
+| Запрос | Что делает | Доступ |
+|---|---|---|
+| `GET /api/health` | состояние сервера, PostgreSQL и Redis | все |
+| `POST /api/auth/register` | регистрация: `role` (`client`/`psychologist`), `name`, `email`, `password`; психологу ещё `lastName`, `gender` (`male`/`female`), `practiceSince` (`ГГГГ-ММ-ДД`) | все |
+| `POST /api/auth/login` | вход: `email`, `password`, `remember` | все |
+| `POST /api/auth/refresh` | новая пара токенов, когда access-токен истёк (`401 TOKEN_EXPIRED`) | по cookie сессии |
+| `POST /api/auth/logout` | выход на этом устройстве | по cookie сессии |
+| `GET /api/auth/me` | кто вошёл: роли, права, имя | вошедшие |
+| `GET /api/roles` | роли и права | право `roles.assign` (модератор) |
+
+Вход: access-токен (JWT, 15 минут) и refresh-токен (30 дней, без «Запомнить меня» – сутки) лежат в httpOnly-cookie,
+сессии – в Redis (`database/redis.md`). Права проверяются по таблице `role_permissions`. Вход – не больше 10 неудачных
+попыток за 15 минут с одного адреса.
+
+Демо-аккаунты из `database/demo.sql` (пароль у всех `demo1234`):
+
+| Почта | Кто |
+|---|---|
+| `anna@mail.com` | клиент Анна Петрова |
+| `marina@ryadom.by` | психолог Марина Волкова, документы проверены |
+| `moderator@ryadom.by` | модератор |
+| `dk_1990@yandex.by` | заблокированный клиент – вход отклоняется с причиной блокировки |
+
+Пример проверки из терминала (cookie сохраняются в файл):
+
+```bash
+curl -c /tmp/ryadom.jar -H 'Content-Type: application/json' -d '{"email":"anna@mail.com","password":"demo1234"}' http://localhost/api/auth/login
+```
+
+```bash
+curl -b /tmp/ryadom.jar http://localhost/api/auth/me
+```
 
 ## Только интерфейс, без Docker
 
@@ -65,9 +103,9 @@ python3 tools/dev-server.py
 Затем откройте <http://localhost:5173>. Сервер отдаёт папку `frontend/`, запрещает кэширование (правки видны сразу)
 и показывает свою страницу 404 на несуществующие адреса. API в этом режиме нет – страницы работают на демо-данных.
 
-## Вход без сервера (демо)
+## Вход на страницах (демо)
 
-Регистрация и вход пока работают без сервера: роль определяется по почте, пароль – любой (при регистрации – не короче 8 символов).
+Формы входа и регистрации на страницах пока не обращаются к API (переход на API – отдельный этап): роль определяется по почте, пароль – любой (при регистрации – не короче 8 символов).
 
 | Почта | Кто откроется |
 |---|---|
@@ -98,7 +136,8 @@ backend/         сервер на Node.js + Express, Dockerfile
   src/db/            пул PostgreSQL и клиент Redis
   src/middleware/    журнал запросов, обработка ошибок и 404 для /api
   src/config.js      настройки из переменных окружения
-database/        schema.sql (таблицы, ограничения, триггеры), seed.sql (роли, справочники), redis.md
+database/        schema.sql (таблицы, ограничения, триггеры), seed.sql (роли, справочники),
+                 demo.sql (демо-аккаунты), redis.md
 nginx/           default.conf – раздача frontend/, прокси /api, страница 404
 docker-compose.yml, .env.example   четыре контейнера и пример настроек
 docs/            материалы для записки

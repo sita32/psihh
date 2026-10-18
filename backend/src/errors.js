@@ -1,10 +1,12 @@
 // Ошибка с HTTP-статусом. Сервисы бросают её, обработчик ошибок превращает в JSON-ответ.
+// fields – ошибки по полям формы: { email: 'Эта почта уже зарегистрирована' }
 class HttpError extends Error {
-  constructor(status, message, code) {
+  constructor(status, message, { code, fields } = {}) {
     super(message);
     this.name = 'HttpError';
     this.status = status;
     this.code = code || HttpError.codes[status] || 'ERROR';
+    this.fields = fields;
   }
 }
 

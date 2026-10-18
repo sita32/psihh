@@ -1,7 +1,7 @@
 // Точка входа: запускает HTTP-сервер и корректно останавливает его по сигналу Docker.
 const app = require('./app');
 const config = require('./config');
-const pool = require('./db/postgres');
+const { pool } = require('./db/postgres');
 const redis = require('./db/redis');
 
 const server = app.listen(config.port, () => {
