@@ -70,6 +70,12 @@ const DEMO_API = (() => {
       lastName: psy ? body.lastName : null, avatarUrl: null, verificationStatus: psy ? 'draft' : undefined,
     });
     save(USER_KEY, user);
+    if (psy) {
+      // Новая анкета: пол и дата начала практики – из формы регистрации
+      const store = newPsyStore(user);
+      Object.assign(store.profile, { gender: body.gender === 'male' ? 'male' : 'female', practiceSince: body.practiceSince || null });
+      savePsy(user, store);
+    }
     return { user };
   });
 
@@ -304,8 +310,218 @@ const DEMO_API = (() => {
   /** Окна, занятые записями клиента, – больше не свободны */
   const takenByClient = () => { try { return clientStore().appointments.filter((a) => a.status === 'scheduled').map((a) => a.slotId).filter(Boolean); } catch { return []; } };
 
-  route('GET', /^\/profile$/, (_, { me: who }) => ({ role: 'client', profile: clientStore(clientOnly(who)).profile }));
+  /* ---------- Кабинет психолога: анкета, фото, документы, заявка на проверку ----------
+     Марина – из data.js, новый психолог (регистрация в демо) – пустая анкета.
+     Хранится в localStorage по почте, фото – уменьшенной картинкой (data:URL). */
+
+  const PSY_KEY = 'ryadom-demo-psy';
+  const isPsy = (u) => u.roles.includes('psychologist');
+  const psyOnly = (who) => { const u = who(); if (!isPsy(u)) fail(403, 'FORBIDDEN', 'Недостаточно прав для этого действия'); return u; };
+  const yearsSince = (date) => {
+    if (!date) return null;
+    const d = new Date(`${date}T00:00:00`), now = new Date();
+    let y = now.getFullYear() - d.getFullYear();
+    if (now < new Date(now.getFullYear(), d.getMonth(), d.getDate())) y -= 1;
+    return Math.max(0, y);
+  };
+
+  const newPsyStore = (u) => {
+    if (u.email !== 'marina@ryadom.by') {
+      return { profile: { firstName: u.firstName || '', lastName: u.lastName || '', middleName: null, gender: 'female', birthDate: null,
+        phone: null, avatarUrl: null, headline: null, bio: null, approach: null, practiceSince: null, experienceYears: null,
+        verificationStatus: 'draft', verifiedAt: null, isPublished: false, rating: 0, reviewsCount: 0,
+        methods: [], topics: [], services: [] }, documents: [], requests: [], nextId: 1 };
+    }
+    const p = findPsy(1);
+    const c = card(p);
+    const [uni, year] = p.edu.split(' · ');
+    const [institution, specialty] = uni.split(', ');
+    const at = (k) => demoDateAt(k).toISOString();
+    // Дата, когда исполнится ровно n полных лет (на day дней раньше)
+    const yearsAgo = (n, day) => { const d = new Date(DEMO_TODAY); d.setFullYear(d.getFullYear() - n); d.setDate(d.getDate() - day); return isoDate(d); };
+    const doc = (id, type, inst, spec, y, fileName) => ({ id, type, institution: inst, specialty: spec, year: y, fileName,
+      mimeType: 'application/pdf', size: 1048576, status: 'approved', comment: null, reviewedAt: at(-110), uploadedAt: at(-116) });
+    return {
+      profile: { firstName: c.firstName, lastName: c.lastName, middleName: null, gender: c.gender,
+        birthDate: yearsAgo(p.age, 90), phone: null, avatarUrl: c.avatarUrl,
+        headline: p.role, bio: p.about, approach: PSY_EXTRA.steps.join('. '),
+        practiceSince: yearsAgo(p.exp, 30), experienceYears: null,
+        verificationStatus: 'verified', verifiedAt: at(-110), isPublished: true, rating: p.rating, reviewsCount: p.reviews,
+        methods: c.methods, topics: c.topics, services: c.services },
+      documents: [doc(15, 'diploma', institution, specialty, Number(year), 'Диплом.pdf'),
+        doc(16, 'certificate', PSY_EXTRA.courses[0].place, PSY_EXTRA.courses[0].title, PSY_EXTRA.courses[0].year, 'Сертификат.pdf')],
+      requests: [{ id: 1, status: 'approved', submittedAt: at(-116), reviewedAt: at(-110), comment: null }],
+      nextId: 100,
+    };
+  };
+  const psyStore = (u) => {
+    const all = load(PSY_KEY) || {};
+    if (!all[u.email]) { all[u.email] = newPsyStore(u); save(PSY_KEY, all); }
+    return all[u.email];
+  };
+  const savePsy = (u, store) => { const all = load(PSY_KEY) || {}; all[u.email] = store; save(PSY_KEY, all); };
+  /** Анкета в виде ответа API: опыт – от даты начала практики, документы – кратко */
+  const psyProfile = (store) => (store.profile ? {
+    ...store.profile, experienceYears: yearsSince(store.profile.practiceSince),
+    documents: store.documents.map(({ id, type, institution, specialty, year, fileName, status, comment }) => ({ id, type, institution, specialty, year, fileName, status, comment })),
+  } : null);
+  /** Имя и фото в шапке – по анкете */
+  const syncUser = (store) => {
+    const user = load(USER_KEY);
+    if (user && store.profile) save(USER_KEY, { ...user, firstName: store.profile.firstName, lastName: store.profile.lastName, avatarUrl: store.profile.avatarUrl });
+  };
+  const needPsyProfile = (store) => store.profile || fail(409, 'NO_PROFILE', 'Сначала заполните анкету психолога');
+
+  const patchPsy = (u, body) => {
+    const store = psyStore(u);
+    const fields = {};
+    const text = (v) => (v === null || v === undefined ? v : String(v).trim() || null);
+    ['firstName', 'lastName'].forEach((k) => { if (body[k] !== undefined && !text(body[k])) fields[k] = k === 'firstName' ? 'Укажите имя' : 'Укажите фамилию'; });
+    if (body.gender !== undefined && !['female', 'male'].includes(body.gender)) fields.gender = 'Укажите пол';
+    if (body.practiceSince !== undefined && !/^\d{4}-\d\d-\d\d$/.test(body.practiceSince || '')) fields.practiceSince = 'Укажите дату начала практики';
+    if (body.practiceSince && body.practiceSince > isoDate(new Date())) fields.practiceSince = 'Дата начала практики не может быть в будущем';
+    const codes = (list, value) => (value === undefined ? undefined : value.map((code) => byCode(list, code)).filter(Boolean));
+    let services;
+    if (body.services !== undefined) {
+      services = [];
+      body.services.forEach((x) => {
+        const f = byCode(REFERENCES.formats, x.format);
+        if (!f) fields.services = `Неизвестный формат: ${x.format}`;
+        else if (!(x.price > 0 && x.price <= 10000)) fields.services = 'Цена – от 1 до 10 000 BYN';
+        else services.push({ ...f, price: Math.round(x.price * 100) / 100, durationMin: x.durationMin || 50 });
+      });
+    }
+    if (!store.profile) {
+      // Анкеты нет (удалена) – создаём заново, для этого нужны обязательные поля
+      [['firstName', 'имя'], ['lastName', 'фамилию'], ['gender', 'пол'], ['practiceSince', 'дату начала практики']]
+        .forEach(([k, label]) => { if (body[k] === undefined && !fields[k]) fields[k] = `Укажите ${label}`; });
+    }
+    if (Object.keys(fields).length) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', fields);
+    store.profile ??= { ...newPsyStore({ email: '' }).profile };
+    const pr = store.profile;
+    if (body.isPublished && pr.verificationStatus !== 'verified') {
+      fail(409, 'NOT_VERIFIED', 'Анкету можно опубликовать после проверки документов модератором');
+    }
+    ['firstName', 'lastName', 'middleName', 'headline', 'bio', 'approach', 'phone'].forEach((k) => { if (body[k] !== undefined) pr[k] = text(body[k]); });
+    ['gender', 'birthDate', 'practiceSince', 'isPublished'].forEach((k) => { if (body[k] !== undefined) pr[k] = body[k]; });
+    if (body.methods !== undefined) pr.methods = codes(REFERENCES.methods, body.methods);
+    if (body.topics !== undefined) pr.topics = codes(REFERENCES.topics, body.topics);
+    if (services) pr.services = services;
+    savePsy(u, store);
+    syncUser(store);
+    return { role: 'psychologist', profile: psyProfile(store) };
+  };
+
+  const deletePsy = (u) => {
+    const store = psyStore(u);
+    needPsyProfile(store);
+    // У Марины есть записи из data.js – как на сервере, удалить анкету с историей нельзя
+    if (u.email === 'marina@ryadom.by') {
+      const upcoming = PSY_SESSIONS.filter((x) => x.status === 'scheduled' && x.k >= 0).length;
+      if (upcoming) fail(409, 'HAS_UPCOMING_APPOINTMENTS', `Сначала отмените предстоящие записи (${upcoming})`);
+      fail(409, 'HAS_APPOINTMENTS', 'По анкете есть история консультаций – её нельзя удалить, но можно скрыть из каталога');
+    }
+    store.profile = null;
+    store.documents = [];
+    store.requests = [];
+    savePsy(u, store);
+    return null;
+  };
+
+  /** Фото в демо – уменьшенная копия (до 480 px), чтобы поместиться в localStorage */
+  const shrinkImage = (file) => new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 480 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * k);
+      canvas.height = Math.round(img.height * k);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+    img.src = url;
+  });
+
+  route('POST', /^\/profile\/avatar$/, async (form, { me: who }) => {
+    const u = psyOnly(who);
+    const store = psyStore(u);
+    needPsyProfile(store);
+    const file = form instanceof FormData ? form.get('file') : null;
+    if (!file) fail(422, 'VALIDATION_ERROR', 'Прикрепите фото', { file: 'JPG, PNG или WEBP' });
+    const src = await shrinkImage(file).catch(() => fail(422, 'VALIDATION_ERROR', 'Неподходящий формат фото', { file: 'JPG, PNG или WEBP' }));
+    store.profile.avatarUrl = src;
+    savePsy(u, store);
+    syncUser(store);
+    return { role: 'psychologist', profile: psyProfile(store) };
+  });
+  route('DELETE', /^\/profile\/avatar$/, (_, { me: who }) => {
+    const u = psyOnly(who);
+    const store = psyStore(u);
+    if (store.profile) store.profile.avatarUrl = null;
+    savePsy(u, store);
+    syncUser(store);
+    return { role: 'psychologist', profile: psyProfile(store) };
+  });
+
+  const verificationView = (store) => ({ status: needPsyProfile(store).verificationStatus, documents: store.documents, requests: store.requests });
+  route('GET', /^\/profile\/verification$/, (_, { me: who }) => verificationView(psyStore(psyOnly(who))));
+  route('POST', /^\/profile\/verification$/, (_, { me: who }) => {
+    const u = psyOnly(who);
+    const store = psyStore(u);
+    const pr = needPsyProfile(store);
+    if (pr.verificationStatus === 'verified') fail(409, 'ALREADY_VERIFIED', 'Статус специалиста уже подтверждён');
+    if (pr.verificationStatus === 'pending') fail(409, 'REQUEST_PENDING', 'Заявка уже на проверке');
+    const fields = {};
+    if (!pr.headline) fields.headline = 'Добавьте короткую подпись: кто вы как специалист';
+    if (!pr.bio) fields.bio = 'Расскажите об опыте';
+    if (!pr.methods.length) fields.methods = 'Выберите методы работы';
+    if (!pr.topics.length) fields.topics = 'Выберите темы, с которыми работаете';
+    if (!pr.services.length) fields.services = 'Укажите цену хотя бы одного формата';
+    if (!store.documents.some((d) => d.status !== 'rejected')) fields.documents = 'Загрузите диплом о психологическом образовании';
+    if (Object.keys(fields).length) fail(422, 'VALIDATION_ERROR', 'Перед проверкой заполните анкету', fields);
+    pr.verificationStatus = 'pending';
+    pr.isPublished = false;
+    store.requests.unshift({ id: store.nextId++, status: 'pending', submittedAt: new Date().toISOString(), reviewedAt: null, comment: null });
+    savePsy(u, store);
+    return verificationView(store);
+  });
+
+  route('POST', /^\/profile\/documents$/, (form, { me: who }) => {
+    const u = psyOnly(who);
+    const store = psyStore(u);
+    needPsyProfile(store);
+    const get = (k) => (form instanceof FormData ? String(form.get(k) || '').trim() : '');
+    const file = form instanceof FormData ? form.get('file') : null;
+    if (!file) fail(422, 'VALIDATION_ERROR', 'Прикрепите файл', { file: 'PDF, JPG, PNG или WEBP' });
+    const type = get('type') || 'diploma';
+    if (type === 'diploma' && !get('institution')) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', { institution: 'Укажите, кто выдал диплом' });
+    if (store.documents.length >= 10) fail(409, 'TOO_MANY_DOCUMENTS', 'Можно загрузить не больше 10 документов');
+    const doc = { id: store.nextId++, type, institution: get('institution') || null, specialty: get('specialty') || null,
+      year: get('year') ? Number(get('year')) : null, fileName: file.name, mimeType: file.type, size: file.size,
+      status: 'pending', comment: null, reviewedAt: null, uploadedAt: new Date().toISOString() };
+    store.documents.push(doc);
+    savePsy(u, store);
+    return doc;
+  });
+  route('DELETE', /^\/profile\/documents\/(\d+)$/, (_, { me: who, params: [id] }) => {
+    const u = psyOnly(who);
+    const store = psyStore(u);
+    const doc = store.documents.find((d) => String(d.id) === id) || fail(404, 'NOT_FOUND', 'Документ не найден');
+    if (doc.status === 'approved') fail(409, 'DOCUMENT_APPROVED', 'Проверенный документ удалить нельзя');
+    store.documents = store.documents.filter((d) => d !== doc);
+    savePsy(u, store);
+    return null;
+  });
+
+  // Профиль: психолог – анкета (выше), клиент – личные данные
+  route('GET', /^\/profile$/, (_, { me: who }) => (isPsy(who())
+    ? { role: 'psychologist', profile: psyProfile(psyStore(who())) }
+    : { role: 'client', profile: clientStore(clientOnly(who)).profile }));
   route('PATCH', /^\/profile$/, (body, { me: who }) => {
+    if (isPsy(who())) return patchPsy(who(), body);
     clientOnly(who);
     const store = clientStore();
     const fields = {};
@@ -322,6 +538,7 @@ const DEMO_API = (() => {
     return { role: 'client', profile: store.profile };
   });
   route('DELETE', /^\/profile$/, (_, { me: who }) => {
+    if (isPsy(who())) return deletePsy(who());
     clientOnly(who);
     const upcoming = clientStore().appointments.filter((a) => a.status === 'scheduled' && new Date(a.startsAt) > new Date()).length;
     if (upcoming) fail(409, 'HAS_UPCOMING_APPOINTMENTS', `Сначала отмените предстоящие сессии (${upcoming})`);

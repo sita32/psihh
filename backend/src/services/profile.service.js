@@ -6,6 +6,7 @@ const userRepository = require('../repositories/user.repository');
 const psychologistRepository = require('../repositories/psychologist.repository');
 const catalogCache = require('../repositories/catalog-cache.repository');
 const fileRepository = require('../repositories/file.repository');
+const documentRepository = require('../repositories/document.repository');
 const referenceService = require('./reference.service');
 const authService = require('./auth.service');
 const v = require('./validation');
@@ -233,8 +234,13 @@ async function deleteOwn(user) {
     throw new HttpError(409, 'По анкете есть история консультаций – её нельзя удалить, но можно скрыть из каталога',
       { code: 'HAS_APPOINTMENTS' });
   }
+  // Документы удаляются вместе с анкетой (каскад в БД) – файлы на диске тоже не нужны
+  const docs = await documentRepository.listByPsychologist(user.id);
   await psychologistRepository.deleteProfile(user.id);
   await catalogCache.invalidate();
+  const keys = docs.map((d) => d.file_key);
+  if (current.avatar_key && current.avatar_key.startsWith('uploads/')) keys.push(current.avatar_key.slice('uploads/'.length));
+  await Promise.all(keys.map((k) => fileRepository.remove(k)));
 }
 
 // Клиент удаляет аккаунт: предстоящие встречи нужно сначала отменить (психолог ждёт),

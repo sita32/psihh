@@ -94,10 +94,12 @@
     <div class="cab-grid">
       <form class="cab-stack" id="profile-form" novalidate>
 
-        <!-- Статус проверки модератором -->
-        <div class="status">
+        <!-- Статус проверки модератором: текст, кнопка заявки и публикация – по verificationStatus из API -->
+        <div class="status" data-status hidden>
           <svg><use href="#i-shield"/></svg>
-          <div><b>Профиль на&nbsp;проверке</b><p>Модератор проверит документы об&nbsp;образовании – обычно до&nbsp;3&nbsp;рабочих дней. После этого профиль появится в&nbsp;каталоге.</p></div>
+          <div class="status__text"><b data-status-title></b><p data-status-text></p></div>
+          <button type="button" class="btn btn--primary status__btn" data-verify hidden>Отправить на&nbsp;проверку</button>
+          <label class="toggle status__pub" data-publish hidden data-instant><span><b>В&nbsp;каталоге</b></span><input type="checkbox" aria-label="Показывать анкету в каталоге"><span class="toggle__sw"></span></label>
         </div>
 
         <!-- Фото – обязательно -->
@@ -105,7 +107,7 @@
           <div class="panel__head"><h2>Фотография</h2><span class="req-badge">обязательно</span></div>
           <div class="photo-box">
             <label class="upload" data-upload>
-              <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" aria-label="Загрузить фото">
+              <input type="file" name="photo" data-instant accept="image/jpeg,image/png,image/webp" aria-label="Загрузить фото">
               <svg><use href="#i-camera"/></svg>
               <b>Загрузить фото</b>
               <small>или перетащите сюда</small>
@@ -115,13 +117,14 @@
               <ul class="photo-rules">
                 <li><svg><use href="#i-check"/></svg>Лицо хорошо видно, смотрите в&nbsp;камеру</li>
                 <li><svg><use href="#i-check"/></svg>Спокойный светлый фон</li>
-                <li><svg><use href="#i-check"/></svg>JPG или PNG, до&nbsp;5&nbsp;МБ</li>
+                <li><svg><use href="#i-check"/></svg>JPG, PNG или WEBP, до&nbsp;5&nbsp;МБ</li>
               </ul>
               <div class="photo-box__btns" data-photo-actions hidden>
-                <label class="btn btn--line" style="position:relative">Заменить<input type="file" accept="image/jpeg,image/png,image/webp" data-photo-replace style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
+                <label class="btn btn--line" style="position:relative">Заменить<input type="file" accept="image/jpeg,image/png,image/webp" data-photo-replace data-instant style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
                 <button type="button" class="btn btn--danger" data-photo-remove><svg><use href="#i-trash"/></svg>Удалить</button>
               </div>
               <span class="f__error" data-photo-error style="display:none">Загрузите фото – без него профиль не&nbsp;появится в&nbsp;каталоге</span>
+              <small class="photo-box__note">Фото сохраняется сразу после выбора</small>
             </div>
           </div>
         </section>
@@ -130,84 +133,62 @@
         <section class="panel">
           <div class="panel__head"><h2>Основная информация</h2></div>
           <div class="fields">
-            <label class="f"><span class="f__label">Имя <span class="f__req">*</span></span><input class="f__input" name="first" value="Марина" required data-pv="first"><span class="f__error">Введите имя</span></label>
-            <label class="f"><span class="f__label">Фамилия <span class="f__req">*</span></span><input class="f__input" name="last" value="Волкова" required data-pv="last"><span class="f__error">Введите фамилию</span></label>
+            <label class="f"><span class="f__label">Имя <span class="f__req">*</span></span><input class="f__input" name="first" maxlength="64" required><span class="f__error">Введите имя</span></label>
+            <label class="f"><span class="f__label">Фамилия <span class="f__req">*</span></span><input class="f__input" name="last" maxlength="64" required><span class="f__error">Введите фамилию</span></label>
             <div class="f span-2">
               <span class="f__label">Пол</span>
               <div class="pills">
-                <label class="pill"><input type="radio" name="gender" value="f" checked><span>Женщина</span></label>
-                <label class="pill"><input type="radio" name="gender" value="m"><span>Мужчина</span></label>
+                <label class="pill"><input type="radio" name="gender" value="female" checked><span>Женщина</span></label>
+                <label class="pill"><input type="radio" name="gender" value="male"><span>Мужчина</span></label>
               </div>
             </div>
-            <label class="f"><span class="f__label">Дата рождения <span class="f__req">*</span></span><input class="f__input" type="date" name="birth" value="1992-03-14" required data-pv="birth"><span class="f__error">Укажите дату рождения</span></label>
-            <label class="f"><span class="f__label">Опыт работы <span class="f__req">*</span></span><span class="f__suffix"><input class="f__input" type="number" min="0" max="60" name="exp" value="9" required data-pv="exp"><span>лет</span></span><span class="f__error">Укажите опыт</span></label>
-            <label class="f"><span class="f__label">Стоимость сессии <span class="f__req">*</span></span><span class="f__suffix"><input class="f__input" type="number" min="10" step="5" name="price" value="65" required data-pv="price"><span>BYN</span></span><span class="f__note">Сессия длится 50&nbsp;минут</span><span class="f__error">Укажите стоимость</span></label>
-            <label class="f"><span class="f__label">Должность</span><input class="f__input" name="role" value="Клинический психолог" data-pv="role"></label>
+            <label class="f"><span class="f__label">Дата рождения <span class="f__req">*</span></span><input class="f__input" type="date" name="birth" required><span class="f__error">Укажите дату рождения</span></label>
+            <label class="f"><span class="f__label">Опыт работы <span class="f__req">*</span></span><span class="f__suffix"><input class="f__input" type="number" min="0" max="60" name="exp" required><span>лет</span></span><span class="f__error">Укажите опыт</span></label>
+            <label class="f"><span class="f__label">Должность</span><input class="f__input" name="role" maxlength="160" placeholder="Например, клинический психолог"><span class="f__error">Слишком длинно</span></label>
           </div>
         </section>
 
         <!-- О себе -->
         <section class="panel">
           <div class="panel__head"><h2>О&nbsp;себе</h2></div>
-          <label class="f">
-            <span class="f__label">Расскажите о&nbsp;своём подходе <small class="f__count" data-count-for="about">0 / 800</small></span>
-            <textarea class="f__area" name="about" maxlength="800" rows="6" placeholder="Как вы работаете, чего ждать на&nbsp;первой встрече, что для вас важно в&nbsp;терапии">Помогаю справиться с&nbsp;тревогой и&nbsp;выгоранием. Работаю в&nbsp;когнитивно-поведенческом подходе: вместе разбираемся, какие мысли и&nbsp;привычки мешают, и&nbsp;пробуем новые способы реагировать.</textarea>
-          </label>
+          <div class="fields fields--one">
+            <label class="f">
+              <span class="f__label">Расскажите о&nbsp;себе и&nbsp;своём опыте <small class="f__count" data-count-for="about">0 / 1500</small></span>
+              <textarea class="f__area" name="about" maxlength="1500" rows="6" placeholder="С какими трудностями помогаете, в&nbsp;каком подходе работаете, что для вас важно в&nbsp;терапии"></textarea>
+              <span class="f__error">Расскажите об&nbsp;опыте</span>
+            </label>
+            <label class="f">
+              <span class="f__label">Как проходит работа <small class="f__count" data-count-for="approach">0 / 1500</small></span>
+              <textarea class="f__area" name="approach" maxlength="1500" rows="4" placeholder="Чего ждать на&nbsp;первой встрече, как часто встречаетесь, есть ли задания между сессиями"></textarea>
+            </label>
+          </div>
         </section>
 
         <!-- Методы, запросы, форматы -->
         <section class="panel">
           <div class="panel__head"><h2>Как вы работаете</h2></div>
-          <div class="chips-group"><b>Методы <span class="f__req">*</span></b><div class="chips" data-pv-chips="methods"><label class="chip-opt"><input type="checkbox" name="methods" value="КПТ" checked><span>КПТ</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Гештальт"><span>Гештальт</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Схема-терапия" checked><span>Схема-терапия</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="ACT"><span>ACT</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Психоанализ"><span>Психоанализ</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="EMDR"><span>EMDR</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Системная семейная"><span>Системная семейная</span></label><label class="chip-opt"><input type="checkbox" name="methods" value="Эмоционально-фокусированная"><span>Эмоционально-фокусированная</span></label></div></div>
-          <div class="chips-group"><b>С&nbsp;какими запросами работаете <span class="f__req">*</span></b><div class="chips" data-pv-chips="topics"><label class="chip-opt"><input type="checkbox" name="topics" value="Тревожность" checked><span>Тревожность</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Стресс"><span>Стресс</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Выгорание" checked><span>Выгорание</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Отношения"><span>Отношения</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Самооценка" checked><span>Самооценка</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Апатия"><span>Апатия</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Прокрастинация"><span>Прокрастинация</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Утрата"><span>Утрата</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Кризис"><span>Кризис</span></label><label class="chip-opt"><input type="checkbox" name="topics" value="Панические атаки"><span>Панические атаки</span></label></div></div>
-          <div class="chips-group"><b>Форматы</b><div class="chips"><label class="chip-opt"><input type="checkbox" name="formats" value="Индивидуальная" checked><span>Индивидуальная</span></label><label class="chip-opt"><input type="checkbox" name="formats" value="Парная"><span>Парная</span></label><label class="chip-opt"><input type="checkbox" name="formats" value="С ребёнком"><span>С ребёнком</span></label></div></div>
+          <!-- Варианты – из GET /api/references (коды справочников) -->
+          <div class="chips-group"><b>Методы <span class="f__req">*</span></b><div class="chips" data-ref="methods"></div></div>
+          <div class="chips-group"><b>С&nbsp;какими запросами работаете <span class="f__req">*</span></b><div class="chips" data-ref="topics"></div></div>
+          <div class="chips-group"><b>Форматы и&nbsp;цены <span class="f__req">*</span></b><p class="panel__hint panel__hint--in">Отметьте форматы, которые ведёте, и&nbsp;укажите цену сессии. Сессия длится 50&nbsp;минут.</p><div class="svc" data-services></div></div>
         </section>
 
         <!-- Образование и документы -->
         <section class="panel">
           <div class="panel__head"><h2>Образование и&nbsp;документы</h2><span class="req-badge">для проверки</span></div>
-          <p class="panel__hint">Укажите высшее психологическое образование и&nbsp;курсы повышения квалификации. Документы видит только модератор.</p>
+          <p class="panel__hint">Загрузите диплом о&nbsp;высшем психологическом образовании и&nbsp;сертификаты курсов. Документы видит только модератор, файл сохраняется сразу.</p>
 
-          <div class="edu" data-edu>
-            <div class="edu__item">
-              <label class="f"><span class="f__label">Учебное заведение</span><input class="f__input" value="БГУ, факультет философии и&nbsp;социальных наук"></label>
-              <label class="f"><span class="f__label">Специальность</span><input class="f__input" value="Психология"></label>
-              <label class="f"><span class="f__label">Год</span><input class="f__input" type="number" value="2015"></label>
-              <button type="button" class="icon-btn edu__del" data-edu-del aria-label="Удалить"><svg><use href="#i-trash"/></svg></button>
-            </div>
-            <div class="edu__item">
-              <label class="f"><span class="f__label">Учебное заведение</span><input class="f__input" value="Институт КПТ"></label>
-              <label class="f"><span class="f__label">Специальность</span><input class="f__input" value="Когнитивно-поведенческая терапия"></label>
-              <label class="f"><span class="f__label">Год</span><input class="f__input" type="number" value="2018"></label>
-              <button type="button" class="icon-btn edu__del" data-edu-del aria-label="Удалить"><svg><use href="#i-trash"/></svg></button>
-            </div>
-          </div>
-          <button type="button" class="btn btn--text edu__add" data-edu-add><svg><use href="#i-plus"/></svg>Добавить обучение</button>
-
-          <label class="drop" data-drop>
-            <input type="file" multiple accept=".pdf,image/jpeg,image/png" aria-label="Загрузить документы">
+          <label class="drop" data-drop data-instant>
+            <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" aria-label="Загрузить документ">
             <span class="drop__ic"><svg><use href="#i-upload"/></svg></span>
-            <span><b>Загрузите дипломы и&nbsp;сертификаты</b><small>PDF, JPG или PNG до&nbsp;10&nbsp;МБ – можно несколько файлов сразу</small></span>
+            <span><b>Загрузите диплом или&nbsp;сертификат</b><small>PDF, JPG, PNG или WEBP до&nbsp;20&nbsp;МБ</small></span>
           </label>
-          <div class="docs" data-docs>
-            <div class="doc">
-              <span class="doc__ic">PDF</span>
-              <span class="doc__name"><b>Диплом_БГУ_психология.pdf</b><small>2,4 МБ</small></span>
-              <span class="doc-status doc-status--ok">Подтверждён</span>
-              <button type="button" class="icon-btn" data-doc-del aria-label="Удалить файл"><svg><use href="#i-trash"/></svg></button>
-            </div>
-            <div class="doc">
-              <span class="doc__ic">JPG</span>
-              <span class="doc__name"><b>Сертификат_КПТ_2018.jpg</b><small>1,1 МБ</small></span>
-              <span class="doc-status doc-status--wait">На&nbsp;проверке</span>
-              <button type="button" class="icon-btn" data-doc-del aria-label="Удалить файл"><svg><use href="#i-trash"/></svg></button>
-            </div>
-          </div>
+          <div class="docs" data-docs></div>
         </section>
 
         <!-- Удаление профиля -->
         <section class="panel danger">
-          <div><b>Удалить профиль специалиста</b><p>Профиль исчезнет из&nbsp;каталога, будущие записи будут отменены с&nbsp;уведомлением клиентов</p></div>
+          <div><b>Удалить анкету специалиста</b><p>Можно, пока у&nbsp;вас не&nbsp;было консультаций. Если история уже есть – анкету можно скрыть из&nbsp;каталога</p></div>
           <button type="button" class="btn btn--danger" data-open="delete-modal"><svg><use href="#i-trash"/></svg>Удалить</button>
         </section>
 
@@ -259,11 +240,39 @@
 <!-- =========================== ДИАЛОГ: УДАЛЕНИЕ =========================== -->
 <dialog class="modal modal--small" id="delete-modal" aria-labelledby="delete-title">
   <form method="dialog">
-    <div class="modal__head"><h3 id="delete-title">Удалить профиль?</h3></div>
-    <div class="modal__body"><p>Профиль исчезнет из&nbsp;каталога, все будущие записи будут отменены, клиенты получат уведомление. Это действие нельзя отменить.</p></div>
+    <div class="modal__head"><h3 id="delete-title">Удалить анкету?</h3></div>
+    <div class="modal__body"><p>Анкета, методы, цены и&nbsp;документы будут удалены, аккаунт останется – анкету можно заполнить заново. Это действие нельзя отменить.</p></div>
     <div class="modal__foot">
       <button class="btn btn--line" value="cancel">Отмена</button>
-      <button class="btn btn--danger" value="delete">Удалить профиль</button>
+      <button class="btn btn--danger" value="delete">Удалить анкету</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- =========================== ДИАЛОГ: О ДОКУМЕНТЕ =========================== -->
+<dialog class="modal" id="doc-modal" aria-labelledby="doc-title">
+  <form method="dialog" novalidate>
+    <div class="modal__head"><h3 id="doc-title">О&nbsp;документе</h3></div>
+    <div class="modal__body">
+      <p class="doc-modal__file" data-doc-file></p>
+      <div class="fields">
+        <div class="f span-2">
+          <span class="f__label">Что это</span>
+          <div class="pills">
+            <label class="pill"><input type="radio" name="type" value="diploma" checked><span>Диплом</span></label>
+            <label class="pill"><input type="radio" name="type" value="certificate"><span>Сертификат</span></label>
+            <label class="pill"><input type="radio" name="type" value="license"><span>Лицензия</span></label>
+            <label class="pill"><input type="radio" name="type" value="other"><span>Другое</span></label>
+          </div>
+        </div>
+        <label class="f span-2"><span class="f__label">Кто выдал <span class="f__req" data-doc-req>*</span></span><input class="f__input" name="institution" maxlength="255" placeholder="Например, БГУ"><span class="f__error">Укажите, кто выдал диплом</span></label>
+        <label class="f"><span class="f__label">Специальность или&nbsp;курс</span><input class="f__input" name="specialty" maxlength="255" placeholder="Психология"><span class="f__error"></span></label>
+        <label class="f"><span class="f__label">Год</span><input class="f__input" name="year" type="number" min="1950" placeholder="2020"><span class="f__error">Проверьте год</span></label>
+      </div>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--line" value="cancel" formnovalidate>Отмена</button>
+      <button class="btn btn--primary" value="ok">Загрузить</button>
     </div>
   </form>
 </dialog>
@@ -271,6 +280,7 @@
 <!-- Всплывающее уведомление -->
 <div class="toast" role="status" aria-live="polite"><svg><use href="#i-check"/></svg><span>Изменения сохранены</span></div>
 
+<script src="js/data.js"></script>
 <script src="js/api.js"></script>
 <script src="js/api-demo.js"></script>
 <script src="js/session.js"></script>
