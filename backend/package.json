@@ -1,0 +1,20 @@
+{
+  "name": "ryadom-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Сервер «Рядом»: REST API на Express, PostgreSQL, Redis",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch --env-file-if-exists=../.env src/server.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "ioredis": "5.11.1",
+    "pg": "8.23.1"
+  }
+}
