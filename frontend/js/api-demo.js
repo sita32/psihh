@@ -724,6 +724,10 @@ const DEMO_API = (() => {
         createdAt: new Date(`${r.date}T12:00:00`).toISOString(), reply: r.reply ? { text: r.reply, at: null } : null,
         status: 'approved', report: null,
       }));
+      // Жалоба на анонимную «тройку» уже на рассмотрении – как в демо-базе (MOD_REVIEWS)
+      const rep = MOD_REVIEWS.find((x) => x.kind === 'report' && x.psy === 1);
+      const target = rep && store.reviews.find((r) => r.body === rep.text);
+      if (target) target.report = { id: store.nextId++, status: 'pending', reason: rep.report.reason, createdAt: demoDateAt(rep.report.k).toISOString(), comment: null, resolvedAt: null };
       savePsy(u, store);
     }
     return store;
@@ -732,7 +736,7 @@ const DEMO_API = (() => {
 
   route('GET', /^\/psychologists\/me\/reviews$/, (_, { me: who }) => {
     const u = psyOnly(who);
-    const items = [...psyReviews(u).reviews].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const items = psyReviews(u).reviews.filter((r) => r.status === 'approved').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     items.forEach((r) => { dist[r.rating] += 1; });
     const avg = items.length ? Math.round((items.reduce((sum, r) => sum + r.rating, 0) / items.length) * 100) / 100 : null;
@@ -1278,6 +1282,120 @@ const DEMO_API = (() => {
       a.psychologist.id, { psychologist: a.psychologist.name, comment });
     saveMod(store);
     return { id: a.id, status, comment };
+  });
+
+  /* ---------- Панель модератора: отзывы и жалобы ----------
+     Источники: MOD_REVIEWS из data.js (решения – в 'ryadom-demo-mod'), отзывы Анны из демо-кабинета клиента
+     и жалобы из демо-кабинета Марины – решение модератора сразу видно им. */
+
+  const MARINA = { email: 'marina@ryadom.by' };
+  const REPORT_ID = 700000;      // жалобы из кабинета Марины – отдельный диапазон номеров
+
+  /** Отзывы из data.js, которых нет в кабинетах (у Анны и Марины – свои, живые) */
+  const staticModReviews = (store) => {
+    if (store.reviews) return store.reviews;
+    const at = (k) => demoDateAt(k).toISOString();
+    store.reviews = MOD_REVIEWS.filter((x) => !(x.kind === 'new' && x.client === 'Анна Петрова') && !(x.kind === 'report' && x.psy === 1))
+      .map((x) => {
+        const p = findPsy(x.psy);
+        return {
+          id: 800 + x.id, appointmentId: null, psychologist: { id: p.id, name: p.name, avatarUrl: `assets/img/psychologists/${p.photo}.webp` },
+          author: x.client, anonymous: x.client === 'Аноним', rating: x.rating, body: x.text, sessions: 1,
+          sessionAt: at(x.session), createdAt: at(x.k), reply: null, status: x.kind === 'new' ? 'pending' : 'approved',
+          moderationComment: null, moderatedAt: x.kind === 'report' ? at(x.k + 1) : null, client: { id: 0, name: x.client },
+          report: x.report ? { id: 800 + x.id, status: 'pending', reason: x.report.reason, createdAt: at(x.report.k), comment: null, resolvedAt: null } : null,
+        };
+      });
+    saveMod(store);
+    return store.reviews;
+  };
+  /** Отзывы Анны из демо-кабинета клиента – глазами модератора */
+  const clientModReviews = () => {
+    const cs = clientStore();
+    return cs.reviews.map((r) => {
+      const a = cs.appointments.find((x) => x.id === r.appointmentId);
+      return { ...r, author: 'Анна Петрова', client: { id: 4, name: 'Анна Петрова' }, sessions: 1,
+        sessionAt: a ? a.startsAt : r.createdAt, moderatedAt: r.moderatedAt || null, report: null, fromClient: true };
+    });
+  };
+  /** Жалобы из демо-кабинета Марины – в виде ответа API */
+  const marinaReports = () => {
+    const store = psyReviews(MARINA);
+    const p = findPsy(1);
+    return store.reviews.filter((r) => r.report).map((r) => ({
+      ...r.report, id: REPORT_ID + r.report.id, fromPsy: true, reviewId: r.id,
+      review: { ...r, appointmentId: null, psychologist: { id: p.id, name: p.name, avatarUrl: `assets/img/psychologists/${p.photo}.webp` },
+        sessionAt: r.createdAt, moderationComment: r.moderationComment || null, moderatedAt: r.moderatedAt || null,
+        client: { id: 0, name: r.author } },
+    }));
+  };
+  const staticReports = (store) => staticModReviews(store).filter((r) => r.report).map((r) => ({ ...r.report, review: r }));
+  const clean = ({ fromClient, fromPsy, reviewId, ...x }) => x;
+
+  route('GET', /^\/admin\/reviews$/, (_, { me: who, query }) => {
+    modOnly(who, 'reviews.moderate');
+    const status = query.status || 'pending';
+    const items = [...staticModReviews(modStore()), ...clientModReviews()].filter((r) => r.status === status)
+      .sort((a, b) => (status === 'pending' ? 1 : -1) * (new Date(a.createdAt) - new Date(b.createdAt)));
+    return { status, items: items.map(clean) };
+  });
+  route('GET', /^\/admin\/review-reports$/, (_, { me: who, query }) => {
+    modOnly(who, 'reviews.moderate');
+    const status = query.status || 'pending';
+    const items = [...staticReports(modStore()), ...marinaReports()].filter((r) => r.status === status);
+    return { status, items: items.map(clean) };
+  });
+
+  route('PATCH', /^\/admin\/reviews\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    const moderator = modOnly(who, 'reviews.moderate');
+    const store = modStore();
+    const status = body.status;
+    const comment = String(body.comment || '').trim() || null;
+    if (!['approved', 'rejected'].includes(status)) fail(422, 'VALIDATION_ERROR', 'status – approved или rejected', { status: 'approved, rejected' });
+    if (status === 'rejected' && !comment) fail(422, 'VALIDATION_ERROR', 'Напишите клиенту, почему отзыв не опубликован', { comment: 'Обязательно при отклонении' });
+    const now = new Date().toISOString();
+    let r = staticModReviews(store).find((x) => String(x.id) === id);
+    if (r) {
+      Object.assign(r, { status, moderationComment: comment, moderatedAt: now });
+    } else {
+      // Отзыв Анны – решение записывается в её демо-кабинет
+      const cs = clientStore();
+      r = cs.reviews.find((x) => String(x.id) === id) || fail(404, 'NOT_FOUND', 'Отзыв не найден');
+      Object.assign(r, { status, moderationComment: comment, moderatedAt: now });
+      saveClient(cs);
+    }
+    modAudit(store, moderator, status === 'approved' ? 'review.approve' : 'review.reject', 'review', r.id,
+      { psychologist: r.psychologist.name, rating: r.rating, comment });
+    saveMod(store);
+    return r;
+  });
+
+  route('PATCH', /^\/admin\/review-reports\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    const moderator = modOnly(who, 'reviews.moderate');
+    const store = modStore();
+    const decision = body.decision;
+    const comment = String(body.comment || '').trim();
+    if (!['hide', 'keep'].includes(decision)) fail(422, 'VALIDATION_ERROR', 'decision – hide или keep', { decision: 'hide, keep' });
+    if (!comment) fail(422, 'VALIDATION_ERROR', 'Напишите комментарий к решению', { comment: 'Обязательно' });
+    const now = new Date().toISOString();
+    const resolve = (review) => {
+      if (review.report.status !== 'pending') fail(409, 'ALREADY_RESOLVED', 'По жалобе уже есть решение');
+      Object.assign(review.report, { status: decision === 'hide' ? 'approved' : 'rejected', comment, resolvedAt: now });
+      if (decision === 'hide') Object.assign(review, { status: 'rejected', moderationComment: comment, moderatedAt: now });
+    };
+    let review = staticModReviews(store).find((x) => x.report && String(x.report.id) === id);
+    if (review) resolve(review);
+    else {
+      // Жалоба Марины – решение видно в её кабинете (скрытый отзыв пропадает из списка)
+      const ps = psyReviews(MARINA);
+      review = ps.reviews.find((x) => x.report && String(REPORT_ID + x.report.id) === id) || fail(404, 'NOT_FOUND', 'Жалоба не найдена');
+      resolve(review);
+      savePsy(MARINA, ps);
+    }
+    modAudit(store, moderator, decision === 'hide' ? 'review.hide' : 'review.keep', 'review', review.id,
+      { psychologist: review.psychologist ? review.psychologist.name : 'Марина Волкова', report: review.report.reason, comment });
+    saveMod(store);
+    return { id: Number(id), decision, comment };
   });
 
   /* ---------- Разбор запроса ---------- */
