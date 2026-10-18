@@ -2,51 +2,45 @@
  * «Рядом» – отзывы о психологе в его кабинете (psy-reviews.html).
  * Психолог видит опубликованные отзывы, может ответить на них
  * и пожаловаться модератору на некорректный отзыв.
- * Данные пока из data.js (REVIEWS, PSYCHOLOGISTS, CLIENT_REVIEWS).
- * Позже:
- *   GET    /api/psychologists/me/reviews
- *   PUT    /api/reviews/:id/reply   { text }     – ответ (виден в профиле)
+ * Данные – из API:
+ *   GET    /api/psychologists/me/reviews?page&limit – отзывы о себе со сводкой, ответами и жалобами
+ *   PUT    /api/reviews/:id/reply   { text }        – ответ (виден в профиле)
  *   DELETE /api/reviews/:id/reply
- *   POST   /api/reviews/:id/report  { reason }   – жалоба модератору
+ *   POST   /api/reviews/:id/report  { reason }      – жалоба модератору
  */
-const ME = 1;                    // id психолога, который вошёл в кабинет
-
 document.addEventListener('DOMContentLoaded', () => {
   const { escapeHtml, plural, stars, avatar, toast } = UI;
   const $ = (sel) => document.querySelector(sel);
   UI.initModals();
 
-  const p = PSYCHOLOGISTS.find((x) => x.id === ME);
-  // Отзывы о себе: id – порядковый номер, новые сверху
-  const reviews = REVIEWS.filter((r) => r.psy === ME)
-    .map((r, i) => Object.assign(r, { id: r.id || i + 1 }))
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+  let reviews = [];              // опубликованные отзывы о себе, новые сверху
+  let summary = null;            // { rating, count, distribution, pending }
   let editing = null;            // id отзыва, на который сейчас пишется ответ
 
   /* ---------- Сводка рейтинга ---------- */
   const renderSum = () => {
-    // Распределение оценок – по той же формуле, что на странице психолога
-    const fives = Math.round(p.reviews * (p.rating - 4));
-    const dist = { 5: fives, 4: p.reviews - fives - (p.rating < 4.8 ? 1 : 0), 3: p.rating < 4.8 ? 1 : 0, 2: 0, 1: 0 };
+    if (!summary) return;
+    const { rating, count, distribution: dist } = summary;
     const noReply = reviews.filter((r) => !r.reply).length;
+    const month = reviews.filter((r) => UI.daysFrom(r.createdAt) >= -30).length;
     $('[data-sum]').classList.add('rsum--psy');
     $('[data-sum]').innerHTML = `
       <div class="rsum__big">
-        <b>${p.rating.toFixed(1).replace('.', ',')}</b>
-        ${stars(Math.round(p.rating), 18)}
-        <small>${p.reviews} ${plural(p.reviews, 'отзыв', 'отзыва', 'отзывов')}</small>
+        <b>${rating === null ? '–' : rating.toFixed(1).replace('.', ',')}</b>
+        ${stars(Math.round(rating || 0), 18)}
+        <small>${count} ${plural(count, 'отзыв', 'отзыва', 'отзывов')}</small>
       </div>
       <ul class="rsum__bars">${[5, 4, 3, 2, 1].map((n) => `
-        <li><span>${n}</span><i><b style="width:${Math.round((dist[n] / p.reviews) * 100)}%"></b></i><small>${dist[n]}</small></li>`).join('')}
+        <li><span>${n}</span><i><b style="width:${count ? Math.round((dist[n] / count) * 100) : 0}%"></b></i><small>${dist[n]}</small></li>`).join('')}
       </ul>
       <div class="rsum__side">
         <div><span>Без ответа</span><b>${noReply}</b></div>
         <div><span>С ответом</span><b>${reviews.length - noReply}</b></div>
-        <div><span>За последние 30 дней</span><b>${reviews.filter((r) => UI.daysFrom(r.date) >= -30).length}</b></div>
+        <div><span>За последние 30 дней</span><b>${month}</b></div>
       </div>`;
 
     // Отзывы клиентов, которые ещё проверяет модератор, психологу не видны – только их число
-    const pending = CLIENT_REVIEWS.filter((r) => r.psy === ME && r.status === 'pending').length;
+    const pending = summary.pending || 0;
     const note = $('[data-pending]');
     note.hidden = !pending;
     note.innerHTML = `<svg><use href="#i-clock"/></svg><span>${pending} ${plural(pending, 'новый отзыв проходит', 'новых отзыва проходят', 'новых отзывов проходят')} проверку модератора – после публикации ${pending > 1 ? 'они появятся' : 'он появится'} здесь.</span>`;
@@ -57,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reply = editing === r.id
       ? `<div class="rev__form">
           <label class="f"><span class="f__label">Ваш ответ <small>увидят все посетители профиля</small></span>
-            <textarea class="f__area" maxlength="600" data-reply-text placeholder="Поблагодарите клиента или коротко прокомментируйте отзыв">${r.reply ? escapeHtml(r.reply) : ''}</textarea>
+            <textarea class="f__area" maxlength="2000" data-reply-text placeholder="Поблагодарите клиента или коротко прокомментируйте отзыв">${r.reply ? escapeHtml(r.reply.text) : ''}</textarea>
             <span class="f__error">Напишите хотя бы пару слов</span></label>
           <div class="rev__form-btns">
             <button type="button" class="btn btn--primary btn--xs" data-act="save">Опубликовать ответ</button>
@@ -68,22 +62,24 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<div class="rev__reply">
             <div class="rev__reply-head"><b>Ваш ответ</b>
               <span><button type="button" class="rev__link" data-act="reply">Изменить</button><button type="button" class="rev__link rev__link--muted" data-act="unreply">Удалить</button></span></div>
-            ${escapeHtml(r.reply)}</div>`
+            ${escapeHtml(r.reply.text)}</div>`
         : '';
     const foot = editing === r.id ? '' : `<div class="rev__foot">
         ${r.reply ? '' : '<button type="button" class="btn btn--line btn--xs" data-act="reply"><svg><use href="#i-chat"/></svg>Ответить</button>'}
-        ${r.reported
-          ? '<span class="rev__flag"><svg><use href="#i-flag"/></svg>Жалоба отправлена модератору</span>'
+        ${r.report && r.report.status === 'pending'
+          ? '<span class="rev__flag"><svg><use href="#i-flag"/></svg>Жалоба на&nbsp;рассмотрении у&nbsp;модератора</span>'
           : '<button type="button" class="btn btn--text btn--xs" data-act="report" style="height:36px;color:var(--ink-3)"><svg><use href="#i-flag"/></svg>Пожаловаться</button>'}
-      </div>`;
+      </div>
+      ${r.report && r.report.status === 'rejected' && editing !== r.id
+        ? `<p class="rev__note"><svg><use href="#i-flag"/></svg>Модератор оставил отзыв: «${escapeHtml(r.report.comment || '')}»</p>` : ''}`;
     return `
       <article class="rev" data-id="${r.id}">
         <header class="rev__head">
-          ${avatar(r.name, null, 44)}
-          <span class="rev__who"><b>${escapeHtml(r.name)}</b><small>${UI.fullDate(r.date)} · ${r.sessions} ${plural(r.sessions, 'сессия', 'сессии', 'сессий')} вместе</small></span>
+          ${avatar(r.author, null, 44)}
+          <span class="rev__who"><b>${escapeHtml(r.author)}</b><small>${UI.fullDate(r.createdAt)} · ${r.sessions} ${plural(r.sessions, 'сессия', 'сессии', 'сессий')} вместе</small></span>
           ${stars(r.rating, 18)}
         </header>
-        <p class="rev__text">${escapeHtml(r.text)}</p>
+        ${r.body ? `<p class="rev__text">${escapeHtml(r.body)}</p>` : '<p class="rev__text rev__text--empty">Клиент поставил оценку без текста</p>'}
         ${reply}
         ${foot}
       </article>`;
@@ -116,17 +112,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (act === 'save') {
       const area = $('[data-reply-text]');
       if (area.value.trim().length < 3) { area.closest('.f').classList.add('is-error'); area.focus(); return; }
-      r.reply = area.value.trim();
-      editing = null;
-      render();
-      toast('Ответ опубликован в профиле');
+      try {
+        replace(await API.put(`/reviews/${r.id}/reply`, { text: area.value.trim() }));
+        editing = null;
+        render();
+        toast('Ответ опубликован в профиле');
+      } catch (err) {
+        toast(err.fields ? Object.values(err.fields)[0] : err.message, true);
+      }
     }
     if (act === 'unreply') {
       const ok = await UI.confirmAction({ title: 'Удалить ответ?', text: 'Ответ исчезнет из вашего профиля. Отзыв клиента останется.', confirm: 'Удалить', danger: true });
       if (!ok) return;
-      delete r.reply;
-      render();
-      toast('Ответ удалён');
+      try {
+        replace(await API.del(`/reviews/${r.id}/reply`));
+        render();
+        toast('Ответ удалён');
+      } catch (err) { toast(err.message, true); }
     }
     if (act === 'report') {
       const reason = await UI.askReason({
@@ -136,12 +138,36 @@ document.addEventListener('DOMContentLoaded', () => {
         presets: ['Оскорбления', 'Клиент не был на сессии', 'Личные данные в тексте', 'Реклама'],
       });
       if (!reason) return;
-      r.reported = true;
-      render();
-      toast('Жалоба отправлена модератору');
+      try {
+        replace(await API.post(`/reviews/${r.id}/report`, { reason }));
+        render();
+        toast('Жалоба отправлена модератору');
+      } catch (err) {
+        toast(err.fields ? Object.values(err.fields)[0] : err.message, true);
+      }
     }
   });
   $('[data-list]').addEventListener('input', (e) => e.target.closest('.f')?.classList.remove('is-error'));
 
-  render();
+  /** Все отзывы о себе – по 50 за запрос, пока не кончатся */
+  const load = async () => {
+    try {
+      const all = [];
+      let page = 1, pages = 1;
+      do {
+        const res = await API.get('/psychologists/me/reviews', { page, limit: 50 });
+        all.push(...res.items);
+        ({ summary, pages } = res);
+        page += 1;
+      } while (page <= pages);
+      reviews = all;
+      render();
+    } catch (err) {
+      toast(`Не удалось загрузить отзывы: ${err.message}`, true);
+    }
+  };
+  /** Отзыв изменился – подменяем его ответом сервера */
+  const replace = (updated) => { reviews = reviews.map((x) => (x.id === updated.id ? updated : x)); };
+
+  load();
 });

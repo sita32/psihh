@@ -99,13 +99,15 @@ async function listForPsychologist(psychologistId, query, viewer) {
   const page = v.intParam(query.page, 'page', { min: 1, max: 1000 }, fields) || 1;
   const limit = v.intParam(query.limit, 'limit', { min: 1, max: 50 }, fields) || 10;
   v.throwIfInvalid(fields);
-  const [rows, s] = await Promise.all([
+  const [rows, s, pending] = await Promise.all([
     reviewRepository.listApproved(psychologistId, { limit, offset: (page - 1) * limit }),
     reviewRepository.summary(psychologistId),
+    viewer === 'psychologist' ? reviewRepository.countPending(psychologistId) : undefined,
   ]);
   return {
     summary: { rating: s.avg === null ? null : Number(s.avg), count: s.count,
-      distribution: { 5: s.r5, 4: s.r4, 3: s.r3, 2: s.r2, 1: s.r1 } },
+      distribution: { 5: s.r5, 4: s.r4, 3: s.r3, 2: s.r2, 1: s.r1 },
+      ...(pending !== undefined && { pending }) },   // в своём кабинете – сколько новых отзывов на проверке
     items: rows.map((r) => reviewView(r, viewer)),
     page,
     pages: Math.ceil(s.count / limit),

@@ -1216,6 +1216,10 @@
 .rev__form-btns { display: flex; gap: 8px; margin-top: 8px; }
 .rev__flag { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #B8891A; }
 .rev__flag svg { width: 16px; height: 16px; }
+/* Решение модератора по жалобе: отзыв оставлен */
+.rev__note { display: flex; align-items: flex-start; gap: 6px; margin-top: 10px; font-size: 13px; color: var(--ink-3); }
+.rev__note svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+.rev__text--empty { color: var(--ink-3); font-style: italic; }
 @media (max-width: 760px) {
   .rsum--psy { grid-template-columns: minmax(0, 1fr); }
 }

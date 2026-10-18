@@ -90,6 +90,15 @@ async function summary(psychologistId, db = pool) {
   return rows[0];
 }
 
+// Сколько отзывов о психологе ждут проверки модератора (сами они психологу не видны)
+async function countPending(psychologistId, db = pool) {
+  const { rows } = await db.query(
+    "SELECT count(*)::int AS n FROM reviews WHERE psychologist_id = $1 AND status = 'pending'",
+    [psychologistId],
+  );
+  return rows[0].n;
+}
+
 async function setReply(id, text, db = pool) {
   await db.query(
     'UPDATE reviews SET reply = $2, replied_at = CASE WHEN $2::text IS NULL THEN NULL ELSE now() END WHERE id = $1',
@@ -153,6 +162,7 @@ async function resolveReport(id, status, comment, moderatorId, db = pool) {
 }
 
 module.exports = {
+  countPending,
   findById, findAppointment, create, update, remove, listByClient, listApproved, summary, setReply,
   listForModeration, moderate, createReport, findReport, listReports, resolveReport,
 };

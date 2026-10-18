@@ -711,6 +711,62 @@ const DEMO_API = (() => {
     return { date: body.date, blocked: free.length };
   });
 
+  /* ---------- Кабинет психолога: отзывы о себе (у Марины – из REVIEWS), ответ и жалоба ---------- */
+
+  const psyReviews = (u) => {
+    const store = psyStore(u);
+    if (!store.reviews) {
+      store.reviews = u.email !== 'marina@ryadom.by' ? [] : REVIEWS.filter((r) => r.psy === 1).map((r, i) => ({
+        id: 100 + i, author: r.name, anonymous: r.name === 'Аноним', rating: r.rating, body: r.text, sessions: r.sessions,
+        createdAt: new Date(`${r.date}T12:00:00`).toISOString(), reply: r.reply ? { text: r.reply, at: null } : null,
+        status: 'approved', report: null,
+      }));
+      savePsy(u, store);
+    }
+    return store;
+  };
+  const findMyReview = (store, id) => store.reviews.find((r) => String(r.id) === id) || fail(404, 'NOT_FOUND', 'Отзыв не найден');
+
+  route('GET', /^\/psychologists\/me\/reviews$/, (_, { me: who }) => {
+    const u = psyOnly(who);
+    const items = [...psyReviews(u).reviews].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    items.forEach((r) => { dist[r.rating] += 1; });
+    const avg = items.length ? Math.round((items.reduce((sum, r) => sum + r.rating, 0) / items.length) * 100) / 100 : null;
+    // На проверке у модератора – отзывы Анны о Марине со статусом pending
+    const pending = u.email === 'marina@ryadom.by' ? CLIENT_REVIEWS.filter((r) => r.psy === 1 && r.status === 'pending').length : 0;
+    return { summary: { rating: avg, count: items.length, distribution: dist, pending }, items, page: 1, pages: 1 };
+  });
+  route('PUT', /^\/reviews\/(\d+)\/reply$/, (body, { me: who, params: [id] }) => {
+    const u = psyOnly(who);
+    const store = psyReviews(u);
+    const r = findMyReview(store, id);
+    const text = String(body.text || '').trim();
+    if (!text) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', { text: 'Напишите ответ' });
+    r.reply = { text, at: new Date().toISOString() };
+    savePsy(u, store);
+    return r;
+  });
+  route('DELETE', /^\/reviews\/(\d+)\/reply$/, (_, { me: who, params: [id] }) => {
+    const u = psyOnly(who);
+    const store = psyReviews(u);
+    const r = findMyReview(store, id);
+    r.reply = null;
+    savePsy(u, store);
+    return r;
+  });
+  route('POST', /^\/reviews\/(\d+)\/report$/, (body, { me: who, params: [id] }) => {
+    const u = psyOnly(who);
+    const store = psyReviews(u);
+    const r = findMyReview(store, id);
+    const reason = String(body.reason || '').trim();
+    if (!reason) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', { reason: 'Опишите, что не так с отзывом' });
+    if (r.report && r.report.status === 'pending') fail(409, 'REPORT_PENDING', 'Жалоба на этот отзыв уже на рассмотрении');
+    r.report = { id: store.nextId++, status: 'pending', reason, createdAt: new Date().toISOString(), comment: null, resolvedAt: null };
+    savePsy(u, store);
+    return r;
+  });
+
   // Профиль: психолог – анкета (выше), клиент – личные данные
   route('GET', /^\/profile$/, (_, { me: who }) => (isPsy(who())
     ? { role: 'psychologist', profile: psyProfile(psyStore(who())) }
