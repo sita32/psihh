@@ -51,18 +51,32 @@ const Session = (() => {
     });
   }
 
+  /** Значок с числом у пункта меню кабинета (0 – без значка) */
+  function setBadge(href, n) {
+    document.querySelectorAll(`.cab-nav a[href$="${href}"]`).forEach((a) => {
+      let b = a.querySelector('.badge');
+      if (!n) { b?.remove(); return; }
+      if (!b) { b = document.createElement('span'); b.className = 'badge'; a.appendChild(b); }
+      b.textContent = n;
+    });
+  }
+
   /** «Чат» в меню кабинета: число непрочитанных сообщений (или без значка) */
   async function fillChatBadge() {
-    const links = document.querySelectorAll('.cab-nav a[href$="chat.html"]');
-    if (!links.length) return;
+    if (!document.querySelector('.cab-nav a[href$="chat.html"]')) return;
     let total = 0;
     try { ({ total } = await API.get('/conversations/unread')); } catch { /* значок – не главное */ }
-    links.forEach((a) => {
-      let b = a.querySelector('.badge');
-      if (!total) { b?.remove(); return; }
-      if (!b) { b = document.createElement('span'); b.className = 'badge'; a.appendChild(b); }
-      b.textContent = total;
-    });
+    setBadge('chat.html', total);
+  }
+
+  /** «Записи» психолога: сколько прошедших встреч ждут отметки «состоялась / не пришёл» */
+  async function fillSessionsBadge() {
+    let n = 0;
+    try {
+      const { items } = await API.get('/appointments', { as: 'psychologist', scope: 'past' });
+      n = items.filter((a) => a.needsMark).length;
+    } catch { /* значок – не главное */ }
+    setBadge('psy-sessions.html', n);
   }
 
   /** Публичная шапка: значок «Войти» ведёт в кабинет */
@@ -94,10 +108,11 @@ const Session = (() => {
       if (!u.roles.includes(role)) { location.replace(home(u)); return; }
       fillCabinet(u, role);
       if (role !== 'moderator' && !location.pathname.endsWith('chat.html')) fillChatBadge();   // в чате счётчик ведёт сам чат
+      if (role === 'psychologist' && !location.pathname.endsWith('psy-sessions.html')) fillSessionsBadge();  // на «Записях» – сама страница
     } else if (u) {
       fillPublic(u);
     }
   });
 
-  return { user, home, displayName, logout, CABINETS };
+  return { user, home, displayName, logout, setBadge, CABINETS };
 })();

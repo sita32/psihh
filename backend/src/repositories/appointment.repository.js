@@ -60,7 +60,7 @@ const SELECT_SQL = `
          to_char(sl.starts_at AT TIME ZONE $2, 'YYYY-MM-DD') AS local_date,
          to_char(sl.starts_at AT TIME ZONE $2, 'HH24:MI')    AS local_time,
          f.code AS format_code, f.name AS format_name, s.duration_min,
-         cp.first_name AS client_first_name, cp.last_name AS client_last_name,
+         cp.first_name AS client_first_name, cp.last_name AS client_last_name, cp.avatar_key AS client_avatar_key,
          pp.first_name AS psy_first_name, pp.last_name AS psy_last_name, pp.avatar_key AS psy_avatar_key,
          pp.headline AS psy_headline,
          EXISTS (SELECT 1 FROM reviews r WHERE r.appointment_id = a.id) AS has_review,

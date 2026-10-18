@@ -84,7 +84,11 @@ function appointmentView(row, user, history) {
       headline: row.psy_headline,
       avatarUrl: row.psy_avatar_key ? `/${row.psy_avatar_key}` : null,
     },
-    client: { id: row.client_id, name: [row.client_first_name, row.client_last_name].filter(Boolean).join(' ') },
+    client: {
+      id: row.client_id,
+      name: [row.client_first_name, row.client_last_name].filter(Boolean).join(' '),
+      avatarUrl: row.client_avatar_key ? `/${row.client_avatar_key}` : null,
+    },
     hasReview: row.has_review,
     review: row.review, // { id, status } – отзыв клиента по этой встрече, если есть
     actions: actionsFor(row, user),
@@ -130,10 +134,11 @@ async function list(user, query) {
 
 // ---------- Запись клиента ----------
 
-// Свободное будущее окно психолога из каталога, без пересечения с другими записями клиента
+// Свободное будущее окно психолога, без пересечения с другими записями клиента.
+// Новая запись – только к психологу из каталога; перенос (psychologistId) – и к скрытому из каталога
 async function checkSlot(slotId, clientId, { psychologistId, exceptAppointmentId } = {}) {
   const slot = Number.isSafeInteger(slotId) ? await appointmentRepository.findSlotForBooking(slotId) : null;
-  if (!slot || !slot.is_listed || (psychologistId && slot.psychologist_id !== psychologistId)) {
+  if (!slot || (psychologistId ? slot.psychologist_id !== psychologistId : !slot.is_listed)) {
     throw new HttpError(404, 'Окно не найдено', { fields: { slotId: 'Выберите другое время' } });
   }
   if (slot.is_past) throw new HttpError(409, 'Это время уже прошло', { code: 'SLOT_PAST' });

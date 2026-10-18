@@ -516,6 +516,142 @@ const DEMO_API = (() => {
     return null;
   });
 
+  /* ---------- Кабинет психолога: записи и расписание ----------
+     У Марины – записи PSY_SESSIONS и окна по шаблону недели PSY_TEMPLATE (неделя назад … 6 недель вперёд),
+     у нового психолога – пусто. Хранится вместе с анкетой (ryadom-demo-psy). */
+
+  const DEMO_PAST_DAYS = 7;
+  const DEMO_AHEAD_DAYS = 42;
+  // Собеседник в демо-чате с тем же именем – чтобы «Написать клиенту» открывал его диалог
+  const demoClient = (c) => {
+    const d = PSY_DIALOGS.find((x) => x.name === c.name);
+    return { id: d ? d.id * 1000 : 5000 + c.id, name: c.name, avatarUrl: c.avatar ? `assets/img/avatars/${c.avatar}.webp` : null };
+  };
+  const psyEvent = (type, extra = {}) => ({ type, at: new Date().toISOString(), by: { role: 'psychologist', name: 'Вы' }, reason: null, ...extra });
+
+  /** Записи и окна Марины при первом обращении */
+  const buildBook = (u) => {
+    const book = { appointments: [], slots: [], nextSlot: 1 };
+    if (u.email !== 'marina@ryadom.by') return book;
+    const addSlot = (k, time, status) => {
+      const slot = { id: book.nextSlot++, date: isoDate(demoDateAt(k)), time, startsAt: startsAt(k, time), status };
+      book.slots.push(slot);
+      return slot;
+    };
+    for (let k = -DEMO_PAST_DAYS; k <= DEMO_AHEAD_DAYS; k += 1) {
+      if (!PSY_TEMPLATE.days.includes(demoDateAt(k).getDay())) continue;
+      // для демо часть окон закрыта (личное время) – как раньше на странице расписания
+      PSY_TEMPLATE.times.forEach((time, i) => addSlot(k, time, (k + 21 + i * 2) % 11 === 0 ? 'blocked' : 'free'));
+    }
+    PSY_SESSIONS.forEach((x) => {
+      const date = isoDate(demoDateAt(x.k));
+      let slot = book.slots.find((sl) => sl.date === date && sl.time === x.time);
+      if (!slot) slot = addSlot(x.k, x.time, 'free');
+      if (x.status !== 'cancelled') slot.status = 'booked';
+      const c = PSY_CLIENTS.find((y) => y.id === x.client);
+      book.appointments.push({
+        id: x.id, status: x.status, startsAt: slot.startsAt, date, time: x.time, slotId: x.status === 'cancelled' ? null : slot.id,
+        format: { code: 'individual', name: x.format, durationMin: 50 }, price: x.price, note: x.note || null, meetingUrl: null,
+        nth: x.nth, client: demoClient(c), psychologist: psyRef(findPsy(1)),
+        history: x.hist.map((h) => {
+          const m = /с (\d\d:\d\d) на (\d\d:\d\d)/.exec(h.text);
+          return {
+            type: (HIST_TYPES.find(([re]) => re.test(h.text)) || [, 'created'])[1], at: atOf(h.k, h.time), reason: h.reason || null,
+            by: h.by === 'Вы' ? { role: 'psychologist', name: 'Вы' } : { role: 'client', name: h.by },
+            ...(m && { from: { date, time: m[1] }, to: { date, time: m[2] } }),
+          };
+        }),
+      });
+    });
+    book.slots.sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+    return book;
+  };
+  /** Анкета + записи + окна психолога (записи и окна досоздаются у старых демо-хранилищ) */
+  const psyBook = (u) => {
+    const store = psyStore(u);
+    if (!store.book) { store.book = buildBook(u); savePsy(u, store); }
+    return store;
+  };
+  /** Запись глазами психолога: доступные действия – как на сервере */
+  const psyAppointmentView = (a) => {
+    const started = new Date(a.startsAt) <= new Date();
+    const open = a.status === 'scheduled';
+    return { ...a, needsMark: open && started, hasReview: false, review: null,
+      actions: { cancel: open && !started, reschedule: open && !started, markCompleted: open && started, markNoShow: open && started, review: false } };
+  };
+  const findPsyAppt = (store, id) => store.book.appointments.find((a) => String(a.id) === String(id)) || fail(404, 'NOT_FOUND', 'Запись не найдена');
+
+  const listPsyAppointments = (u, query) => {
+    const store = psyBook(u);
+    const now = new Date();
+    const SCOPES = {
+      upcoming: (a) => a.status === 'scheduled' && new Date(a.startsAt) > now,
+      past: (a) => ['scheduled', 'completed', 'no_show'].includes(a.status) && new Date(a.startsAt) <= now,
+      cancelled: (a) => a.status === 'cancelled',
+      all: () => true,
+    };
+    const scope = query.scope || 'upcoming';
+    const items = store.book.appointments.filter(SCOPES[scope])
+      .sort((x, y) => (scope === 'upcoming' ? 1 : -1) * (new Date(x.startsAt) - new Date(y.startsAt)));
+    return { as: 'psychologist', scope, items: items.map(psyAppointmentView) };
+  };
+
+  const changePsyAppointment = (u, id, body) => {
+    const store = psyBook(u);
+    const a = findPsyAppt(store, id);
+    const view = psyAppointmentView(a);
+    if (body.status === 'cancelled') {
+      if (String(body.reason || '').trim().length < 3) fail(422, 'VALIDATION_ERROR', 'Укажите причину', { reason: 'Напишите причину – её увидит другая сторона' });
+      if (!view.actions.cancel) fail(409, 'CANNOT_CANCEL', 'Отменить можно только запланированную встречу до её начала');
+      const slot = store.book.slots.find((x) => x.id === a.slotId);
+      if (slot) slot.status = 'free';                  // окно снова свободно
+      a.status = 'cancelled';
+      a.history.push(psyEvent('cancelled', { reason: String(body.reason).trim() }));
+    } else if (body.status === 'completed' || body.status === 'no_show') {
+      if (!view.actions.markCompleted) fail(409, 'CANNOT_MARK', a.status === 'scheduled' ? 'Консультация ещё не началась' : 'Встреча уже отмечена');
+      a.status = body.status;
+      a.history.push(psyEvent(body.status));
+    } else {
+      fail(422, 'VALIDATION_ERROR', 'status – cancelled, completed или no_show', { status: 'cancelled, completed, no_show' });
+    }
+    savePsy(u, store);
+    return psyAppointmentView(a);
+  };
+
+  const reschedulePsyAppointment = (u, id, body) => {
+    const store = psyBook(u);
+    const a = findPsyAppt(store, id);
+    if (String(body.reason || '').trim().length < 3) fail(422, 'VALIDATION_ERROR', 'Укажите причину', { reason: 'Напишите причину – её увидит другая сторона' });
+    if (!psyAppointmentView(a).actions.reschedule) fail(409, 'CANNOT_RESCHEDULE', 'Перенести можно только запланированную встречу до её начала');
+    const slot = store.book.slots.find((x) => String(x.id) === String(body.slotId)) || fail(404, 'NOT_FOUND', 'Окно не найдено');
+    if (new Date(slot.startsAt) <= new Date()) fail(409, 'SLOT_PAST', 'Это время уже прошло');
+    if (slot.status !== 'free') fail(409, 'SLOT_TAKEN', 'Это время уже заняли – выберите другое');
+    const old = store.book.slots.find((x) => x.id === a.slotId);
+    if (old) old.status = 'free';
+    slot.status = 'booked';
+    const from = { date: a.date, time: a.time };
+    Object.assign(a, { startsAt: slot.startsAt, date: slot.date, time: slot.time, slotId: slot.id });
+    a.history.push(psyEvent('rescheduled', { reason: String(body.reason).trim(), from, to: { date: slot.date, time: slot.time } }));
+    savePsy(u, store);
+    return psyAppointmentView(a);
+  };
+
+  /** Окно расписания в виде ответа API: у занятого – кто записан */
+  const psySlotView = (store, slot) => {
+    const a = slot.status === 'booked' && store.book.appointments.find((x) => x.slotId === slot.id && x.status !== 'cancelled');
+    return { id: slot.id, startsAt: slot.startsAt, endsAt: new Date(new Date(slot.startsAt).getTime() + 50 * 60000).toISOString(),
+      date: slot.date, time: slot.time, status: slot.status,
+      ...(a && { appointment: { id: a.id, status: a.status, client: { id: a.client.id, name: a.client.name }, format: { code: a.format.code, name: a.format.name }, note: a.note } }) };
+  };
+  route('GET', /^\/schedule\/slots$/, (_, { me: who, query }) => {
+    const u = psyOnly(who);
+    const store = psyBook(u);
+    const from = query.from || isoDate(new Date());
+    const to = query.to || from;
+    return { from, to, timezone: 'Europe/Minsk',
+      slots: store.book.slots.filter((x) => x.date >= from && x.date <= to).map((x) => psySlotView(store, x)) };
+  });
+
   // Профиль: психолог – анкета (выше), клиент – личные данные
   route('GET', /^\/profile$/, (_, { me: who }) => (isPsy(who())
     ? { role: 'psychologist', profile: psyProfile(psyStore(who())) }
@@ -548,6 +684,7 @@ const DEMO_API = (() => {
   });
 
   route('GET', /^\/appointments$/, (_, { me: who, query }) => {
+    if (isPsy(who())) return listPsyAppointments(who(), query);
     clientOnly(who);
     const store = clientStore();
     const now = new Date();
@@ -582,6 +719,7 @@ const DEMO_API = (() => {
   });
 
   route('PATCH', /^\/appointments\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    if (isPsy(who())) return changePsyAppointment(who(), id, body);
     clientOnly(who);
     const store = clientStore();
     const a = findAppt(store, id);
@@ -595,6 +733,7 @@ const DEMO_API = (() => {
   });
 
   route('POST', /^\/appointments\/(\d+)\/reschedule$/, (body, { me: who, params: [id] }) => {
+    if (isPsy(who())) return reschedulePsyAppointment(who(), id, body);
     clientOnly(who);
     const store = clientStore();
     const a = findAppt(store, id);

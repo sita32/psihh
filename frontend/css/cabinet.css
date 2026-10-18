@@ -1050,6 +1050,7 @@
 .det__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding-left: calc(16px + 28px); }
 .det__grid h4 { margin-bottom: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
 .det__grid p { font-size: 14px; color: var(--ink-2); }
+.det__grid .det__fmt { margin-top: 6px; font-size: 13px; color: var(--ink-3); }
 .det__grid .hist { margin-top: 2px; }
 .det__grid .hist li::before { box-shadow: 0 0 0 3px #F3F8FB; }
 .det__btns { display: flex; gap: 8px; margin-top: 14px; }
