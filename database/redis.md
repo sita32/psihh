@@ -13,6 +13,7 @@ Redis хранит **временные и быстро меняющиеся д�
 | `jwt:denylist:{jti}` | String `1` | до истечения access-токена (15 мин) | Отозванные access-токены после выхода или блокировки |
 | `perms:{userId}` | Set кодов прав | 10 мин | Кэш `v_user_effective_permissions`; сбрасывается при смене ролей или прав |
 | `online:users` | Sorted Set (score = время последней активности) | — | Онлайн-статус в чате |
+| `online:last_seen` | Hash `{userId: время выхода}` | — | «Был в сети …»: когда пользователь закрыл последнюю вкладку (из `online:users` он при этом удаляется) |
 | `chat:typing:{conversationId}:{userId}` | String `1` | 5 сек | Индикатор «печатает…» |
 | `chat:unread:{userId}` | Hash `{conversationId: count}` | — | Счётчики непрочитанных сообщений; источник истины — `messages.read_at` |
 | `slot:hold:{slotId}` | String `{clientId}` | 10 мин | Временная бронь слота на время оплаты (`SET NX EX`) |

@@ -303,6 +303,53 @@ WHERE a.status <> 'scheduled'
 ALTER TABLE appointments ENABLE TRIGGER trg_appointments_book;
 ALTER TABLE appointments ENABLE TRIGGER trg_appointments_status;
 
+-- ---------------------------------------------------------------------
+-- Чат (DIALOGS и PSY_DIALOGS из chat.js): переписка Анны с Мариной и Дмитрием Соколовым,
+-- Марины с Ольгой и Павлом. Время – не позже текущего момента
+-- ---------------------------------------------------------------------
+INSERT INTO conversations (client_id, psychologist_id, created_at)
+SELECT c.id, p.id, pg_temp.demo_ts(v.k, '00:00')
+FROM (VALUES ('anna@mail.com', 'marina@ryadom.by', -6), ('anna@mail.com', 'd.sokolov@ryadom.by', -17),
+             ('olga.s@mail.ru', 'marina@ryadom.by', -2), ('pavel.m@gmail.com', 'marina@ryadom.by', -4)) AS v(client, psy, k)
+JOIN users c ON c.email = v.client
+JOIN users p ON p.email = v.psy;
+
+-- who: client | psy; read – прочитано ли собеседником
+CREATE TEMP TABLE demo_msg (client citext, psy citext, k int, hhmm text, who text, body text, attachment text, read boolean) ON COMMIT DROP;
+INSERT INTO demo_msg VALUES
+    ('anna@mail.com', 'marina@ryadom.by', -5, '18:02', 'psy',
+     'Здравствуйте, Анна! Я получила вашу анкету. Перед первой встречей можно коротко написать, что сейчас беспокоит больше всего?', NULL, true),
+    ('anna@mail.com', 'marina@ryadom.by', -5, '18:20', 'client',
+     'Здравствуйте! В последнее время сложно уснуть – постоянно прокручиваю мысли о работе.', NULL, true),
+    ('anna@mail.com', 'marina@ryadom.by', -5, '18:24', 'psy',
+     'Спасибо, что поделились. Обсудим это на сессии. Если до встречи станет тяжело – пишите.', NULL, true),
+    ('anna@mail.com', 'marina@ryadom.by', -1, '10:15', 'client',
+     'Марина, можно перенести встречу на попозже? На работе совещание.', NULL, true),
+    ('anna@mail.com', 'marina@ryadom.by', -1, '10:31', 'psy', 'Конечно, перенесла на 15:00. Жду вас 🙂', NULL, true),
+    ('anna@mail.com', 'marina@ryadom.by', 0, '09:12', 'psy', NULL, 'demo/chat/Дневник мыслей.pdf', true),
+    ('anna@mail.com', 'marina@ryadom.by', 0, '09:13', 'psy',
+     'Если будет время – попробуйте заполнить этот дневник пару дней. Обсудим на встрече.', NULL, true),
+    ('anna@mail.com', 'marina@ryadom.by', 0, '09:40', 'client', 'Спасибо! Начну сегодня вечером.', NULL, false),
+    ('anna@mail.com', 'd.sokolov@ryadom.by', -17, '20:05', 'psy',
+     'Спасибо за встречу. Если захотите продолжить – свободные окна есть в моём расписании.', NULL, true),
+    ('anna@mail.com', 'd.sokolov@ryadom.by', -17, '20:40', 'client',
+     'Спасибо! Пока попробую поработать с Мариной, но буду иметь в виду.', NULL, true),
+    ('olga.s@mail.ru', 'marina@ryadom.by', -2, '22:10', 'client',
+     'Здравствуйте. Я никогда раньше не ходила к психологу – нужно ли как-то готовиться к первой встрече?', NULL, false),
+    ('pavel.m@gmail.com', 'marina@ryadom.by', -4, '19:30', 'client',
+     'Спасибо за встречу, стало спокойнее. Записался на следующую среду.', NULL, true),
+    ('pavel.m@gmail.com', 'marina@ryadom.by', -4, '19:45', 'psy', 'Рада слышать, Павел. До встречи!', NULL, true);
+
+INSERT INTO messages (conversation_id, sender_id, body, attachment_key, created_at, read_at)
+SELECT cv.id, CASE m.who WHEN 'client' THEN c.id ELSE p.id END, m.body, m.attachment, x.at,
+       CASE WHEN m.read THEN least(x.at + interval '5 minutes', now()) END
+FROM demo_msg m
+JOIN users c ON c.email = m.client
+JOIN users p ON p.email = m.psy
+JOIN conversations cv ON cv.client_id = c.id AND cv.psychologist_id = p.id
+CROSS JOIN LATERAL (SELECT least(pg_temp.demo_ts(m.k, m.hhmm), now() - interval '1 minute') AS at) x
+ORDER BY x.at;
+
 -- Заблокированный клиент – для проверки входа с блокировкой
 INSERT INTO user_blocks (user_id, blocked_by, reason, blocked_at)
 SELECT c.id, m.id, 'Оскорбления психолога в чате после сессии', now() - interval '12 days'

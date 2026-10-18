@@ -9,6 +9,7 @@ const profileRoutes = require('./profile.routes');
 const matchingRoutes = require('./matching.routes');
 const scheduleRoutes = require('./schedule.routes');
 const appointmentRoutes = require('./appointment.routes');
+const conversationRoutes = require('./conversation.routes');
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/profile', profileRoutes);
 router.use('/matching', matchingRoutes);
 router.use('/schedule', scheduleRoutes);
 router.use('/appointments', appointmentRoutes);
+router.use('/conversations', conversationRoutes);
 
 module.exports = router;
