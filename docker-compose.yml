@@ -10,7 +10,7 @@ services:
       - "${HTTP_PORT:-80}:80"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro   # правки интерфейса видны без пересборки
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx:/etc/nginx/conf.d:ro   # папка целиком: правки default.conf видны после nginx -s reload
     depends_on:
       api:
         condition: service_healthy

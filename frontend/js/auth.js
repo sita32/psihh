@@ -1,11 +1,39 @@
 /**
  * «Рядом» – страница входа и регистрации.
- * Пока только интерфейс: переключение вкладок, показ пароля,
- * подсказка для психологов и простая проверка полей (без отправки на сервер).
+ * Переключение вкладок, показ пароля, поля психолога, проверка полей
+ * и отправка на сервер: POST /api/auth/login и /api/auth/register.
+ * Если сервера нет (tools/dev-server.py или страница открыта файлом) – демо-вход, как раньше.
  */
 /* Демо-почты для входа без сервера: психолог и модератор (любая другая почта – клиент) */
 const DEMO_PSYCHOLOGIST = 'marina@ryadom.by';
 const DEMO_MODERATOR = 'moderator@ryadom.by';
+
+/* Кабинет, который открывается после входа, – по роли */
+const CABINETS = { client: 'cabinet-client.html', psychologist: 'cabinet-psychologist.html', moderator: 'mod-users.html' };
+const cabinetFor = (roles) => CABINETS[['moderator', 'psychologist'].find((r) => roles.includes(r)) || 'client'];
+
+/**
+ * Запрос к API. Ответ: { ok, data } – сервер ответил JSON;
+ * { demo: true } – API нет, работает только интерфейс; { down: true } – сервер не отвечает.
+ */
+async function postAuth(action, body) {
+  let res;
+  try {
+    res = await fetch(`api/auth/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),   // дольше ждать ответа нет смысла
+    });
+  } catch {
+    return location.protocol === 'file:' ? { demo: true } : { down: true };
+  }
+  if ((res.headers.get('content-type') || '').includes('application/json')) {
+    return { ok: res.ok, data: await res.json() };
+  }
+  // Статичный сервер без API на POST отвечает 404 / 405 / 501 своей HTML-страницей
+  return [404, 405, 501].includes(res.status) ? { demo: true } : { down: true };
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const tabs = document.querySelector('.tabs');
@@ -90,7 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   // Открыть сразу регистрацию по ссылке login.html#register
   // (#register-psychologist – регистрация с уже выбранной ролью «психолог», ссылка со страницы «Психологам»)
-  if (location.hash === '#register' || location.hash === '#register-psychologist') showTab('register');
+  const startHash = location.hash;   // запоминаем до showTab: он сам меняет адрес на #register
+  if (startHash === '#register' || startHash === '#register-psychologist') showTab('register');
 
   /** Показать / скрыть пароль */
   document.querySelectorAll('.field__eye').forEach((btn) => {
@@ -103,12 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /** Подсказка для психолога появляется при выборе этой роли */
-  const note = document.querySelector('[data-for-role="psychologist"]');
+  /** Поля и подсказка для психолога появляются при выборе этой роли */
+  const psyOnly = document.querySelectorAll('[data-for-role="psychologist"]');
   document.querySelectorAll('input[name="role"]').forEach((radio) => {
-    radio.addEventListener('change', () => { note.hidden = radio.value !== 'psychologist' || !radio.checked; });
+    radio.addEventListener('change', () => {
+      psyOnly.forEach((el) => { el.hidden = radio.value !== 'psychologist' || !radio.checked; });
+    });
   });
-  if (location.hash === '#register-psychologist') {
+  const yearInput = forms.register.querySelector('[name="practiceYear"]');
+  yearInput.max = new Date().getFullYear();
+  if (startHash === '#register-psychologist') {
     const psy = document.querySelector('input[name="role"][value="psychologist"]');
     psy.checked = true;
     psy.dispatchEvent(new Event('change'));
@@ -118,37 +151,105 @@ document.addEventListener('DOMContentLoaded', () => {
   /** Простая проверка полей перед отправкой */
   const isValid = (input) => {
     if (input.type === 'checkbox') return input.checked;
+    if (input.type === 'radio') return Boolean(input.form.querySelector(`input[name="${input.name}"]:checked`));
     if (input.type === 'email') return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+    if (input.type === 'number') return input.value !== '' && +input.value >= +input.min && +input.value <= +input.max;
     if (input.minLength > 0) return input.value.length >= input.minLength;
     return input.value.trim() !== '';
   };
 
+  /** Ошибка под полем: свой текст от сервера или исходный из разметки */
+  const setFieldError = (wrap, text) => {
+    const error = wrap.querySelector('.field__error');
+    if (error) {
+      error.dataset.text ??= error.textContent;
+      error.textContent = text || error.dataset.text;
+    }
+    wrap.classList.add('is-error');
+  };
+  const clearFieldError = (wrap) => {
+    const error = wrap.querySelector('.field__error');
+    if (error && error.dataset.text) error.textContent = error.dataset.text;
+    wrap.classList.remove('is-error');
+  };
+
+  /** Плашка над кнопкой */
+  const showAlert = (form, text) => {
+    const alert = form.querySelector('.auth__alert');
+    alert.textContent = text || '';
+    alert.hidden = !text;
+  };
+
+  /** Кнопка «ждём ответ сервера» */
+  const setBusy = (form, busy) => {
+    const btn = form.querySelector('.auth__btn');
+    btn.dataset.idle ??= btn.textContent;
+    btn.disabled = busy;
+    btn.textContent = busy ? btn.dataset.busy : btn.dataset.idle;
+  };
+
+  /** Ошибки сервера: по полям – под полями, остальное – плашкой */
+  const SERVER_FIELDS = { practiceSince: 'practiceYear' };   // имя поля в API → в форме
+  const showServerError = (form, error) => {
+    let shown = false;
+    Object.entries(error.fields || {}).forEach(([field, text]) => {
+      const input = form.querySelector(`[name="${SERVER_FIELDS[field] || field}"]`);
+      const wrap = input && !input.closest('[hidden]') && input.closest('.field');
+      if (wrap) { setFieldError(wrap, text); shown = true; }
+    });
+    if (!shown) showAlert(form, error.message);
+  };
+
+  /** Демо-вход без сервера: роль по почте (marina@ryadom.by – психолог, moderator@ryadom.by – модератор, остальные – клиент Анна) */
+  const demoLogin = (data) => {
+    const email = (data.email || '').trim().toLowerCase();
+    const role = data.role || (email === DEMO_PSYCHOLOGIST ? 'psychologist' : email === DEMO_MODERATOR ? 'moderator' : 'client');
+    location.href = CABINETS[role];
+  };
+
+  /** Данные формы для API */
+  const payload = (form, data) => {
+    if (form === forms.login) {
+      return { email: data.email.trim(), password: data.password, remember: data.remember === 'on' };
+    }
+    const body = { role: data.role, name: data.name.trim(), email: data.email.trim(), password: data.password };
+    if (data.role === 'psychologist') {
+      Object.assign(body, { lastName: data.lastName.trim(), gender: data.gender, practiceSince: `${data.practiceYear}-01-01` });
+    }
+    return body;
+  };
+
   Object.values(forms).forEach((form) => {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();                     // сервера пока нет – форму не отправляем
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (form.querySelector('.auth__btn').disabled) return;   // запрос уже отправлен
+      showAlert(form, '');
+
       let ok = true;
       form.querySelectorAll('input[required]').forEach((input) => {
+        if (input.closest('[hidden]')) return;                  // поля психолога у клиента не проверяем
         const wrap = input.closest('.field, .checkbox');
-        const valid = isValid(input);
-        wrap.classList.toggle('is-error', !valid);
-        if (!valid) ok = false;
+        if (isValid(input)) clearFieldError(wrap);
+        else { setFieldError(wrap); ok = false; }
       });
-      if (ok) {
-        // API: позже здесь будет запрос к серверу (NodeJS) – POST /api/auth/login или /api/auth/register.
-        // Пока для демонстрации сразу открываем нужный кабинет.
-        const data = Object.fromEntries(new FormData(form));
-        // Демо-вход: роль определяется по почте (как будто сервер вернул роль пользователя).
-        // marina@ryadom.by – психолог Марина Волкова, moderator@ryadom.by – модератор, любая другая почта – клиент Анна.
-        const email = (data.email || '').trim().toLowerCase();
-        const role = data.role || (email === DEMO_PSYCHOLOGIST ? 'psychologist' : email === DEMO_MODERATOR ? 'moderator' : 'client');
-        const CABINETS = { client: 'cabinet-client.html', psychologist: 'cabinet-psychologist.html', moderator: 'mod-users.html' };
-        location.href = CABINETS[role];
-      }
+      if (!ok) return;
+
+      const data = Object.fromEntries(new FormData(form));
+      setBusy(form, true);
+      const res = await postAuth(form === forms.login ? 'login' : 'register', payload(form, data));
+      setBusy(form, false);
+
+      if (res.demo) demoLogin(data);
+      else if (res.ok) location.href = cabinetFor(res.data.user.roles);
+      else if (res.data && res.data.error) showServerError(form, res.data.error);
+      else showAlert(form, 'Сервер не отвечает. Попробуйте ещё раз через минуту');
     });
 
     // Убираем ошибку, как только пользователь начал исправлять поле
     form.addEventListener('input', (e) => {
-      e.target.closest('.field, .checkbox')?.classList.remove('is-error');
+      const wrap = e.target.closest('.field, .checkbox');
+      if (wrap) clearFieldError(wrap);
+      showAlert(form, '');
     });
   });
 });

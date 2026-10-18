@@ -117,7 +117,10 @@
         <span class="field__error">Введите пароль</span>
       </label>
 
-      <button type="submit" class="auth__btn">Войти</button>
+      <!-- Ошибка от сервера: неверный пароль, блокировка, слишком много попыток -->
+      <p class="auth__alert" role="alert" hidden></p>
+
+      <button type="submit" class="auth__btn" data-busy="Входим…">Войти</button>
 
       <div class="auth__row">
         <label class="checkbox">
@@ -172,12 +175,51 @@
         <span class="field__error">Пароль должен быть не&nbsp;короче 8&nbsp;символов</span>
       </label>
 
+      <!-- Только для психолога: без этих данных анкету не показать в каталоге (фильтры по полу и опыту) -->
+      <div data-for-role="psychologist" hidden>
+        <label class="field">
+          <span class="field__label">Фамилия</span>
+          <span class="field__box">
+            <input type="text" name="lastName" placeholder="Как в&nbsp;дипломе" autocomplete="family-name" required>
+          </span>
+          <span class="field__error">Введите фамилию</span>
+        </label>
+
+        <div class="field-row">
+          <fieldset class="field field--choice">
+            <legend class="field__label">Пол</legend>
+            <div class="roles roles--sm">
+              <label class="role">
+                <input type="radio" name="gender" value="female" required>
+                <span class="role__reply">Женский</span>
+              </label>
+              <label class="role">
+                <input type="radio" name="gender" value="male">
+                <span class="role__reply">Мужской</span>
+              </label>
+            </div>
+            <span class="field__error">Выберите пол</span>
+          </fieldset>
+
+          <label class="field">
+            <span class="field__label">Практикую с</span>
+            <span class="field__box">
+              <input type="number" name="practiceYear" placeholder="2018" min="1950" inputmode="numeric" required>
+            </span>
+            <span class="field__error">Год, например 2018</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Подсказка для психологов -->
       <p class="auth__note" data-for-role="psychologist" hidden>
         После регистрации загрузите дипломы в&nbsp;профиле – модератор проверит их и&nbsp;откроет доступ к&nbsp;записям.
       </p>
 
-      <button type="submit" class="auth__btn">Создать аккаунт</button>
+      <!-- Ошибка от сервера, не относящаяся к одному полю -->
+      <p class="auth__alert" role="alert" hidden></p>
+
+      <button type="submit" class="auth__btn" data-busy="Создаём аккаунт…">Создать аккаунт</button>
     </form>
   </div>
 </main>
