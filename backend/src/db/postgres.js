@@ -1,6 +1,10 @@
 // Пул соединений с PostgreSQL. Запросы к БД делают только репозитории.
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');
 const config = require('../config');
+
+// date – строкой 'ГГГГ-ММ-ДД', без сдвига часового пояса; bigint (id) – числом (до 2^53 хватит)
+types.setTypeParser(types.builtins.DATE, (v) => v);
+types.setTypeParser(types.builtins.INT8, (v) => Number(v));
 
 const pool = new Pool({
   ...config.postgres,

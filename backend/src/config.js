@@ -13,6 +13,7 @@ function int(name, fallback) {
 const config = {
   env: process.env.NODE_ENV || 'development',
   port: int('API_PORT', 3000),
+  timezone: 'Europe/Minsk', // часы приёма и «сегодня/завтра» считаются по минскому времени
 
   postgres: {
     host: process.env.POSTGRES_HOST || 'localhost',

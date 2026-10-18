@@ -70,6 +70,32 @@ async function createPsychologistProfile(userId, { firstName, lastName, gender, 
   );
 }
 
+async function findClientProfile(userId, db = pool) {
+  const { rows } = await db.query(
+    `SELECT first_name, last_name, birth_date, gender, phone, avatar_key, about
+       FROM client_profiles WHERE user_id = $1`,
+    [userId],
+  );
+  return rows[0] || null;
+}
+
+// Колонки профиля клиента, которые он правит сам
+const CLIENT_COLUMNS = {
+  firstName: 'first_name', lastName: 'last_name', birthDate: 'birth_date',
+  gender: 'gender', phone: 'phone', about: 'about',
+};
+
+// Обновить только переданные поля
+async function updateClientProfile(userId, data, db = pool) {
+  const keys = Object.keys(CLIENT_COLUMNS).filter((k) => data[k] !== undefined);
+  if (!keys.length) return;
+  await db.query(
+    `UPDATE client_profiles SET ${keys.map((k, i) => `${CLIENT_COLUMNS[k]} = $${i + 2}`).join(', ')}
+      WHERE user_id = $1`,
+    [userId, ...keys.map((k) => data[k])],
+  );
+}
+
 async function touchLastLogin(id, db = pool) {
   await db.query('UPDATE users SET last_login_at = now() WHERE id = $1', [id]);
 }
@@ -104,6 +130,8 @@ module.exports = {
   addRole,
   createClientProfile,
   createPsychologistProfile,
+  findClientProfile,
+  updateClientProfile,
   touchLastLogin,
   findActiveBlock,
   liftBlock,
