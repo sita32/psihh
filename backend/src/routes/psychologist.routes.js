@@ -1,6 +1,7 @@
 // /api/psychologists – каталог и страница психолога (доступны без входа).
 const { Router } = require('express');
 const catalogService = require('../services/catalog.service');
+const scheduleService = require('../services/schedule.service');
 
 const router = Router();
 
@@ -13,6 +14,11 @@ router.get('/', async (req, res) => {
 // GET /api/psychologists/:id – анкета, услуги с ценами, образование
 router.get('/:id', async (req, res) => {
   res.json(await catalogService.getPsychologist(Number(req.params.id)));
+});
+
+// GET /api/psychologists/:id/slots?from=…&to=… – свободные окна для записи (по умолчанию – 2 недели)
+router.get('/:id/slots', async (req, res) => {
+  res.json(await scheduleService.getFreeSlots(Number(req.params.id), req.query));
 });
 
 module.exports = router;

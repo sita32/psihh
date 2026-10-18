@@ -19,10 +19,16 @@ pool.on('error', (err) => {
 
 // Транзакция: fn получает соединение и передаёт его в репозитории.
 // Ошибка внутри fn – откат всех изменений.
-async function transaction(fn) {
+// userId и reason доступны триггерам БД (кто сменил статус записи и почему):
+// set_config(…, true) действует только до конца этой транзакции.
+async function transaction(fn, { userId, reason } = {}) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    if (userId !== undefined || reason !== undefined) {
+      await client.query("SELECT set_config('app.user_id', $1, true), set_config('app.reason', $2, true)",
+        [userId === undefined ? '' : String(userId), reason || '']);
+    }
     const result = await fn(client);
     await client.query('COMMIT');
     return result;

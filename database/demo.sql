@@ -176,6 +176,133 @@ WHERE k >= d.available_from
   AND (d.demo_id * 7 + k * 3 + (t.i - 1)) % 5 <> 0
   AND x.starts_at > now();
 
+-- ---------------------------------------------------------------------
+-- Записи на консультации (CLIENT_SESSIONS и PSY_SESSIONS из data.js)
+-- ---------------------------------------------------------------------
+
+-- Клиенты Марины Волковой
+INSERT INTO users (email, password_hash, created_at, last_login_at)
+SELECT v.email, '$2b$12$5FQ8S1KbR9Cr1bmLwuf1J.5kp.4Y/NhUVAO13bcf2g3.U35SX8ZGy', now() - make_interval(days => v.reg), now() - make_interval(days => v.last)
+FROM (VALUES ('pavel.m@gmail.com', 21, 1), ('olga.s@mail.ru', 3, 2), ('irina.l@mail.ru', 70, 1),
+             ('maria.v@mail.ru', 30, 1), ('kirill.sh@gmail.com', 9, 1), ('dmitry.n@mail.ru', 14, 5)) AS v(email, reg, last);
+
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id FROM users u JOIN roles r ON r.code = 'client'
+WHERE u.email IN ('pavel.m@gmail.com', 'olga.s@mail.ru', 'irina.l@mail.ru', 'maria.v@mail.ru', 'kirill.sh@gmail.com', 'dmitry.n@mail.ru');
+
+INSERT INTO client_profiles (user_id, first_name, last_name, gender)
+SELECT u.id, v.first_name, v.last_name, v.gender::gender_type
+FROM (VALUES ('pavel.m@gmail.com', 'Павел', 'Морозов', 'male'), ('olga.s@mail.ru', 'Ольга', 'Сидоренко', 'female'),
+             ('irina.l@mail.ru', 'Ирина', NULL, 'female'), ('maria.v@mail.ru', 'Мария', NULL, 'female'),
+             ('kirill.sh@gmail.com', 'Кирилл', 'Шевчук', 'male'), ('dmitry.n@mail.ru', 'Дмитрий', NULL, 'male')) AS v(email, first_name, last_name, gender)
+JOIN users u ON u.email = v.email;
+
+-- Момент времени по минскому времени: через k дней от сегодня в ЧЧ:ММ
+CREATE FUNCTION pg_temp.demo_ts(k int, hhmm text) RETURNS timestamptz
+LANGUAGE sql AS $$ SELECT ((CURRENT_DATE + k) + hhmm::time) AT TIME ZONE 'Europe/Minsk' $$;
+
+-- k, hhmm – когда встреча; created_* – когда записались; changed_* – когда сменился статус и кем;
+-- from_hhmm – с какого времени того же дня перенесли
+CREATE TEMP TABLE demo_appt (client citext, psy citext, k int, hhmm text, status appointment_status, note text,
+    created_k int, created_hhmm text, changed_k int, changed_hhmm text, changed_by text, reason text, from_hhmm text) ON COMMIT DROP;
+INSERT INTO demo_appt VALUES
+    -- Анна
+    ('anna@mail.com', 'marina@ryadom.by', 1, '15:00', 'scheduled', 'Тревога перед новым проектом на работе, плохо сплю',
+     -3, '18:20', -1, '10:15', 'client', 'Рабочее совещание', '12:30'),
+    ('anna@mail.com', 'marina@ryadom.by', 8, '15:00', 'scheduled', NULL, -1, '10:40', NULL, NULL, NULL, NULL, NULL),
+    ('anna@mail.com', 'i.kovalchuk@ryadom.by', 4, '18:00', 'scheduled', 'Хочу разобраться с прокрастинацией', 0, '09:05', NULL, NULL, NULL, NULL, NULL),
+    ('anna@mail.com', 'marina@ryadom.by', -6, '12:30', 'completed', NULL, -10, '20:00', -6, '13:20', 'psychologist', NULL, NULL),
+    ('anna@mail.com', 'marina@ryadom.by', -13, '12:30', 'completed', NULL, -16, '19:30', -13, '13:20', 'psychologist', NULL, NULL),
+    ('anna@mail.com', 'd.sokolov@ryadom.by', -17, '19:00', 'completed', NULL, -20, '11:00', -17, '19:50', 'psychologist', NULL, NULL),
+    ('anna@mail.com', 'i.kovalchuk@ryadom.by', -24, '18:00', 'no_show', NULL, -27, '08:40', -24, '18:20', 'psychologist', NULL, NULL),
+    ('anna@mail.com', 'n.belov@ryadom.by', -2, '10:00', 'cancelled', NULL, -9, '21:10', -4, '08:00', 'client', 'Заболела, температура', NULL),
+    ('anna@mail.com', 'a.lukashevich@ryadom.by', 5, '13:00', 'cancelled', NULL, -5, '16:00', -1, '09:30', 'psychologist',
+     'Болезнь специалиста – предложу другое время в чате', NULL),
+    -- Другие клиенты Марины
+    ('olga.s@mail.ru', 'marina@ryadom.by', 3, '10:00', 'scheduled', 'Выгорание, не могу заставить себя работать уже месяц',
+     -2, '22:05', NULL, NULL, NULL, NULL, NULL),
+    ('irina.l@mail.ru', 'marina@ryadom.by', 4, '12:30', 'scheduled', NULL, -6, '12:10', NULL, NULL, NULL, NULL, NULL),
+    ('pavel.m@gmail.com', 'marina@ryadom.by', 5, '18:30', 'scheduled', NULL, -4, '09:00', NULL, NULL, NULL, NULL, NULL),
+    ('kirill.sh@gmail.com', 'marina@ryadom.by', 6, '09:00', 'scheduled', NULL, -1, '19:45', NULL, NULL, NULL, NULL, NULL),
+    -- прошли, но психолог ещё не отметил, состоялись ли
+    ('maria.v@mail.ru', 'marina@ryadom.by', -1, '17:00', 'scheduled', NULL, -8, '14:30', NULL, NULL, NULL, NULL, NULL),
+    ('pavel.m@gmail.com', 'marina@ryadom.by', -2, '18:30', 'scheduled', NULL, -9, '10:00', NULL, NULL, NULL, NULL, NULL),
+    ('irina.l@mail.ru', 'marina@ryadom.by', -3, '12:30', 'completed', NULL, -10, '11:00', -3, '13:25', 'psychologist', NULL, NULL),
+    ('dmitry.n@mail.ru', 'marina@ryadom.by', -5, '10:00', 'no_show', NULL, -7, '08:40', -5, '10:20', 'psychologist', NULL, NULL),
+    ('irina.l@mail.ru', 'marina@ryadom.by', 2, '15:00', 'cancelled', NULL, -5, '18:00', -1, '09:15', 'client',
+     'Командировка, вернусь через неделю', NULL),
+    ('maria.v@mail.ru', 'marina@ryadom.by', 5, '17:00', 'cancelled', NULL, -3, '16:00', 0, '08:30', 'psychologist',
+     'Профессиональная конференция', NULL);
+
+-- Прошедшие встречи триггеры записать не дадут («нельзя записаться на прошедшее время»),
+-- поэтому на время загрузки демо они выключены, а слоты и история заполняются здесь же
+ALTER TABLE appointments DISABLE TRIGGER trg_appointments_book;
+ALTER TABLE appointments DISABLE TRIGGER trg_appointments_status;
+
+-- Окна под записи (если такого окна ещё нет) – и под время до переноса
+INSERT INTO schedule_slots (psychologist_id, starts_at, ends_at)
+SELECT p.id, pg_temp.demo_ts(d.k, t.hhmm), pg_temp.demo_ts(d.k, t.hhmm) + interval '50 minutes'
+FROM demo_appt d
+JOIN users p ON p.email = d.psy
+CROSS JOIN LATERAL (VALUES (d.hhmm), (d.from_hhmm)) AS t(hhmm)
+WHERE t.hhmm IS NOT NULL
+ON CONFLICT DO NOTHING;
+
+-- Записи до переноса (статус «перенесена»), затем все остальные
+INSERT INTO appointments (client_id, psychologist_id, slot_id, service_id, status, price_at_booking, client_note, created_at)
+SELECT c.id, p.id, sl.id, s.id, 'rescheduled', s.price, d.note, pg_temp.demo_ts(d.created_k, d.created_hhmm)
+FROM demo_appt d
+JOIN users c ON c.email = d.client
+JOIN users p ON p.email = d.psy
+JOIN schedule_slots sl ON sl.psychologist_id = p.id AND sl.starts_at = pg_temp.demo_ts(d.k, d.from_hhmm)
+JOIN psychologist_services s ON s.psychologist_id = p.id AND s.format_id = (SELECT id FROM session_formats WHERE code = 'individual')
+WHERE d.from_hhmm IS NOT NULL;
+
+INSERT INTO appointments (client_id, psychologist_id, slot_id, service_id, status, price_at_booking, client_note,
+                          rescheduled_from_id, created_at)
+SELECT c.id, p.id, sl.id, s.id, d.status, s.price, d.note,
+       (SELECT a.id FROM appointments a JOIN schedule_slots fs ON fs.id = a.slot_id
+         WHERE a.client_id = c.id AND a.psychologist_id = p.id AND fs.starts_at = pg_temp.demo_ts(d.k, d.from_hhmm)),
+       CASE WHEN d.from_hhmm IS NULL THEN pg_temp.demo_ts(d.created_k, d.created_hhmm)
+            ELSE pg_temp.demo_ts(d.changed_k, d.changed_hhmm) END
+FROM demo_appt d
+JOIN users c ON c.email = d.client
+JOIN users p ON p.email = d.psy
+JOIN schedule_slots sl ON sl.psychologist_id = p.id AND sl.starts_at = pg_temp.demo_ts(d.k, d.hhmm)
+JOIN psychologist_services s ON s.psychologist_id = p.id AND s.format_id = (SELECT id FROM session_formats WHERE code = 'individual');
+
+-- Окна с действующими и прошедшими встречами заняты; окна отменённых и перенесённых остаются свободными
+UPDATE schedule_slots sl SET status = 'booked'
+ WHERE EXISTS (SELECT 1 FROM appointments a WHERE a.slot_id = sl.id AND a.status IN ('scheduled', 'completed', 'no_show'));
+
+-- История статусов: создание записи
+INSERT INTO appointment_status_history (appointment_id, old_status, new_status, changed_by, changed_at)
+SELECT a.id, NULL, 'scheduled',
+       CASE WHEN a.rescheduled_from_id IS NOT NULL AND d.changed_by = 'psychologist' THEN a.psychologist_id ELSE a.client_id END,
+       a.created_at
+FROM appointments a
+JOIN users c ON c.id = a.client_id
+JOIN users p ON p.id = a.psychologist_id
+JOIN demo_appt d ON d.client = c.email AND d.psy = p.email
+JOIN schedule_slots sl ON sl.id = a.slot_id
+WHERE sl.starts_at IN (pg_temp.demo_ts(d.k, d.hhmm), pg_temp.demo_ts(d.k, d.from_hhmm));
+
+-- История статусов: перенос, отмена, «состоялась», «не пришёл» – кем, когда и почему
+INSERT INTO appointment_status_history (appointment_id, old_status, new_status, changed_by, reason, changed_at)
+SELECT a.id, 'scheduled', a.status,
+       CASE d.changed_by WHEN 'client' THEN a.client_id ELSE a.psychologist_id END,
+       d.reason, pg_temp.demo_ts(d.changed_k, d.changed_hhmm)
+FROM appointments a
+JOIN users c ON c.id = a.client_id
+JOIN users p ON p.id = a.psychologist_id
+JOIN demo_appt d ON d.client = c.email AND d.psy = p.email
+JOIN schedule_slots sl ON sl.id = a.slot_id
+WHERE a.status <> 'scheduled'
+  AND sl.starts_at = pg_temp.demo_ts(d.k, coalesce(CASE WHEN a.status = 'rescheduled' THEN d.from_hhmm END, d.hhmm));
+
+ALTER TABLE appointments ENABLE TRIGGER trg_appointments_book;
+ALTER TABLE appointments ENABLE TRIGGER trg_appointments_status;
+
 -- Заблокированный клиент – для проверки входа с блокировкой
 INSERT INTO user_blocks (user_id, blocked_by, reason, blocked_at)
 SELECT c.id, m.id, 'Оскорбления психолога в чате после сессии', now() - interval '12 days'

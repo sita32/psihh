@@ -7,6 +7,8 @@ const referenceRoutes = require('./reference.routes');
 const psychologistRoutes = require('./psychologist.routes');
 const profileRoutes = require('./profile.routes');
 const matchingRoutes = require('./matching.routes');
+const scheduleRoutes = require('./schedule.routes');
+const appointmentRoutes = require('./appointment.routes');
 
 const router = Router();
 
@@ -17,5 +19,7 @@ router.use('/references', referenceRoutes);
 router.use('/psychologists', psychologistRoutes);
 router.use('/profile', profileRoutes);
 router.use('/matching', matchingRoutes);
+router.use('/schedule', scheduleRoutes);
+router.use('/appointments', appointmentRoutes);
 
 module.exports = router;
