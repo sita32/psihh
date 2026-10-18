@@ -1047,6 +1047,134 @@ const DEMO_API = (() => {
     return { ...m };
   };
 
+  /* ---------- Панель модератора: пользователи (MOD_USERS из data.js) ----------
+     Изменения и журнал действий хранятся в localStorage 'ryadom-demo-mod'. */
+
+  const MOD_KEY = 'ryadom-demo-mod';
+  const modOnly = (who, permission) => {
+    const u = who();
+    if (!u.permissions.includes(permission)) fail(403, 'FORBIDDEN', 'Недостаточно прав для этого действия');
+    return u;
+  };
+  const modStore = () => {
+    const saved = load(MOD_KEY);
+    if (saved) return saved;
+    const at = (k) => demoDateAt(k).toISOString();
+    const users = MOD_USERS.map((x) => {
+      const [firstName, ...rest] = x.name.split(' ');
+      // id демо-аккаунтов (Марина, модератор) – как у вошедшего, чтобы «это вы» совпадало; остальные – с 500, чтобы не пересечься
+      const id = (ACCOUNTS[x.email] || {}).id || 500 + x.id;
+      const blocks = (x.blocks || []).map((b, i) => ({ id: i + 1, reason: b.reason, blockedAt: at(b.k), until: null, unblockedAt: null, blockedBy: 3 }));
+      return {
+        id, email: x.email, name: x.name, roles: x.roles, status: x.status,
+        avatarUrl: x.photo ? `assets/img/psychologists/${x.photo}.webp` : x.avatar ? `assets/img/avatars/${x.avatar}.webp` : null,
+        verificationStatus: x.roles.includes('psychologist') ? (x.pending ? 'pending' : 'verified') : undefined,
+        createdAt: at(x.reg), lastLoginAt: at(x.last),
+        block: x.status === 'blocked' && blocks[0] ? { id: blocks[0].id, reason: blocks[0].reason, blockedAt: blocks[0].blockedAt, until: null } : null,
+        profile: x.roles.includes('moderator') ? null : { firstName, lastName: rest.join(' ') || null },
+        appointments: { asClient: x.roles.includes('client') ? (x.id === 1 ? CLIENT_SESSIONS.length : 1) : 0,
+          asPsychologist: x.roles.includes('psychologist') ? (x.id === 101 ? PSY_SESSIONS.length : 0) : 0 },
+        blocks,
+      };
+    });
+    const store = { users, audit: [], nextId: 1000 };
+    save(MOD_KEY, store);
+    return store;
+  };
+  const saveMod = (store) => save(MOD_KEY, store);
+  const modUserView = ({ profile, appointments, blocks, ...row }) => row;
+  const findModUser = (store, id) => store.users.find((x) => String(x.id) === String(id)) || fail(404, 'NOT_FOUND', 'Пользователь не найден');
+  /** С модераторами и с собой эти действия недоступны – как на сервере */
+  const assertCanManage = (moderator, target) => {
+    if (target.id === moderator.id) fail(403, 'FORBIDDEN', 'Это действие нельзя применить к себе');
+    if (target.roles.includes('moderator')) fail(403, 'FORBIDDEN', 'Модераторов этой панелью не изменить');
+  };
+  /** Запись в журнал действий – в том же виде, что GET /api/admin/audit */
+  const modAudit = (store, moderator, action, entityType, entityId, details) => {
+    store.audit.unshift({ id: store.nextId++, action, entityType, entityId, details, ip: null, createdAt: new Date().toISOString(),
+      actor: { id: moderator.id, name: moderator.email.split('@')[0], email: moderator.email } });
+  };
+
+  route('GET', /^\/admin\/users$/, (_, { me: who, query }) => {
+    modOnly(who, 'users.view');
+    const store = modStore();
+    const q = String(query.q || '').trim().toLowerCase();
+    const items = store.users.filter((x) => (!q || x.name.toLowerCase().includes(q) || x.email.includes(q))
+      && (!query.role || x.roles.includes(query.role)) && (!query.status || x.status === query.status))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const limit = Number(query.limit) || 20, page = Number(query.page) || 1;
+    return { items: items.slice((page - 1) * limit, page * limit).map(modUserView), total: items.length, page, pages: Math.ceil(items.length / limit) };
+  });
+  route('GET', /^\/admin\/users\/(\d+)$/, (_, { me: who, params: [id] }) => {
+    modOnly(who, 'users.view');
+    return findModUser(modStore(), id);
+  });
+  route('PATCH', /^\/admin\/users\/(\d+)$/, (body, { me: who, params: [id] }) => {
+    const moderator = modOnly(who, 'users.edit');
+    const store = modStore();
+    const target = findModUser(store, id);
+    assertCanManage(moderator, target);
+    const fields = {};
+    if (body.firstName !== undefined && !String(body.firstName).trim()) fields.firstName = 'Укажите имя';
+    if (target.roles.includes('psychologist') && body.lastName !== undefined && !String(body.lastName || '').trim()) fields.lastName = 'Укажите фамилию';
+    if (Object.keys(fields).length) fail(422, 'VALIDATION_ERROR', 'Проверьте поля формы', fields);
+    if (!target.profile) fail(409, 'NO_PROFILE', 'У пользователя нет профиля');
+    if (body.firstName !== undefined) target.profile.firstName = String(body.firstName).trim();
+    if (body.lastName !== undefined) target.profile.lastName = String(body.lastName || '').trim() || null;
+    target.name = [target.profile.firstName, target.profile.lastName].filter(Boolean).join(' ');
+    modAudit(store, moderator, 'user.edit', 'user', target.id, { user: target.name, fields: Object.keys(body) });
+    saveMod(store);
+    return { role: target.roles.includes('psychologist') ? 'psychologist' : 'client', profile: target.profile };
+  });
+  route('PUT', /^\/admin\/users\/(\d+)\/roles$/, (body, { me: who, params: [id] }) => {
+    const moderator = modOnly(who, 'roles.assign');
+    const store = modStore();
+    const target = findModUser(store, id);
+    assertCanManage(moderator, target);
+    const roles = Array.isArray(body.roles) ? [...new Set(body.roles)] : [];
+    if (!roles.length) fail(422, 'VALIDATION_ERROR', 'Нужна хотя бы одна роль', { roles: 'client и/или psychologist' });
+    if (roles.some((r) => !['client', 'psychologist'].includes(r))) fail(422, 'VALIDATION_ERROR', 'Назначить можно роли client и psychologist', { roles: 'client, psychologist' });
+    const added = roles.filter((r) => !target.roles.includes(r));
+    const removed = target.roles.filter((r) => !roles.includes(r));
+    added.forEach((role) => modAudit(store, moderator, 'role.grant', 'user', target.id, { user: target.name, role }));
+    removed.forEach((role) => modAudit(store, moderator, 'role.revoke', 'user', target.id, { user: target.name, role }));
+    target.roles = roles;
+    if (!roles.includes('psychologist')) target.verificationStatus = undefined;
+    else if (!target.verificationStatus) target.verificationStatus = 'draft';
+    saveMod(store);
+    return target;
+  });
+  route('POST', /^\/admin\/users\/(\d+)\/block$/, (body, { me: who, params: [id] }) => {
+    const moderator = modOnly(who, 'users.block');
+    const store = modStore();
+    const target = findModUser(store, id);
+    assertCanManage(moderator, target);
+    if (target.status === 'blocked') fail(409, 'ALREADY_BLOCKED', 'Пользователь уже заблокирован');
+    const reason = String(body.reason || '').trim();
+    if (!reason) fail(422, 'VALIDATION_ERROR', 'Укажите причину блокировки', { reason: 'Укажите причину блокировки' });
+    const b = { id: store.nextId++, reason, blockedAt: new Date().toISOString(), until: null, unblockedAt: null, blockedBy: moderator.id };
+    target.blocks.unshift(b);
+    target.status = 'blocked';
+    target.block = { id: b.id, reason, blockedAt: b.blockedAt, until: null };
+    modAudit(store, moderator, 'user.block', 'user', target.id, { user: target.name, reason });
+    saveMod(store);
+    return target;
+  });
+  route('POST', /^\/admin\/users\/(\d+)\/unblock$/, (_, { me: who, params: [id] }) => {
+    const moderator = modOnly(who, 'users.block');
+    const store = modStore();
+    const target = findModUser(store, id);
+    assertCanManage(moderator, target);
+    if (!target.block) fail(409, 'NOT_BLOCKED', 'Пользователь не заблокирован');
+    const b = target.blocks.find((x) => x.id === target.block.id);
+    if (b) b.unblockedAt = new Date().toISOString();
+    modAudit(store, moderator, 'user.unblock', 'user', target.id, { user: target.name, reason: target.block.reason });
+    target.status = 'active';
+    target.block = null;
+    saveMod(store);
+    return target;
+  });
+
   /* ---------- Разбор запроса ---------- */
 
   async function handle(method, url, body) {

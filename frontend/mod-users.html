@@ -136,17 +136,17 @@
     <div class="modal__body">
       <div class="user-modal__head" data-user-head></div>
       <div class="fields">
-        <label class="f"><span class="f__label">Имя <span class="f__req">*</span></span><input class="f__input" name="name" required><span class="f__error">Введите имя</span></label>
-        <div class="f"><span class="f__label">Почта</span><input class="f__input" name="email" type="email" readonly aria-readonly="true"><span class="f__note">Почту меняет сам пользователь – с&nbsp;подтверждением по&nbsp;письму</span></div>
+        <label class="f"><span class="f__label">Имя <span class="f__req">*</span></span><input class="f__input" name="first" maxlength="64" required><span class="f__error">Введите имя</span></label>
+        <label class="f"><span class="f__label">Фамилия <span class="f__req" data-last-req hidden>*</span></span><input class="f__input" name="last" maxlength="64"><span class="f__error">Введите фамилию</span></label>
+        <div class="f span-2"><span class="f__label">Почта</span><input class="f__input" name="email" type="email" readonly aria-readonly="true"><span class="f__note">Почту меняет сам пользователь – с&nbsp;подтверждением по&nbsp;письму</span></div>
       </div>
       <div class="chips-group" style="margin-top:18px">
         <b>Роли</b>
         <div class="pills" data-user-roles>
           <label class="pill"><input type="checkbox" value="client"><span>Клиент</span></label>
           <label class="pill"><input type="checkbox" value="psychologist"><span>Психолог</span></label>
-          <label class="pill"><input type="checkbox" value="moderator"><span>Модератор</span></label>
         </div>
-        <p class="f__note">Права каждой роли настраиваются в&nbsp;разделе «Роли и права»</p>
+        <p class="f__note">Модератор назначает клиента и&nbsp;психолога; права каждой роли настраиваются в&nbsp;разделе «Роли и права». После смены ролей пользователю нужно войти заново</p>
       </div>
       <div class="blocks" data-user-blocks></div>
     </div>
