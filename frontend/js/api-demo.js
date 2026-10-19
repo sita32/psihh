@@ -1452,6 +1452,21 @@ const DEMO_API = (() => {
     return rolesOverview();
   });
 
+  /* ---------- Панель модератора: журнал действий ----------
+     MOD_AUDIT из data.js (как в demo.sql) и действия модератора в этом браузере (ryadom-demo-mod). */
+
+  route('GET', /^\/admin\/audit$/, (_, { me: who, query }) => {
+    const moderator = modOnly(who, 'audit.view');
+    const actor = { id: moderator.id, name: moderator.email.split('@')[0], email: moderator.email };
+    const seeded = MOD_AUDIT.map((e, i) => ({ id: i + 1, action: e.action, entityType: e.entityType, entityId: null, details: e.details,
+      ip: null, createdAt: startsAt(e.k, e.time), actor }));
+    const all = [...modStore().audit, ...seeded].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const q = String(query.q || '').toLowerCase();
+    const items = all.filter((e) => (!query.action || e.action.startsWith(query.action)) && (!q || JSON.stringify(e.details).toLowerCase().includes(q)));
+    const limit = Number(query.limit) || 30, page = Number(query.page) || 1;
+    return { items: items.slice((page - 1) * limit, page * limit), total: items.length, page, pages: Math.ceil(items.length / limit) };
+  });
+
   /* ---------- Разбор запроса ---------- */
 
   async function handle(method, url, body) {

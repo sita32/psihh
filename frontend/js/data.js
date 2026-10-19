@@ -271,38 +271,16 @@ const MOD_REVIEWS = [
     report: { k: -1, reason: 'Оскорбления' } },
 ];
 
-/* Роли и права (таблицы roles, permissions, role_permissions – как в database/seed.sql) */
-const MOD_ROLES = [
-  { code: 'client', name: 'Клиент' },
-  { code: 'psychologist', name: 'Психолог' },
-  { code: 'moderator', name: 'Модератор' },
-];
-const MOD_PERMISSIONS = [
-  { code: 'profile.edit_own', module: 'Профиль', name: 'Редактирование своего профиля', roles: ['client', 'psychologist'] },
-  { code: 'catalog.view', module: 'Каталог', name: 'Поиск и просмотр психологов', roles: ['client', 'psychologist', 'moderator'] },
-  { code: 'appointments.book', module: 'Записи', name: 'Запись на консультацию', roles: ['client'] },
-  { code: 'appointments.manage_own', module: 'Записи', name: 'Отмена и перенос своих записей', roles: ['client', 'psychologist'] },
-  { code: 'schedule.manage', module: 'Расписание', name: 'Управление окнами расписания', roles: ['psychologist'] },
-  { code: 'documents.upload', module: 'Документы', name: 'Загрузка документов об образовании', roles: ['psychologist'] },
-  { code: 'chat.use', module: 'Чат', name: 'Встроенный чат', roles: ['client', 'psychologist'] },
-  { code: 'reviews.create', module: 'Отзывы', name: 'Публикация отзывов', roles: ['client'] },
-  { code: 'users.view', module: 'Модерация', name: 'Просмотр пользователей', roles: ['moderator'] },
-  { code: 'users.edit', module: 'Модерация', name: 'Редактирование профилей', roles: ['moderator'] },
-  { code: 'users.block', module: 'Модерация', name: 'Блокировка и разблокировка', roles: ['moderator'] },
-  { code: 'roles.assign', module: 'Модерация', name: 'Назначение ролей и прав', roles: ['moderator'] },
-  { code: 'psychologists.verify', module: 'Модерация', name: 'Проверка документов специалистов', roles: ['moderator'] },
-  { code: 'reviews.moderate', module: 'Модерация', name: 'Модерация отзывов', roles: ['moderator'] },
-  { code: 'audit.view', module: 'Модерация', name: 'Просмотр журнала действий', roles: ['moderator'] },
-];
-
-/* Журнал действий (таблица audit_log). k – день, time – время */
+/* Журнал действий (таблица audit_log) – те же записи, что в database/demo.sql.
+   k – день от сегодня, time – время; details – как в колонке details (jsonb) */
 const MOD_AUDIT = [
-  { k: 0, time: '09:12', who: 'Ирина Литвин', action: 'review.approve', object: 'Отзыв о Никите Белове', details: 'Опубликован' },
-  { k: -1, time: '18:40', who: 'Ирина Литвин', action: 'document.approve', object: 'Заявка Никиты Белова', details: 'Статус специалиста подтверждён' },
-  { k: -2, time: '11:05', who: 'Ирина Литвин', action: 'review.reject', object: 'Отзыв о Дмитрии Соколове', details: 'Причина: реклама стороннего сервиса' },
-  { k: -12, time: '20:31', who: 'Ирина Литвин', action: 'user.block', object: 'Дмитрий К.', details: 'Причина: оскорбления психолога в чате после сессии' },
-  { k: -13, time: '14:17', who: 'Ирина Литвин', action: 'document.reject', object: 'Заявка Виктора Н.', details: 'Нет высшего психологического образования' },
-  { k: -20, time: '10:00', who: 'Ирина Литвин', action: 'role.grant', object: 'Никита Белов', details: 'Назначена роль «Психолог»' },
+  { k: -92, time: '18:40', action: 'verification.approve', entityType: 'psychologist', details: { psychologist: 'Никита Белов', comment: null } },
+  { k: -20, time: '10:00', action: 'role.grant', entityType: 'user', details: { user: 'Юлия Ковалёва', role: 'psychologist' } },
+  { k: -13, time: '14:17', action: 'verification.reject', entityType: 'psychologist',
+    details: { psychologist: 'Виктор Н.', comment: 'Нет высшего психологического образования. Онлайн-курс не подтверждает квалификацию психолога.' } },
+  { k: -12, time: '20:31', action: 'user.block', entityType: 'user', details: { user: 'Дмитрий К.', reason: 'Оскорбления психолога в чате после сессии' } },
+  { k: -29, time: '09:12', action: 'review.reject', entityType: 'review', details: { psychologist: 'Никита Белов', rating: 2, comment: 'Оскорбительные оценки' } },
+  { k: -15, time: '11:05', action: 'review.approve', entityType: 'review', details: { psychologist: 'Дмитрий Соколов', rating: 4, comment: null } },
 ];
 
 /* =====================================================================
