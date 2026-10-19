@@ -124,7 +124,23 @@ async function moveToPast(appointmentId) {
   );
 }
 
+/**
+ * Консультация, которая уже состоялась: запись → «время прошло» → психолог отметил.
+ * Возвращает id записи (по ней клиент может оставить отзыв).
+ */
+let sessionDay = 20;
+async function completedSession(psy, client) {
+  sessionDay += 1;
+  const [slot] = await openSlots(psy, [{ date: minskDay(sessionDay), time: '10:00' }]);
+  const booked = await client.agent.post('/api/appointments').send({ slotId: slot.id });
+  if (booked.status !== 201) throw new Error(`Запись: ${booked.status} ${JSON.stringify(booked.body)}`);
+  await moveToPast(booked.body.id);
+  const done = await psy.agent.patch(`/api/appointments/${booked.body.id}`).send({ status: 'completed' });
+  if (done.status !== 200) throw new Error(`Отметка: ${done.status} ${JSON.stringify(done.body)}`);
+  return booked.body.id;
+}
+
 module.exports = {
   app, request, DEMO, DEMO_PASSWORD, browser, nextIp, uniqueEmail, loginAs, registerClient, registerPsychologist, cookieFrom,
-  minsk, minskDay, PNG, PDF, verifiedPsychologist, openSlots, moveToPast,
+  minsk, minskDay, PNG, PDF, verifiedPsychologist, openSlots, moveToPast, completedSession,
 };

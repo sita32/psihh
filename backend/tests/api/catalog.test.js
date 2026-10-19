@@ -132,8 +132,12 @@ describe('каталог: сортировка', () => {
     expect(isMonotonic((await sorted('rating')).map((p) => p.rating), -1)).toBe(true);
   });
 
-  test('ближайшее окно – по времени', async () => {
-    expect(isMonotonic((await sorted('soon')).map((p) => Date.parse(p.nextSlot)), 1)).toBe(true);
+  test('ближайшее окно – по времени; у кого свободных окон нет – в конце', async () => {
+    const slots = (await sorted('soon')).map((p) => p.nextSlot);
+    const firstEmpty = slots.indexOf(null);
+    const withSlot = firstEmpty === -1 ? slots : slots.slice(0, firstEmpty);
+    expect(isMonotonic(withSlot.map(Date.parse), 1)).toBe(true);
+    expect(slots.slice(withSlot.length).every((s) => s === null)).toBe(true);
   });
 });
 
