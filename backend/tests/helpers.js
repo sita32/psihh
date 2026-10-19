@@ -60,4 +60,22 @@ function cookieFrom(res, name) {
   return { value: decodeURIComponent(pair.slice(name.length + 1)), attrs: attrs.map((a) => a.toLowerCase()) };
 }
 
-module.exports = { app, request, DEMO, DEMO_PASSWORD, browser, nextIp, uniqueEmail, loginAs, registerClient, registerPsychologist, cookieFrom };
+/* Дата и время по часовому поясу сайта (Минск) – окна и фильтры считаются в нём */
+const minskParts = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Minsk', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+});
+function minsk(iso) {
+  const p = Object.fromEntries(minskParts.formatToParts(new Date(iso)).map(({ type, value }) => [type, value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, minutes: Number(p.hour) * 60 + Number(p.minute) };
+}
+/** Дата через n дней от сегодняшней по Минску: 'ГГГГ-ММ-ДД' */
+const minskDay = (n = 0) => minsk(Date.now() + n * 86400000).date;
+
+/* Маленькие файлы для загрузки: картинка 1×1 PNG и «PDF» (сервер проверяет тип по содержимому) */
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+const PDF = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF');
+
+module.exports = {
+  app, request, DEMO, DEMO_PASSWORD, browser, nextIp, uniqueEmail, loginAs, registerClient, registerPsychologist, cookieFrom,
+  minsk, minskDay, PNG, PDF,
+};
