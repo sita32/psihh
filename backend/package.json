@@ -7,7 +7,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch --env-file-if-exists=../.env src/server.js"
+    "dev": "node --watch --env-file-if-exists=../.env src/server.js",
+    "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage"
   },
   "engines": {
     "node": ">=24"
@@ -21,5 +23,25 @@
     "multer": "2.4.0",
     "pg": "8.23.1",
     "socket.io": "4.8.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "globalSetup": "<rootDir>/tests/global-setup.js",
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
+    ],
+    "coverageDirectory": "/tmp/coverage",
+    "testTimeout": 15000
+  },
+  "devDependencies": {
+    "jest": "30.5.2",
+    "supertest": "7.3.1"
   }
 }

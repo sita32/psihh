@@ -50,6 +50,39 @@ services:
       start_interval: 2s
     restart: unless-stopped
 
+  # Тесты сервера (Jest + supertest): docker compose --profile test run --rm tests
+  # Своя база ryadom_test (создаётся заново при каждом запуске) и своя база Redis (1) –
+  # данные сайта не трогаются. src и tests подключены папками: правки видны без пересборки.
+  tests:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      target: test
+    environment:
+      NODE_ENV: test
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ryadom_test
+      POSTGRES_USER: ${POSTGRES_USER:-ryadom}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?задайте REDIS_PASSWORD в .env}
+      REDIS_DB: 1
+      JWT_SECRET: test-secret
+      BCRYPT_ROUNDS: 4          # быстрый хеш паролей для новых тестовых аккаунтов
+      UPLOAD_DIR: /tmp/uploads
+      SQL_DIR: /database        # schema.sql, seed.sql, demo.sql для тестовой базы
+    volumes:
+      - ./database:/database:ro
+      - ./backend/src:/app/src:ro
+      - ./backend/tests:/app/tests:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   # PostgreSQL 16: при первом старте (пустой volume) выполняет schema.sql, seed.sql и demo.sql
   postgres:
     image: postgres:16-alpine

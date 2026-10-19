@@ -30,6 +30,7 @@ const config = {
     host: process.env.REDIS_HOST || 'localhost',
     port: int('REDIS_PORT', 6379),
     password: process.env.REDIS_PASSWORD || undefined,
+    db: int('REDIS_DB', 0),  // тесты работают в своей базе Redis (1), чтобы не трогать сессии сайта
     keyPrefix: 'ryadom:', // все ключи с префиксом, см. database/redis.md
   },
 

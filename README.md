@@ -11,9 +11,10 @@
 
 | Часть | Готовность |
 |---|---|
-| Интерфейс (`frontend/`) | готов: 25 страниц, статичный HTML/CSS/JS с демо-данными |
+| Интерфейс (`frontend/`) | готов: 25 страниц, все работают на API; без сервера – на демо-данных |
 | База данных (`database/`) | спроектирована: PostgreSQL 16, 24 таблицы, триггеры бизнес-правил; Redis – сессии и временные данные (redis.md) |
-| Сервер на Node.js (`backend/`), Docker | готов по API (страницы ещё на демо-данных): вход и роли, каталог, профили, подбор, расписание, записи, чат, отзывы, модерация – см. [API](#api) |
+| Сервер на Node.js (`backend/`), Docker | готов: вход и роли, каталог, профили, подбор, расписание, записи, чат, отзывы, модерация – см. [API](#api) |
+| Тесты (`backend/tests/`) | идут по частям: Jest + supertest в Docker – см. [Тесты](#тесты) |
 
 ## Запуск в Docker
 
@@ -169,6 +170,25 @@ curl -c /tmp/ryadom.jar -H 'Content-Type: application/json' -d '{"email":"anna@m
 curl -b /tmp/ryadom.jar http://localhost/api/auth/me
 ```
 
+## Тесты
+
+Jest + supertest, в отдельном контейнере `tests` (запускается только по требованию):
+
+```bash
+docker compose --profile test run --rm tests
+```
+
+Тесты работают со своей базой `ryadom_test` (пересоздаётся из `schema.sql`, `seed.sql`, `demo.sql` при каждом запуске)
+и своей базой Redis (номер 1) – данные сайта не трогаются; на другой базе тесты не запустятся.
+Покрытие кода: `docker compose --profile test run --rm tests npm run test:coverage`.
+
+| Файл | Что проверяет |
+|---|---|
+| `tests/unit/validation.test.js` | проверка полей: даты, текст, числа, телефон, одна ошибка 422 со всеми полями |
+| `tests/api/health.test.js` | состояние сервера, формат ошибок (404, неверный JSON) |
+| `tests/api/auth.test.js` | регистрация, вход, cookie сессии, истёкший токен и /refresh, выход, блокировка, ограничение попыток |
+| `tests/api/access.test.js` | права ролей: кто из гостя, клиента, психолога и модератора куда может зайти |
+
 ## Только интерфейс, без Docker
 
 Для работы над страницами хватит Python 3, он есть в macOS и большинстве Linux.
@@ -230,6 +250,7 @@ backend/         сервер на Node.js + Express, Dockerfile
   src/middleware/    журнал запросов, обработка ошибок и 404 для /api, проверка входа и прав
   src/socket/        Socket.IO: чат в реальном времени (события из src/realtime.js)
   src/config.js      настройки из переменных окружения
+  tests/             Jest + supertest: unit/ – отдельные функции, api/ – запросы к API, helpers.js
 database/        schema.sql (таблицы, ограничения, триггеры), seed.sql (роли, справочники),
                  demo.sql (демо-аккаунты), redis.md
 nginx/           default.conf – раздача frontend/, прокси /api и /socket.io, страница 404
