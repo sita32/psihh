@@ -1,41 +1,45 @@
 /**
  * «Рядом» – панель модератора: роли и права (mod-roles.html).
  * Матрица «право × роль»: какие модули приложения доступны клиенту, психологу и модератору.
- * Данные пока из data.js (MOD_ROLES, MOD_PERMISSIONS, MOD_AUDIT) – те же коды, что в database/seed.sql.
- * Позже:
- *   GET /api/admin/roles                              – роли с правами
- *   PUT /api/admin/roles/:code/permissions { codes }  – таблица role_permissions
+ * Данные – из API (таблицы roles, permissions, role_permissions):
+ *   GET /api/admin/roles                                    – роли с правами и все права
+ *   PUT /api/admin/roles/:code/permissions { permissions }  – права одной роли целиком
+ * Сервер пишет изменения в журнал и сбрасывает права в кэше у всех пользователей.
  */
-const MODERATOR = { id: 201, name: 'Ирина Литвин' };
-/* Права, которые нельзя снять с роли – иначе управлять доступом станет некому */
+/* Права, которые нельзя снять с роли – иначе управлять доступом станет некому
+   (снятие roles.assign с модератора запрещает и сервер) */
 const LOCKED = { moderator: ['roles.assign', 'users.view'] };
+/* Разделы приложения – коды модулей из таблицы permissions */
+const MODULE_NAMES = {
+  profile: 'Профиль', catalog: 'Каталог', appointments: 'Записи', schedule: 'Расписание', documents: 'Документы',
+  chat: 'Чат', reviews: 'Отзывы', moderation: 'Модерация',
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   const { escapeHtml, plural, toast } = UI;
   const $ = (sel) => document.querySelector(sel);
 
-  const roles = MOD_ROLES;
-  const perms = MOD_PERMISSIONS;
-  // Рабочая копия: что сейчас включено в матрице (до сохранения)
-  let draft = perms.map((p) => new Set(p.roles));
-  const nowTime = () => new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  let roles = [];                // [{ code, name, description, permissions: [коды] }] – как сохранено
+  let perms = [];                // [{ code, module, description }]
+  let draft = {};                // рабочая копия: роль → Set кодов (до сохранения)
 
+  const has = (role, code) => role.permissions.includes(code);
   /** Сколько клеток матрицы отличается от сохранённого состояния */
-  const changes = () => perms.reduce((n, p, i) => n + roles.filter((r) => p.roles.includes(r.code) !== draft[i].has(r.code)).length, 0);
+  const changes = () => roles.reduce((n, r) => n + perms.filter((p) => has(r, p.code) !== draft[r.code].has(p.code)).length, 0);
 
   const render = () => {
+    $('table thead').innerHTML = `<tr><th>Право</th>${roles.map((r) => `<th title="${escapeHtml(r.description || '')}">${escapeHtml(r.name)}</th>`).join('')}</tr>`;
     const modules = [...new Set(perms.map((p) => p.module))];
-    $('[data-rows]').innerHTML = modules.map((m) => `<tr class="grp"><td colspan="${roles.length + 1}">${m}</td></tr>`
-      + perms.map((p, i) => {
-        if (p.module !== m) return '';
-        const changed = roles.some((r) => p.roles.includes(r.code) !== draft[i].has(r.code));
+    $('[data-rows]').innerHTML = modules.map((m) => `<tr class="grp"><td colspan="${roles.length + 1}">${MODULE_NAMES[m] || m}</td></tr>`
+      + perms.filter((p) => p.module === m).map((p) => {
+        const changed = roles.some((r) => has(r, p.code) !== draft[r.code].has(p.code));
         return `<tr class="${changed ? 'is-changed' : ''}">
-          <td>${escapeHtml(p.name)}<small>${p.code}</small></td>
+          <td>${escapeHtml(p.description)}<small>${p.code}</small></td>
           ${roles.map((r) => {
             const locked = (LOCKED[r.code] || []).includes(p.code);
-            return `<td><label class="toggle" title="${locked ? 'Это право нельзя снять' : `${r.name}: ${escapeHtml(p.name)}`}">
-              <input type="checkbox" data-i="${i}" data-role="${r.code}"${draft[i].has(r.code) ? ' checked' : ''}${locked ? ' disabled' : ''}
-                aria-label="${r.name}: ${escapeHtml(p.name)}"><span class="toggle__sw"${locked ? ' style="opacity:.5"' : ''}></span></label></td>`;
+            return `<td><label class="toggle" title="${locked ? 'Это право нельзя снять' : `${escapeHtml(r.name)}: ${escapeHtml(p.description)}`}">
+              <input type="checkbox" data-perm="${p.code}" data-role="${r.code}"${draft[r.code].has(p.code) ? ' checked' : ''}${locked ? ' disabled' : ''}
+                aria-label="${escapeHtml(r.name)}: ${escapeHtml(p.description)}"><span class="toggle__sw"${locked ? ' style="opacity:.5"' : ''}></span></label></td>`;
           }).join('')}
         </tr>`;
       }).join('')).join('');
@@ -44,27 +48,44 @@ document.addEventListener('DOMContentLoaded', () => {
     $('[data-save-text]').textContent = `Изменено ${n} ${plural(n, 'право', 'права', 'прав')}`;
   };
 
+  /** Роли с сервера → таблица; черновик – как сохранено */
+  const apply = (overview) => {
+    ({ roles, permissions: perms } = overview);
+    draft = Object.fromEntries(roles.map((r) => [r.code, new Set(r.permissions)]));
+    render();
+  };
+
   $('[data-rows]').addEventListener('change', (e) => {
-    const box = e.target.closest('[data-i]');
+    const box = e.target.closest('[data-perm]');
     if (!box) return;
-    const set = draft[Number(box.dataset.i)];
-    if (box.checked) set.add(box.dataset.role); else set.delete(box.dataset.role);
+    const set = draft[box.dataset.role];
+    if (box.checked) set.add(box.dataset.perm); else set.delete(box.dataset.perm);
     render();
   });
 
-  $('[data-reset]').addEventListener('click', () => { draft = perms.map((p) => new Set(p.roles)); render(); });
-  $('[data-save]').addEventListener('click', () => {
-    // В журнал – каждое изменение отдельной строкой
-    perms.forEach((p, i) => roles.forEach((r) => {
-      const was = p.roles.includes(r.code), now = draft[i].has(r.code);
-      if (was !== now) {
-        MOD_AUDIT.unshift({ k: 0, time: nowTime(), who: MODERATOR.name, action: 'role.permission', object: `Роль «${r.name}»`, details: `${now ? 'Выдано' : 'Снято'} право «${p.name}»` });
+  $('[data-reset]').addEventListener('click', () => apply({ roles, permissions: perms }));
+
+  const saveBtn = $('[data-save]');
+  saveBtn.addEventListener('click', async () => {
+    // Каждая изменённая роль – одним запросом со всем набором её прав
+    const changed = roles.filter((r) => perms.some((p) => has(r, p.code) !== draft[r.code].has(p.code)));
+    saveBtn.disabled = true;
+    let last = null;
+    try {
+      for (const r of changed) {
+        last = await API.put(`/admin/roles/${r.code}/permissions`, { permissions: perms.map((p) => p.code).filter((c) => draft[r.code].has(c)) });
       }
-    }));
-    perms.forEach((p, i) => { p.roles = roles.map((r) => r.code).filter((c) => draft[i].has(c)); });
-    render();
-    toast('Права ролей сохранены');
+      toast('Права ролей сохранены – действуют сразу');
+    } catch (err) {
+      last = null;                                  // часть ролей могла сохраниться – покажем, как на сервере
+      toast(err.message, true);
+    } finally {
+      saveBtn.disabled = false;
+    }
+    try {
+      apply(last || await API.get('/admin/roles'));
+    } catch (err) { toast(err.message, true); }
   });
 
-  render();
+  API.get('/admin/roles').then(apply, (err) => toast(`Не удалось загрузить роли: ${err.message}`, true));
 });

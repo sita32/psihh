@@ -33,13 +33,22 @@ const DEMO_API = (() => {
   const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* приватный режим */ } };
   const forget = (key) => { try { localStorage.removeItem(key); } catch { /* приватный режим */ } };
 
-  /** Текущий «вошедший» или 401, как у сервера */
-  const me = () => load(USER_KEY) || fail(401, 'UNAUTHORIZED', 'Требуется вход');
+  /** Права ролей: как в seed.sql или как их изменил модератор в демо (ryadom-demo-mod) */
+  const permissionsOf = (roles) => {
+    const saved = (load('ryadom-demo-mod') || {}).rolePermissions || {};
+    return [...new Set(roles.flatMap((r) => saved[r] || PERMISSIONS[r]))].sort();
+  };
+
+  /** Текущий «вошедший» или 401, как у сервера; права – всегда свежие, как у сервера после сброса кэша */
+  const me = () => {
+    const u = load(USER_KEY) || fail(401, 'UNAUTHORIZED', 'Требуется вход');
+    return { ...u, permissions: permissionsOf(u.roles) };
+  };
 
   const account = (email, extra = {}) => {
     const base = ACCOUNTS[email] || CLIENT;
     const user = { ...base, ...extra, email, status: 'active' };
-    user.permissions = [...new Set(user.roles.flatMap((r) => PERMISSIONS[r]))].sort();
+    user.permissions = permissionsOf(user.roles);
     return user;
   };
 
@@ -1396,6 +1405,51 @@ const DEMO_API = (() => {
       { psychologist: review.psychologist ? review.psychologist.name : 'Марина Волкова', report: review.report.reason, comment });
     saveMod(store);
     return { id: Number(id), decision, comment };
+  });
+
+  /* ---------- Панель модератора: роли и права (как database/seed.sql) ---------- */
+
+  const ROLE_INFO = [
+    { code: 'client', name: 'Клиент', description: 'Поиск психолога, запись на консультации, чат, отзывы' },
+    { code: 'psychologist', name: 'Психолог', description: 'Профессиональный профиль, расписание, работа с клиентами' },
+    { code: 'moderator', name: 'Модератор', description: 'Управление пользователями, ролями и модерация контента' },
+  ];
+  const PERMISSION_LIST = [
+    ['profile.edit_own', 'profile', 'Редактирование собственного профиля'], ['catalog.view', 'catalog', 'Поиск и просмотр профилей психологов'],
+    ['appointments.book', 'appointments', 'Запись на консультацию'], ['appointments.manage_own', 'appointments', 'Отмена и перенос своих записей'],
+    ['schedule.manage', 'schedule', 'Управление слотами расписания'], ['documents.upload', 'documents', 'Загрузка документов об образовании'],
+    ['chat.use', 'chat', 'Использование встроенного чата'], ['reviews.create', 'reviews', 'Публикация отзывов о психологе'],
+    ['reviews.reply', 'reviews', 'Ответ на отзывы о себе и жалоба модератору'], ['users.view', 'moderation', 'Просмотр пользователей'],
+    ['users.edit', 'moderation', 'Редактирование профилей пользователей'], ['users.block', 'moderation', 'Блокировка и разблокировка аккаунтов'],
+    ['roles.assign', 'moderation', 'Назначение ролей и прав'], ['psychologists.verify', 'moderation', 'Проверка документов специалистов'],
+    ['reviews.moderate', 'moderation', 'Модерация отзывов и жалоб'], ['audit.view', 'moderation', 'Просмотр журнала действий'],
+  ].map(([code, module, description]) => ({ code, module, description }));
+
+  const rolesOverview = () => {
+    const saved = modStore().rolePermissions || {};
+    return {
+      roles: ROLE_INFO.map((r) => ({ ...r, permissions: PERMISSION_LIST.map((p) => p.code).filter((c) => (saved[r.code] || PERMISSIONS[r.code]).includes(c)) })),
+      permissions: PERMISSION_LIST,
+    };
+  };
+  route('GET', /^\/admin\/roles$/, (_, { me: who }) => { modOnly(who, 'roles.assign'); return rolesOverview(); });
+  route('PUT', /^\/admin\/roles\/([a-z]+)\/permissions$/, (body, { me: who, params: [code] }) => {
+    const moderator = modOnly(who, 'roles.assign');
+    const role = ROLE_INFO.find((r) => r.code === code) || fail(404, 'NOT_FOUND', 'Роль не найдена');
+    const codes = Array.isArray(body.permissions) ? [...new Set(body.permissions)] : fail(422, 'VALIDATION_ERROR', 'permissions – список кодов прав', { permissions: 'Список кодов' });
+    const unknown = codes.filter((c) => !PERMISSION_LIST.some((p) => p.code === c));
+    if (unknown.length) fail(422, 'VALIDATION_ERROR', `Неизвестные права: ${unknown.join(', ')}`, { permissions: unknown.join(', ') });
+    if (code === 'moderator' && !codes.includes('roles.assign')) fail(409, 'LOCKOUT', 'У модератора должно остаться право roles.assign – иначе роли больше никто не изменит');
+    const store = modStore();
+    const before = (store.rolePermissions || {})[code] || PERMISSIONS[code];
+    const added = codes.filter((c) => !before.includes(c));
+    const removed = before.filter((c) => !codes.includes(c));
+    if (added.length || removed.length) {
+      store.rolePermissions = { ...(store.rolePermissions || {}), [code]: codes };
+      modAudit(store, moderator, 'role.permissions', 'role', null, { role: role.name, added, removed });
+      saveMod(store);
+    }
+    return rolesOverview();
   });
 
   /* ---------- Разбор запроса ---------- */
