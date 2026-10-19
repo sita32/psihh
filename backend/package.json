@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "dev": "node --watch --env-file-if-exists=../.env src/server.js",
     "test": "jest --runInBand",
-    "test:coverage": "jest --runInBand --coverage"
+    "test:coverage": "jest --runInBand --coverage",
+    "test:report": "jest --runInBand --coverage --coverageReporters=json-summary --coverageReporters=text-summary --json --outputFile=/tmp/coverage/results.json; node tests/report.js"
   },
   "engines": {
     "node": ">=24"

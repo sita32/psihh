@@ -54,7 +54,7 @@ describe('запись клиента', () => {
     expect(res.body.error.code).toBe('SLOT_TAKEN');
   });
 
-  test('два клиента одновременно на одно окно – запишется ровно один', async () => {
+  test('три клиента одновременно на одно окно – запишется ровно один', async () => {
     const slot = await freeSlot();
     const clients = await Promise.all([registerClient(), registerClient(), registerClient()]);
     const results = await Promise.all(clients.map((c) => c.agent.post('/api/appointments').send({ slotId: slot.id })));

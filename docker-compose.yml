@@ -51,6 +51,7 @@ services:
     restart: unless-stopped
 
   # Тесты сервера (Jest + supertest): docker compose --profile test run --rm tests
+  # Отчёт для записки (docs/testing.md): docker compose --profile test run --rm tests npm run test:report
   # Своя база ryadom_test (создаётся заново при каждом запуске) и своя база Redis (1) –
   # данные сайта не трогаются. src и tests подключены папками: правки видны без пересборки.
   tests:
@@ -77,6 +78,7 @@ services:
       - ./database:/database:ro
       - ./backend/src:/app/src:ro
       - ./backend/tests:/app/tests:ro
+      - ./docs:/docs           # сюда npm run test:report пишет docs/testing.md
     depends_on:
       postgres:
         condition: service_healthy
