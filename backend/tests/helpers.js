@@ -75,7 +75,56 @@ const minskDay = (n = 0) => minsk(Date.now() + n * 86400000).date;
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 const PDF = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF');
 
+/**
+ * Психолог, который виден в каталоге: анкета → диплом → заявка → одобрение модератора → публикация.
+ * Возвращает то же, что registerClient, и id психолога.
+ */
+async function verifiedPsychologist({ price = 60, formats = ['individual'] } = {}) {
+  const psy = await registerPsychologist();
+  const step = async (res, status) => {
+    if (res.status !== status) throw new Error(`${res.req.method} ${res.req.path}: ${res.status} ${JSON.stringify(res.body)}`);
+    return res;
+  };
+  await step(await psy.agent.patch('/api/profile').send({
+    headline: 'Психолог', bio: 'Работаю с тревогой и стрессом', methods: ['cbt'], topics: ['anxiety'],
+    services: formats.map((format) => ({ format, price })),
+  }), 200);
+  await step(await psy.agent.post('/api/profile/documents').attach('file', PDF, 'diploma.pdf')
+    .field('type', 'diploma').field('institution', 'БГУ'), 201);
+  const sent = await step(await psy.agent.post('/api/profile/verification'), 201);
+  const moderator = await loginAs(DEMO.moderator);
+  await step(await moderator.patch(`/api/admin/verification-requests/${sent.body.requests[0].id}`).send({ status: 'approved' }), 200);
+  await step(await psy.agent.patch('/api/profile').send({ isPublished: true }), 200);
+  return { ...psy, id: psy.user.id };
+}
+
+/** Открыть окна психологу и вернуть их (в том же порядке): [{ id, date, time, status }] */
+async function openSlots(psy, items) {
+  const res = await psy.agent.post('/api/schedule/slots').send({ slots: items });
+  if (res.status !== 201 || res.body.created !== items.length) throw new Error(`Окна: ${res.status} ${JSON.stringify(res.body)}`);
+  const dates = items.map((x) => x.date).sort();
+  const { slots } = (await psy.agent.get('/api/schedule/slots').query({ from: dates[0], to: dates[dates.length - 1] })).body;
+  return items.map((x) => slots.find((s) => s.date === x.date && s.time === x.time));
+}
+
+/**
+ * «Время прошло»: окно записи сдвигается в прошлое прямо в тестовой базе –
+ * так проверяются правила, которые зависят от начала встречи (отметки, отмена после начала).
+ * Каждое окно – на свой час: окна одного психолога не могут пересекаться (ex_slots_no_overlap).
+ */
+let pastShift = 0;
+async function moveToPast(appointmentId) {
+  pastShift += 1;
+  const hoursAgo = 1 + pastShift;
+  const { pool } = require('../src/db/postgres');
+  await pool.query(
+    `UPDATE schedule_slots SET starts_at = now() - make_interval(hours => $2), ends_at = now() - make_interval(hours => $2) + interval '50 minutes'
+      WHERE id = (SELECT slot_id FROM appointments WHERE id = $1)`,
+    [appointmentId, hoursAgo],
+  );
+}
+
 module.exports = {
   app, request, DEMO, DEMO_PASSWORD, browser, nextIp, uniqueEmail, loginAs, registerClient, registerPsychologist, cookieFrom,
-  minsk, minskDay, PNG, PDF,
+  minsk, minskDay, PNG, PDF, verifiedPsychologist, openSlots, moveToPast,
 };

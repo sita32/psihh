@@ -1,5 +1,6 @@
 // Каталог психологов, страница психолога, свободные окна, отзывы и справочники (доступны без входа).
 const { request, app, loginAs, minsk, minskDay, DEMO } = require('../helpers');
+const { pool } = require('../../src/db/postgres');
 
 const get = (url, query) => request(app).get(url).query(query || {});
 const codes = (list) => list.map((x) => x.code);
@@ -17,13 +18,20 @@ describe('GET /api/references', () => {
 
 describe('каталог: выдача', () => {
   let all;
+  let listed;   // кто должен быть в каталоге – по самой базе
   beforeAll(async () => {
     all = (await get('/api/psychologists', { limit: 50 })).body;
+    // Другие файлы тестов добавляют своих психологов – сверяемся с базой, а не с числом из демо-данных
+    ({ rows: listed } = await pool.query(
+      `SELECT user_id AS id FROM psychologist_profiles p JOIN users u ON u.id = p.user_id
+        WHERE p.verification_status = 'verified' AND p.is_published AND u.status = 'active'`,
+    ));
   });
 
-  test('только проверенные и опубликованные: 12 психологов из демо-данных', () => {
-    expect(all.total).toBe(12);
-    expect(all.items).toHaveLength(12);
+  test('только проверенные, опубликованные и не заблокированные (в демо-данных их 12)', () => {
+    expect(listed.length).toBeGreaterThanOrEqual(12);
+    expect(all.total).toBe(listed.length);
+    expect(all.items.map((p) => p.id).sort((a, b) => a - b)).toEqual(listed.map((r) => r.id).sort((a, b) => a - b));
     // Психологи с заявкой на проверке в каталог не попадают
     expect(all.items.map((p) => p.name)).not.toContain('Юлия Ковалёва');
   });
@@ -40,16 +48,18 @@ describe('каталог: выдача', () => {
 
   test('подсказки к фильтрам: методы, форматы и две недели дней', () => {
     expect(all.facets.methods.cbt).toBeGreaterThan(0);
-    expect(all.facets.formats.individual).toBe(12);
+    expect(all.facets.formats.individual).toBe(all.items.filter((p) => codes(p.services).includes('individual')).length);
     expect(Object.keys(all.facets.days)).toHaveLength(14);
     Object.values(all.facets.days).forEach((n) => expect(n).toBeLessThanOrEqual(all.total));
   });
 
   test('страницы не пересекаются и вместе дают всех', async () => {
-    const pages = await Promise.all([1, 2, 3].map((page) => get('/api/psychologists', { limit: 5, page })));
+    const count = Math.ceil(all.total / 5);
+    const pages = await Promise.all(Array.from({ length: count }, (_, i) => get('/api/psychologists', { limit: 5, page: i + 1 })));
     const ids = pages.flatMap((r) => r.body.items.map((p) => p.id));
-    expect(pages[0].body.pages).toBe(3);
-    expect(new Set(ids).size).toBe(12);
+    expect(pages[0].body.pages).toBe(count);
+    expect(ids).toHaveLength(all.total);
+    expect(new Set(ids).size).toBe(all.total);
   });
 });
 
