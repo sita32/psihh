@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = API.fileUrl(`/admin/documents/${d.id}/file`);
     m.querySelector('[data-doc-title]').textContent = DOC_TYPES[d.type] || 'Документ';
     m.querySelector('[data-doc-name]').textContent = `${d.fileName} · ${sizeText(d.size)}`;
-    m.querySelector('[data-doc-view]').innerHTML = d.mimeType === 'application/pdf' && !API.isDemo()
+    m.querySelector('[data-doc-view]').innerHTML = d.mimeType === 'application/pdf'
       ? `<iframe src="${escapeHtml(url)}" title="${escapeHtml(d.fileName)}"></iframe>`
       : `<img src="${escapeHtml(url)}" alt="${escapeHtml(d.fileName)}">`;
     m.querySelector('[data-doc-open]').href = url;

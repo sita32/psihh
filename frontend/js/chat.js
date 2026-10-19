@@ -4,7 +4,7 @@
  * Данные – из API: GET /api/conversations (список), …/:id/messages (переписка и события записей),
  * отправка – Socket.IO «message:send» (или POST …/messages), файл – POST …/attachments,
  * «прочитано» – «messages:read». В реальном времени приходят message:new, messages:read,
- * typing («печатает…») и presence («в сети»). Без сервера ответ собеседника имитирует демо-слой.
+ * typing («печатает…») и presence («в сети»).
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const slotText = (slot) => `${new Date(`${slot.date}T00:00:00`).toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' })}, ${slot.time}`;
   /** Событие записи в ленте: «Вы записались на сессию · чт, 15 октября, 12:30» */
   const eventText = (e) => {
-    if (e.label) return e.label;   // демо-данные – готовая подпись
     const why = e.reason ? ` · причина: ${escapeHtml(e.reason.toLowerCase())}` : '';
     if (e.type === 'booked') return `${isPsy ? 'Клиент записался' : 'Вы записались'} на&nbsp;сессию · <b>${slotText(e.slot)}</b>`;
     if (e.type === 'rescheduled') return `Сессия перенесена${e.to ? ` на&nbsp;<b>${slotText(e.to)}</b>` : ''}${why}`;
@@ -242,15 +241,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   /* ---------- Отправка ---------- */
-  /** Без сервера – ответ собеседника имитирует демо-слой: «печатает…», затем сообщение */
-  const demoReply = (c) => {
-    if (!API.isDemo() || typeof DEMO_API === 'undefined' || !c.online) return;
-    setTimeout(() => {
-      if (current === c) showTyping(3);
-      setTimeout(() => { const m = DEMO_API.demoReply(c.id); if (m) receive(m); }, 1600);
-    }, 700);
-  };
-
   /** Отправка через сокет с подтверждением; без сокета – обычным запросом */
   const sendBySocket = (c, text) => new Promise((resolve, reject) => {
     socket.timeout(10000).emit('message:send', { conversationId: c.id, body: text }, (err, res) => {
@@ -269,7 +259,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const m = socket && socket.connected ? await sendBySocket(c, text) : await API.post(`/conversations/${c.id}/messages`, { body: text });
       receive(m);
-      demoReply(c);
     } catch (err) {
       input.value = text;              // текст не потерялся – можно отправить ещё раз
       autosize();
@@ -356,7 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!me) return;                     // не вошёл – Session уже ведёт на страницу входа
   renderList();
   renderBadge();
-  if (!API.isDemo()) socket = await connectSocket();
+  socket = await connectSocket();
 
   // Диалог из ссылки (?with=id собеседника) или первый; на телефоне – сначала список
   const withId = new URLSearchParams(location.search).get('with');
